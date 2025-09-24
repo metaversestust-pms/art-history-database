@@ -1,0 +1,255 @@
+version: '3.8'
+
+services:
+  # 主應用服務
+  art-database-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: art-database-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+      - ES_HOST=elasticsearch
+      - API_PORT=3000
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+    networks:
+      - art-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL 資料庫
+  postgres:
+    image: postgres:15-alpine
+    container_name: art-database-postgres
+    environment:
+      POSTGRES_DB: art_history_db
+      POSTGRES_USER: art_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./context/database:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - art-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U art_user -d art_history_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 快取
+  redis:
+    image: redis:7-alpine
+    container_name: art-database-redis
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD:-}"
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - art-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Elasticsearch 搜索引擎
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: art-database-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - art-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: art-database-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./context/deployment/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - art-database-api
+    networks:
+      - art-network
+    restart: unless-stopped
+
+  # Prometheus 監控
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: art-database-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./context/deployment/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - art-network
+    restart: unless-stopped
+
+  # Grafana 監控面板
+  grafana:
+    image: grafana/grafana:latest
+    container_name: art-database-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./context/deployment/grafana:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - art-network
+    restart: unless-stopped
+
+  # 4個Agent服務 (簡化版，實際開發時會分別建立)
+  web-crawler-agent:
+    build:
+      context: ./agents/web-crawler
+      dockerfile: Dockerfile
+    container_name: web-crawler-agent
+    environment:
+      - AGENT_TYPE=WebCrawlerAgent
+      - API_GATEWAY=http://art-database-api:3000
+    env_file:
+      - .env
+    volumes:
+      - ./context/agents/web_crawler:/app/context
+      - ./data/raw:/app/data/raw
+    networks:
+      - art-network
+    restart: unless-stopped
+    profiles:
+      - agents  # 使用profile控制是否啟動
+
+  metadata-extractor-agent:
+    build:
+      context: ./agents/metadata-extractor
+      dockerfile: Dockerfile
+    container_name: metadata-extractor-agent
+    environment:
+      - AGENT_TYPE=MetadataExtractorAgent
+    env_file:
+      - .env
+    volumes:
+      - ./context/agents/metadata_extractor:/app/context
+      - ./data/processed:/app/data/processed
+    networks:
+      - art-network
+    restart: unless-stopped
+    profiles:
+      - agents
+
+  classification-agent:
+    build:
+      context: ./agents/classification
+      dockerfile: Dockerfile
+    container_name: classification-agent
+    environment:
+      - AGENT_TYPE=ClassificationAgent
+    env_file:
+      - .env
+    volumes:
+      - ./context/agents/classification:/app/context
+      - ./models:/app/models
+    networks:
+      - art-network
+    restart: unless-stopped
+    profiles:
+      - agents
+
+  summarization-translation-agent:
+    build:
+      context: ./agents/summarization-translation
+      dockerfile: Dockerfile
+    container_name: summarization-translation-agent
+    environment:
+      - AGENT_TYPE=SummarizationTranslationAgent
+    env_file:
+      - .env
+    volumes:
+      - ./context/agents/summarization_translation:/app/context
+    networks:
+      - art-network
+    restart: unless-stopped
+    profiles:
+      - agents
+
+# 資料卷定義
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  es_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+# 網路定義
+networks:
+  art-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
