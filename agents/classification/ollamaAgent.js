@@ -30,45 +30,45 @@ class OllamaClassificationAgent extends EventEmitter {
         // 藝術史分類體系
         this.taxonomies = {
             periods: {
-                'ancient': ['古代', '古典時期', 'ancient', 'classical', 'antiquity'],
-                'medieval': ['中世紀', '拜占庭', 'medieval', 'byzantine', 'gothic'],
-                'renaissance': ['文藝復興', '早期文藝復興', 'renaissance', 'early renaissance'],
-                'baroque': ['巴洛克', 'baroque', 'counter-reformation'],
-                'neoclassical': ['新古典主義', 'neoclassical', 'neoclassicism'],
-                'romantic': ['浪漫主義', 'romantic', 'romanticism'],
-                'impressionist': ['印象派', '印象主義', 'impressionist', 'impressionism'],
-                'post_impressionist': ['後印象派', 'post-impressionist', 'post impressionist'],
-                'modern': ['現代', '現代主義', 'modern', 'modernism'],
-                'contemporary': ['當代', '當代藝術', 'contemporary', 'contemporary art']
+                ancient: ['古代', '古典時期', 'ancient', 'classical', 'antiquity'],
+                medieval: ['中世紀', '拜占庭', 'medieval', 'byzantine', 'gothic'],
+                renaissance: ['文藝復興', '早期文藝復興', 'renaissance', 'early renaissance'],
+                baroque: ['巴洛克', 'baroque', 'counter-reformation'],
+                neoclassical: ['新古典主義', 'neoclassical', 'neoclassicism'],
+                romantic: ['浪漫主義', 'romantic', 'romanticism'],
+                impressionist: ['印象派', '印象主義', 'impressionist', 'impressionism'],
+                post_impressionist: ['後印象派', 'post-impressionist', 'post impressionist'],
+                modern: ['現代', '現代主義', 'modern', 'modernism'],
+                contemporary: ['當代', '當代藝術', 'contemporary', 'contemporary art']
             },
             styles: {
-                'realism': ['寫實主義', '現實主義', 'realism', 'realistic'],
-                'abstract': ['抽象', '抽象主義', 'abstract', 'abstraction'],
-                'expressionism': ['表現主義', 'expressionism', 'expressionist'],
-                'cubism': ['立體主義', 'cubism', 'cubist'],
-                'surrealism': ['超現實主義', 'surrealism', 'surrealist'],
-                'minimalism': ['極簡主義', 'minimalism', 'minimalist'],
-                'pop_art': ['普普藝術', 'pop art', 'popular art']
+                realism: ['寫實主義', '現實主義', 'realism', 'realistic'],
+                abstract: ['抽象', '抽象主義', 'abstract', 'abstraction'],
+                expressionism: ['表現主義', 'expressionism', 'expressionist'],
+                cubism: ['立體主義', 'cubism', 'cubist'],
+                surrealism: ['超現實主義', 'surrealism', 'surrealist'],
+                minimalism: ['極簡主義', 'minimalism', 'minimalist'],
+                pop_art: ['普普藝術', 'pop art', 'popular art']
             },
             mediums: {
-                'oil_painting': ['油畫', 'oil painting', 'oil on canvas'],
-                'watercolor': ['水彩', 'watercolor', 'aquarelle'],
-                'sculpture': ['雕塑', 'sculpture', 'sculptural'],
-                'photography': ['攝影', 'photography', 'photographic'],
-                'printmaking': ['版畫', 'printmaking', 'print'],
-                'drawing': ['繪圖', 'drawing', 'sketch'],
-                'digital_art': ['數位藝術', 'digital art', 'computer art'],
-                'installation': ['裝置藝術', 'installation', 'installation art']
+                oil_painting: ['油畫', 'oil painting', 'oil on canvas'],
+                watercolor: ['水彩', 'watercolor', 'aquarelle'],
+                sculpture: ['雕塑', 'sculpture', 'sculptural'],
+                photography: ['攝影', 'photography', 'photographic'],
+                printmaking: ['版畫', 'printmaking', 'print'],
+                drawing: ['繪圖', 'drawing', 'sketch'],
+                digital_art: ['數位藝術', 'digital art', 'computer art'],
+                installation: ['裝置藝術', 'installation', 'installation art']
             },
             subjects: {
-                'portrait': ['肖像', 'portrait', 'portraiture'],
-                'landscape': ['風景', 'landscape', 'scenery'],
-                'still_life': ['靜物', 'still life', 'nature morte'],
-                'religious': ['宗教', 'religious', 'sacred'],
-                'mythology': ['神話', 'mythology', 'mythological'],
-                'historical': ['歷史', 'historical', 'history painting'],
-                'genre': ['風俗畫', 'genre', 'everyday life'],
-                'abstract': ['抽象', 'abstract', 'non-figurative']
+                portrait: ['肖像', 'portrait', 'portraiture'],
+                landscape: ['風景', 'landscape', 'scenery'],
+                still_life: ['靜物', 'still life', 'nature morte'],
+                religious: ['宗教', 'religious', 'sacred'],
+                mythology: ['神話', 'mythology', 'mythological'],
+                historical: ['歷史', 'historical', 'history painting'],
+                genre: ['風俗畫', 'genre', 'everyday life'],
+                abstract: ['抽象', 'abstract', 'non-figurative']
             }
         };
 
@@ -83,7 +83,10 @@ class OllamaClassificationAgent extends EventEmitter {
 
         // 輸入和輸出路徑
         this.inputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'metadata');
-        this.outputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'classified');
+        this.outputDir = path.join(
+            process.env.DATA_PROCESSED_DIR || './data/processed',
+            'classified'
+        );
 
         logger.info(`🦙 ${this.name} 初始化完成`);
     }
@@ -121,7 +124,6 @@ class OllamaClassificationAgent extends EventEmitter {
                 status: this.status,
                 taxonomies: Object.keys(this.taxonomies).length
             });
-
         } catch (error) {
             this.status = 'error';
             logger.error('❌ Ollama 分類代理初始化失敗:', error);
@@ -165,7 +167,6 @@ class OllamaClassificationAgent extends EventEmitter {
             const classification = await ollamaService.classifyArtwork(testArtwork);
             logger.info('✅ 分類功能測試通過');
             logger.debug('測試分類結果:', classification);
-
         } catch (error) {
             logger.error('❌ 分類功能測試失敗:', error.message);
             throw new Error(`分類功能測試失敗: ${error.message}`);
@@ -213,7 +214,9 @@ class OllamaClassificationAgent extends EventEmitter {
             const duration = Date.now() - this.stats.startTime;
 
             logger.info('✅ 分類完成！');
-            logger.info(`📊 統計: 處理 ${this.stats.processed} 個項目，分類 ${this.stats.classified} 個作品`);
+            logger.info(
+                `📊 統計: 處理 ${this.stats.processed} 個項目，分類 ${this.stats.classified} 個作品`
+            );
             logger.info(`⏱️ 總耗時: ${Math.round(duration / 1000)} 秒`);
 
             this.emit('classificationComplete', {
@@ -224,7 +227,6 @@ class OllamaClassificationAgent extends EventEmitter {
             });
 
             return results;
-
         } catch (error) {
             this.status = 'error';
             this.stats.errors++;
@@ -244,7 +246,10 @@ class OllamaClassificationAgent extends EventEmitter {
             const sourceDir = path.join(this.inputDir, source);
 
             try {
-                const dirExists = await fs.access(sourceDir).then(() => true).catch(() => false);
+                const dirExists = await fs
+                    .access(sourceDir)
+                    .then(() => true)
+                    .catch(() => false);
                 if (!dirExists) {
                     // 如果 metadata 目錄不存在，嘗試直接使用 inputDir
                     const items = await fs.readdir(this.inputDir).catch(() => []);
@@ -293,10 +298,12 @@ class OllamaClassificationAgent extends EventEmitter {
         // 分批處理
         for (let i = 0; i < files.length; i += this.config.batchSize) {
             const batch = files.slice(i, i + this.config.batchSize);
-            logger.info(`📦 處理批次 ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(files.length / this.config.batchSize)} (${batch.length} 個文件)`);
+            logger.info(
+                `📦 處理批次 ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(files.length / this.config.batchSize)} (${batch.length} 個文件)`
+            );
 
             const batchResults = await Promise.allSettled(
-                batch.map(file => this.processFile(file, outputFormat, enableCaching))
+                batch.map((file) => this.processFile(file, outputFormat, enableCaching))
             );
 
             for (const result of batchResults) {
@@ -310,7 +317,7 @@ class OllamaClassificationAgent extends EventEmitter {
 
             // 批次間短暫休息
             if (i + this.config.batchSize < files.length) {
-                await new Promise(resolve => setTimeout(resolve, 800));
+                await new Promise((resolve) => setTimeout(resolve, 800));
             }
         }
 
@@ -365,7 +372,6 @@ class OllamaClassificationAgent extends EventEmitter {
 
             logger.debug(`✅ 分類完成: ${fileInfo.filename}`);
             return result;
-
         } catch (error) {
             logger.error(`處理文件失敗: ${fileInfo.path}`, error);
             this.stats.errors++;
@@ -393,7 +399,6 @@ class OllamaClassificationAgent extends EventEmitter {
                 aiModel: classification.model,
                 timestamp: new Date().toISOString()
             };
-
         } catch (error) {
             logger.warn(`AI 分類失敗，使用規則式分類: ${error.message}`);
 
@@ -469,7 +474,10 @@ class OllamaClassificationAgent extends EventEmitter {
 
             if (matches > 0) {
                 // 計算置信度
-                const confidence = Math.min(0.95, (score / text.length) * 100 + (matches / keywords.length) * 0.3);
+                const confidence = Math.min(
+                    0.95,
+                    (score / text.length) * 100 + (matches / keywords.length) * 0.3
+                );
 
                 if (confidence > highestScore && confidence >= this.config.confidenceThreshold) {
                     highestScore = confidence;
@@ -528,10 +536,10 @@ class OllamaClassificationAgent extends EventEmitter {
      */
     checkPeriodStyleConsistency(period, style) {
         const consistencyRules = {
-            'renaissance': ['realism', 'classical'],
-            'impressionist': ['impressionism'],
-            'modern': ['abstract', 'expressionism', 'cubism'],
-            'contemporary': ['abstract', 'minimalism', 'pop_art']
+            renaissance: ['realism', 'classical'],
+            impressionist: ['impressionism'],
+            modern: ['abstract', 'expressionism', 'cubism'],
+            contemporary: ['abstract', 'minimalism', 'pop_art']
         };
 
         const compatibleStyles = consistencyRules[period] || [];
@@ -549,13 +557,14 @@ class OllamaClassificationAgent extends EventEmitter {
      */
     calculateOverallConfidence(classification) {
         const confidenceFields = Object.keys(classification)
-            .filter(key => key.endsWith('_confidence'))
-            .map(key => classification[key])
-            .filter(val => typeof val === 'number');
+            .filter((key) => key.endsWith('_confidence'))
+            .map((key) => classification[key])
+            .filter((val) => typeof val === 'number');
 
         if (confidenceFields.length === 0) return 0.5;
 
-        const average = confidenceFields.reduce((sum, conf) => sum + conf, 0) / confidenceFields.length;
+        const average =
+            confidenceFields.reduce((sum, conf) => sum + conf, 0) / confidenceFields.length;
         return Math.round(average * 100) / 100;
     }
 
@@ -611,7 +620,8 @@ class OllamaClassificationAgent extends EventEmitter {
         await fs.writeFile(outputPath, JSON.stringify(result, null, 2), 'utf-8');
 
         // 更新分類統計
-        const primaryClassification = classification.period || classification.style || 'unclassified';
+        const primaryClassification =
+            classification.period || classification.style || 'unclassified';
         this.stats.classifications[primaryClassification] =
             (this.stats.classifications[primaryClassification] || 0) + 1;
 
@@ -632,7 +642,10 @@ class OllamaClassificationAgent extends EventEmitter {
             ...this.stats,
             duration: duration,
             avgProcessingTime: this.stats.processed > 0 ? duration / this.stats.processed : 0,
-            errorRate: this.stats.processed > 0 ? (this.stats.errors / this.stats.processed * 100).toFixed(2) + '%' : '0%',
+            errorRate:
+                this.stats.processed > 0
+                    ? ((this.stats.errors / this.stats.processed) * 100).toFixed(2) + '%'
+                    : '0%',
             classificationDistribution: this.stats.classifications
         };
     }

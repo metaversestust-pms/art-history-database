@@ -16,32 +16,64 @@ class RenaissanceBaroqueCrawler {
 
         // 文藝復興時期重要藝術家
         this.renaissanceArtists = [
-            'Leonardo da Vinci', 'Michelangelo', 'Raphael', 'Sandro Botticelli',
-            'Donatello', 'Masaccio', 'Andrea Mantegna', 'Giovanni Bellini',
-            'Piero della Francesca', 'Fra Angelico', 'Brunelleschi',
-            'Jan van Eyck', 'Rogier van der Weyden', 'Hans Memling',
-            'Albrecht Dürer', 'Lucas Cranach', 'Hans Holbein'
+            'Leonardo da Vinci',
+            'Michelangelo',
+            'Raphael',
+            'Sandro Botticelli',
+            'Donatello',
+            'Masaccio',
+            'Andrea Mantegna',
+            'Giovanni Bellini',
+            'Piero della Francesca',
+            'Fra Angelico',
+            'Brunelleschi',
+            'Jan van Eyck',
+            'Rogier van der Weyden',
+            'Hans Memling',
+            'Albrecht Dürer',
+            'Lucas Cranach',
+            'Hans Holbein'
         ];
 
         // 巴洛克時期重要藝術家
         this.baroqueArtists = [
-            'Caravaggio', 'Peter Paul Rubens', 'Rembrandt van Rijn',
-            'Johannes Vermeer', 'Diego Velázquez', 'Gian Lorenzo Bernini',
-            'Nicolas Poussin', 'Claude Lorrain', 'Annibale Carracci',
-            'Guido Reni', 'Artemisia Gentileschi', 'Anthony van Dyck',
-            'Frans Hals', 'Georges de La Tour', 'Bartolomé Esteban Murillo'
+            'Caravaggio',
+            'Peter Paul Rubens',
+            'Rembrandt van Rijn',
+            'Johannes Vermeer',
+            'Diego Velázquez',
+            'Gian Lorenzo Bernini',
+            'Nicolas Poussin',
+            'Claude Lorrain',
+            'Annibale Carracci',
+            'Guido Reni',
+            'Artemisia Gentileschi',
+            'Anthony van Dyck',
+            'Frans Hals',
+            'Georges de La Tour',
+            'Bartolomé Esteban Murillo'
         ];
 
         // 搜尋關鍵字
         this.renaissanceKeywords = [
-            'Renaissance', 'Italian Renaissance', 'High Renaissance',
-            'Northern Renaissance', 'Early Renaissance', '15th century',
-            '16th century', 'Quattrocento', 'Cinquecento'
+            'Renaissance',
+            'Italian Renaissance',
+            'High Renaissance',
+            'Northern Renaissance',
+            'Early Renaissance',
+            '15th century',
+            '16th century',
+            'Quattrocento',
+            'Cinquecento'
         ];
 
         this.baroqueKeywords = [
-            'Baroque', 'Counter-Reformation', 'Chiaroscuro',
-            '17th century', 'Baroque painting', 'Baroque sculpture'
+            'Baroque',
+            'Counter-Reformation',
+            'Chiaroscuro',
+            '17th century',
+            'Baroque painting',
+            'Baroque sculpture'
         ];
     }
 
@@ -105,7 +137,7 @@ class RenaissanceBaroqueCrawler {
             const artwork = response.data;
 
             // 判斷時期
-            let period = this.determinePeriod(artwork);
+            const period = this.determinePeriod(artwork);
 
             const artworkData = {
                 id: artwork.objectID,
@@ -162,16 +194,31 @@ class RenaissanceBaroqueCrawler {
 
         // 檢查文藝復興特徵
         const renaissanceIndicators = [
-            'renaissance', 'quattrocento', 'cinquecento',
-            'leonardo', 'michelangelo', 'raphael', 'botticelli',
-            'donatello', 'masaccio', 'dürer', 'van eyck'
+            'renaissance',
+            'quattrocento',
+            'cinquecento',
+            'leonardo',
+            'michelangelo',
+            'raphael',
+            'botticelli',
+            'donatello',
+            'masaccio',
+            'dürer',
+            'van eyck'
         ];
 
         // 檢查巴洛克特徵
         const baroqueIndicators = [
-            'baroque', 'caravaggio', 'rubens', 'rembrandt',
-            'vermeer', 'velázquez', 'bernini', 'poussin',
-            'counter-reformation', 'chiaroscuro'
+            'baroque',
+            'caravaggio',
+            'rubens',
+            'rembrandt',
+            'vermeer',
+            'velázquez',
+            'bernini',
+            'poussin',
+            'counter-reformation',
+            'chiaroscuro'
         ];
 
         // 檢查日期範圍
@@ -180,32 +227,56 @@ class RenaissanceBaroqueCrawler {
 
         // 文藝復興時期: 大約1400-1600
         if ((beginDate >= 1400 && beginDate <= 1600) || (endDate >= 1400 && endDate <= 1600)) {
-            if (renaissanceIndicators.some(indicator =>
-                title.includes(indicator) || artist.includes(indicator) ||
-                period.includes(indicator) || culture.includes(indicator))) {
+            if (
+                renaissanceIndicators.some(
+                    (indicator) =>
+                        title.includes(indicator) ||
+                        artist.includes(indicator) ||
+                        period.includes(indicator) ||
+                        culture.includes(indicator)
+                )
+            ) {
                 return 'Renaissance';
             }
         }
 
         // 巴洛克時期: 大約1600-1750
         if ((beginDate >= 1600 && beginDate <= 1750) || (endDate >= 1600 && endDate <= 1750)) {
-            if (baroqueIndicators.some(indicator =>
-                title.includes(indicator) || artist.includes(indicator) ||
-                period.includes(indicator) || culture.includes(indicator))) {
+            if (
+                baroqueIndicators.some(
+                    (indicator) =>
+                        title.includes(indicator) ||
+                        artist.includes(indicator) ||
+                        period.includes(indicator) ||
+                        culture.includes(indicator)
+                )
+            ) {
                 return 'Baroque';
             }
         }
 
         // 基於關鍵字判斷
-        if (renaissanceIndicators.some(indicator =>
-            title.includes(indicator) || artist.includes(indicator) ||
-            period.includes(indicator) || culture.includes(indicator))) {
+        if (
+            renaissanceIndicators.some(
+                (indicator) =>
+                    title.includes(indicator) ||
+                    artist.includes(indicator) ||
+                    period.includes(indicator) ||
+                    culture.includes(indicator)
+            )
+        ) {
             return 'Renaissance';
         }
 
-        if (baroqueIndicators.some(indicator =>
-            title.includes(indicator) || artist.includes(indicator) ||
-            period.includes(indicator) || culture.includes(indicator))) {
+        if (
+            baroqueIndicators.some(
+                (indicator) =>
+                    title.includes(indicator) ||
+                    artist.includes(indicator) ||
+                    period.includes(indicator) ||
+                    culture.includes(indicator)
+            )
+        ) {
             return 'Baroque';
         }
 
@@ -223,7 +294,8 @@ class RenaissanceBaroqueCrawler {
         }
 
         // 2. 按重要藝術家搜尋
-        for (const artist of this.renaissanceArtists.slice(0, 10)) { // 限制前10位藝術家
+        for (const artist of this.renaissanceArtists.slice(0, 10)) {
+            // 限制前10位藝術家
             const objectIDs = await this.searchByArtist(artist, 10);
             await this.processArtworks(objectIDs, `文藝復興藝術家-${artist}`);
             await this.delay(2000);
@@ -241,7 +313,8 @@ class RenaissanceBaroqueCrawler {
         }
 
         // 2. 按重要藝術家搜尋
-        for (const artist of this.baroqueArtists.slice(0, 10)) { // 限制前10位藝術家
+        for (const artist of this.baroqueArtists.slice(0, 10)) {
+            // 限制前10位藝術家
             const objectIDs = await this.searchByArtist(artist, 10);
             await this.processArtworks(objectIDs, `巴洛克藝術家-${artist}`);
             await this.delay(2000);
@@ -258,7 +331,7 @@ class RenaissanceBaroqueCrawler {
             const objectID = objectIDs[i];
 
             // 避免重複收集
-            if (this.collectedData.some(item => item.id === objectID)) {
+            if (this.collectedData.some((item) => item.id === objectID)) {
                 continue;
             }
 
@@ -279,7 +352,7 @@ class RenaissanceBaroqueCrawler {
     }
 
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     async saveData() {
@@ -296,19 +369,27 @@ class RenaissanceBaroqueCrawler {
             await fs.writeFile(filePath, JSON.stringify(this.collectedData, null, 2), 'utf8');
 
             // 統計分析
-            const renaissanceCount = this.collectedData.filter(a => a.period === 'Renaissance').length;
-            const baroqueCount = this.collectedData.filter(a => a.period === 'Baroque').length;
-            const withImagesCount = this.collectedData.filter(a => a.primaryImage).length;
-            const highlightCount = this.collectedData.filter(a => a.isHighlight).length;
+            const renaissanceCount = this.collectedData.filter(
+                (a) => a.period === 'Renaissance'
+            ).length;
+            const baroqueCount = this.collectedData.filter((a) => a.period === 'Baroque').length;
+            const withImagesCount = this.collectedData.filter((a) => a.primaryImage).length;
+            const highlightCount = this.collectedData.filter((a) => a.isHighlight).length;
 
             console.log(`💾 資料已保存到: ${filePath}`);
             console.log(`📊 收集統計:`);
             console.log(`   - 總作品數: ${this.collectedData.length}`);
             console.log(`   - 文藝復興時期: ${renaissanceCount} 件`);
             console.log(`   - 巴洛克時期: ${baroqueCount} 件`);
-            console.log(`   - 其他時期: ${this.collectedData.length - renaissanceCount - baroqueCount} 件`);
-            console.log(`   - 有圖片的作品: ${withImagesCount} 件 (${Math.round(withImagesCount/this.collectedData.length*100)}%)`);
-            console.log(`   - 精選作品: ${highlightCount} 件 (${Math.round(highlightCount/this.collectedData.length*100)}%)`);
+            console.log(
+                `   - 其他時期: ${this.collectedData.length - renaissanceCount - baroqueCount} 件`
+            );
+            console.log(
+                `   - 有圖片的作品: ${withImagesCount} 件 (${Math.round((withImagesCount / this.collectedData.length) * 100)}%)`
+            );
+            console.log(
+                `   - 精選作品: ${highlightCount} 件 (${Math.round((highlightCount / this.collectedData.length) * 100)}%)`
+            );
 
             return filePath;
         } catch (error) {

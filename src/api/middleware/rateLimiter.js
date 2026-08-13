@@ -84,7 +84,7 @@ class RateLimiter {
                     allowed: false,
                     currentCount,
                     limit,
-                    resetTime: now + (ttl * 1000),
+                    resetTime: now + ttl * 1000,
                     retryAfter: Math.ceil(ttl)
                 };
             }
@@ -96,7 +96,6 @@ class RateLimiter {
                 resetTime: now + window,
                 retryAfter: 0
             };
-
         } catch (error) {
             console.error('Redis速率限制檢查失敗:', error);
             // 發生錯誤時允許請求通過
@@ -127,7 +126,7 @@ class RateLimiter {
         const requests = this.memoryStore.get(identifier);
 
         // 移除過期的請求
-        const validRequests = requests.filter(timestamp => timestamp > windowStart);
+        const validRequests = requests.filter((timestamp) => timestamp > windowStart);
 
         // 添加當前請求
         validRequests.push(now);
@@ -160,9 +159,7 @@ class RateLimiter {
 
         const now = Date.now();
         for (const [identifier, requests] of this.memoryStore.entries()) {
-            const validRequests = requests.filter(
-                timestamp => timestamp > now - this.windowMs
-            );
+            const validRequests = requests.filter((timestamp) => timestamp > now - this.windowMs);
 
             if (validRequests.length === 0) {
                 this.memoryStore.delete(identifier);
@@ -273,13 +270,16 @@ const globalRateLimitMiddleware = async (req, res, next) => {
 // 清理任務（如果使用內存模式）- 延遲初始化以避免啟動時問題
 setTimeout(() => {
     if (rateLimiter.useMemoryLimiter) {
-        setInterval(() => {
-            try {
-                rateLimiter.cleanupMemoryStore();
-            } catch (error) {
-                console.warn('清理內存存儲失敗:', error);
-            }
-        }, 5 * 60 * 1000); // 每5分鐘清理一次
+        setInterval(
+            () => {
+                try {
+                    rateLimiter.cleanupMemoryStore();
+                } catch (error) {
+                    console.warn('清理內存存儲失敗:', error);
+                }
+            },
+            5 * 60 * 1000
+        ); // 每5分鐘清理一次
     }
 }, 10000); // 延遲10秒啟動清理任務
 

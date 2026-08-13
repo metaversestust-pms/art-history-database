@@ -15,8 +15,8 @@ class PerformanceMonitor extends EventEmitter {
             metricsInterval: options.metricsInterval || 5000,
             alertThresholds: {
                 memoryUsage: options.memoryThreshold || 0.85,
-                cpuUsage: options.cpuThreshold || 0.80,
-                errorRate: options.errorRateThreshold || 0.10,
+                cpuUsage: options.cpuThreshold || 0.8,
+                errorRate: options.errorRateThreshold || 0.1,
                 responseTime: options.responseTimeThreshold || 5000,
                 ...options.alertThresholds
             },
@@ -162,7 +162,6 @@ class PerformanceMonitor extends EventEmitter {
             if (this.options.enableFileLogging) {
                 await this.logMetrics(this.currentMetrics);
             }
-
         } catch (error) {
             console.error('❌ 收集性能指標時發生錯誤:', error.message);
             this.emit('metricsError', error);
@@ -400,7 +399,8 @@ class PerformanceMonitor extends EventEmitter {
 
         for (const category in this.metrics.application) {
             if (this.metrics.application[category].length > limit) {
-                this.metrics.application[category] = this.metrics.application[category].slice(-limit);
+                this.metrics.application[category] =
+                    this.metrics.application[category].slice(-limit);
             }
         }
     }
@@ -513,7 +513,10 @@ class PerformanceMonitor extends EventEmitter {
         }
 
         return {
-            averageMemoryUsage: this.calculateAverage(recentMetrics, 'system.memory.heapUsedPercentage'),
+            averageMemoryUsage: this.calculateAverage(
+                recentMetrics,
+                'system.memory.heapUsedPercentage'
+            ),
             averageCpuUsage: this.calculateAverage(recentMetrics, 'system.cpu.usage'),
             averageResponseTime: this.calculateAverage(recentMetrics, 'application.responseTime'),
             averageErrorRate: this.calculateAverage(recentMetrics, 'application.errorRate'),
@@ -595,7 +598,9 @@ class PerformanceMonitor extends EventEmitter {
     calculateAverage(metrics, path) {
         if (metrics.length === 0) return 0;
 
-        const values = metrics.map(m => this.getNestedValue(m, path)).filter(v => v !== undefined);
+        const values = metrics
+            .map((m) => this.getNestedValue(m, path))
+            .filter((v) => v !== undefined);
         return values.reduce((sum, val) => sum + val, 0) / values.length;
     }
 
@@ -603,7 +608,9 @@ class PerformanceMonitor extends EventEmitter {
      * 計算總和
      */
     calculateSum(metrics, path) {
-        const values = metrics.map(m => this.getNestedValue(m, path)).filter(v => v !== undefined);
+        const values = metrics
+            .map((m) => this.getNestedValue(m, path))
+            .filter((v) => v !== undefined);
         return values.reduce((sum, val) => sum + val, 0);
     }
 
@@ -620,7 +627,8 @@ class PerformanceMonitor extends EventEmitter {
         if (firstHalf.length === 0 || secondHalf.length === 0) return 'stable';
 
         const firstAvg = firstHalf.reduce((sum, point) => sum + point.value, 0) / firstHalf.length;
-        const secondAvg = secondHalf.reduce((sum, point) => sum + point.value, 0) / secondHalf.length;
+        const secondAvg =
+            secondHalf.reduce((sum, point) => sum + point.value, 0) / secondHalf.length;
 
         const changePercent = ((secondAvg - firstAvg) / firstAvg) * 100;
 
@@ -652,7 +660,10 @@ class PerformanceMonitor extends EventEmitter {
      */
     async logMetrics(metrics) {
         try {
-            const logFile = path.join(this.options.logPath, `performance_${this.getDateString()}.json`);
+            const logFile = path.join(
+                this.options.logPath,
+                `performance_${this.getDateString()}.json`
+            );
             const logEntry = JSON.stringify(metrics) + '\n';
 
             await fs.appendFile(logFile, logEntry);

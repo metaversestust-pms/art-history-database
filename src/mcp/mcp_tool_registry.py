@@ -6,18 +6,19 @@ MCP工具註冊和發現系統
 
 import asyncio
 import logging
-import json
-import subprocess
 import socket
-from typing import Dict, List, Any, Optional, Callable, Type
-from dataclasses import dataclass, asdict
-from enum import Enum
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
 import aiohttp
 import psutil
 
+
 class MCPToolType(Enum):
     """MCP工具類型"""
+
     AI_LLM = "ai_llm"
     MULTIMODAL = "multimodal"
     VECTOR_DB = "vector_db"
@@ -27,8 +28,10 @@ class MCPToolType(Enum):
     MONITORING = "monitoring"
     DOCUMENT = "document"
 
+
 class MCPToolStatus(Enum):
     """MCP工具狀態"""
+
     DISCOVERED = "discovered"
     REGISTERED = "registered"
     CONNECTED = "connected"
@@ -36,9 +39,11 @@ class MCPToolStatus(Enum):
     ERROR = "error"
     UNAVAILABLE = "unavailable"
 
+
 @dataclass
 class MCPToolSpec:
     """MCP工具規格"""
+
     name: str
     tool_type: MCPToolType
     description: str
@@ -62,9 +67,11 @@ class MCPToolSpec:
         if self.config is None:
             self.config = {}
 
+
 @dataclass
 class MCPToolInstance:
     """MCP工具實例"""
+
     spec: MCPToolSpec
     status: MCPToolStatus
     assigned_agent: Optional[str] = None
@@ -82,8 +89,9 @@ class MCPToolInstance:
                 "success_count": 0,
                 "error_count": 0,
                 "avg_response_time": 0.0,
-                "last_request": None
+                "last_request": None,
             }
+
 
 class MCPToolRegistry:
     """
@@ -113,7 +121,7 @@ class MCPToolRegistry:
             "active_tools": 0,
             "error_tools": 0,
             "total_requests": 0,
-            "last_updated": datetime.now()
+            "last_updated": datetime.now(),
         }
 
         self.logger.info("MCP工具註冊表初始化完成")
@@ -138,7 +146,10 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8001,
                 capabilities=["text_generation", "embeddings", "vision"],
-                config={"api_key_required": True, "models": ["gpt-4", "gpt-3.5-turbo", "text-embedding-ada-002"]}
+                config={
+                    "api_key_required": True,
+                    "models": ["gpt-4", "gpt-3.5-turbo", "text-embedding-ada-002"],
+                },
             ),
             MCPToolSpec(
                 name="anthropic",
@@ -147,7 +158,10 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8002,
                 capabilities=["text_generation", "document_analysis"],
-                config={"api_key_required": True, "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"]}
+                config={
+                    "api_key_required": True,
+                    "models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+                },
             ),
             MCPToolSpec(
                 name="ollama",
@@ -156,9 +170,8 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=11434,
                 capabilities=["text_generation", "local_inference"],
-                config={"local_deployment": True, "models": ["llama2", "vicuna", "chatglm"]}
+                config={"local_deployment": True, "models": ["llama2", "vicuna", "chatglm"]},
             ),
-
             # 多模態處理工具
             MCPToolSpec(
                 name="clip",
@@ -167,7 +180,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8010,
                 capabilities=["image_understanding", "text_image_matching", "visual_search"],
-                resource_requirements={"cpu": 2, "memory": "4GB", "gpu": "optional"}
+                resource_requirements={"cpu": 2, "memory": "4GB", "gpu": "optional"},
             ),
             MCPToolSpec(
                 name="whisper",
@@ -176,7 +189,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8011,
                 capabilities=["speech_recognition", "audio_transcription", "multilingual"],
-                resource_requirements={"cpu": 2, "memory": "2GB"}
+                resource_requirements={"cpu": 2, "memory": "2GB"},
             ),
             MCPToolSpec(
                 name="blip",
@@ -185,9 +198,8 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8012,
                 capabilities=["image_captioning", "visual_qa", "image_description"],
-                resource_requirements={"cpu": 2, "memory": "4GB", "gpu": "recommended"}
+                resource_requirements={"cpu": 2, "memory": "4GB", "gpu": "recommended"},
             ),
-
             # 向量資料庫工具
             MCPToolSpec(
                 name="chromadb",
@@ -196,7 +208,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8020,
                 capabilities=["vector_storage", "similarity_search", "collections"],
-                config={"persistent": True, "collection_limit": 100}
+                config={"persistent": True, "collection_limit": 100},
             ),
             MCPToolSpec(
                 name="qdrant",
@@ -205,7 +217,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=6333,
                 capabilities=["vector_storage", "similarity_search", "filtering", "clustering"],
-                resource_requirements={"cpu": 2, "memory": "2GB"}
+                resource_requirements={"cpu": 2, "memory": "2GB"},
             ),
             MCPToolSpec(
                 name="weaviate",
@@ -214,9 +226,8 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8080,
                 capabilities=["vector_storage", "graphql_api", "multimodal_search"],
-                resource_requirements={"cpu": 2, "memory": "3GB"}
+                resource_requirements={"cpu": 2, "memory": "3GB"},
             ),
-
             # 網路爬取工具
             MCPToolSpec(
                 name="playwright",
@@ -225,7 +236,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8030,
                 capabilities=["web_scraping", "screenshot", "pdf_generation", "dynamic_content"],
-                resource_requirements={"cpu": 2, "memory": "2GB"}
+                resource_requirements={"cpu": 2, "memory": "2GB"},
             ),
             MCPToolSpec(
                 name="scrapy",
@@ -234,9 +245,8 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=8031,
                 capabilities=["distributed_crawling", "middleware", "data_pipeline"],
-                resource_requirements={"cpu": 1, "memory": "1GB"}
+                resource_requirements={"cpu": 1, "memory": "1GB"},
             ),
-
             # 實驗管理工具
             MCPToolSpec(
                 name="mlflow",
@@ -245,7 +255,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=5000,
                 capabilities=["experiment_tracking", "model_versioning", "metrics_logging"],
-                config={"storage_backend": "postgresql", "artifact_store": "s3"}
+                config={"storage_backend": "postgresql", "artifact_store": "s3"},
             ),
             MCPToolSpec(
                 name="wandb",
@@ -253,10 +263,13 @@ class MCPToolRegistry:
                 description="Weights & Biases實驗監控",
                 version="1.0.0",
                 port=8040,
-                capabilities=["real_time_monitoring", "hyperparameter_optimization", "collaboration"],
-                config={"api_key_required": True, "project_required": True}
+                capabilities=[
+                    "real_time_monitoring",
+                    "hyperparameter_optimization",
+                    "collaboration",
+                ],
+                config={"api_key_required": True, "project_required": True},
             ),
-
             # 監控工具
             MCPToolSpec(
                 name="prometheus",
@@ -265,7 +278,7 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=9090,
                 capabilities=["metrics_collection", "alerting", "time_series_db"],
-                resource_requirements={"cpu": 1, "memory": "2GB"}
+                resource_requirements={"cpu": 1, "memory": "2GB"},
             ),
             MCPToolSpec(
                 name="grafana",
@@ -274,8 +287,8 @@ class MCPToolRegistry:
                 version="1.0.0",
                 port=3000,
                 capabilities=["data_visualization", "dashboard", "alerting"],
-                dependencies=["prometheus"]
-            )
+                dependencies=["prometheus"],
+            ),
         ]
 
     async def register_tool(self, tool_spec: MCPToolSpec) -> bool:
@@ -290,10 +303,7 @@ class MCPToolRegistry:
             self.tool_specs[tool_spec.name] = tool_spec
 
             # 創建工具實例
-            instance = MCPToolInstance(
-                spec=tool_spec,
-                status=MCPToolStatus.REGISTERED
-            )
+            instance = MCPToolInstance(spec=tool_spec, status=MCPToolStatus.REGISTERED)
             self.tool_instances[tool_spec.name] = instance
 
             # 分類管理
@@ -336,17 +346,20 @@ class MCPToolRegistry:
         discovered = []
         try:
             result = await asyncio.create_subprocess_exec(
-                "docker", "ps", "--format", "{{.Names}}:{{.Ports}}",
+                "docker",
+                "ps",
+                "--format",
+                "{{.Names}}:{{.Ports}}",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await result.communicate()
 
             if result.returncode == 0:
-                lines = stdout.decode().strip().split('\n')
+                lines = stdout.decode().strip().split("\n")
                 for line in lines:
-                    if ':' in line:
-                        name, ports = line.split(':', 1)
+                    if ":" in line:
+                        name, ports = line.split(":", 1)
                         discovered.append(f"docker:{name}:{ports}")
 
         except Exception as e:
@@ -357,7 +370,14 @@ class MCPToolRegistry:
     async def _discover_network_services(self) -> List[str]:
         """發現網絡服務"""
         discovered = []
-        common_ports = [5000, 6333, 8080, 8020, 9090, 11434]  # MLflow, Qdrant, Weaviate, ChromaDB, Prometheus, Ollama
+        common_ports = [
+            5000,
+            6333,
+            8080,
+            8020,
+            9090,
+            11434,
+        ]  # MLflow, Qdrant, Weaviate, ChromaDB, Prometheus, Ollama
 
         for port in common_ports:
             if await self._check_port_availability("localhost", port):
@@ -369,10 +389,10 @@ class MCPToolRegistry:
         """發現本地進程服務"""
         discovered = []
         try:
-            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            for proc in psutil.process_iter(["pid", "name", "cmdline"]):
                 info = proc.info
-                if info['cmdline']:
-                    cmdline = ' '.join(info['cmdline'])
+                if info["cmdline"]:
+                    cmdline = " ".join(info["cmdline"])
                     # 檢查是否是已知的MCP服務
                     for tool_name in ["ollama", "chromadb", "qdrant", "mlflow"]:
                         if tool_name in cmdline.lower():
@@ -391,7 +411,7 @@ class MCPToolRegistry:
             result = sock.connect_ex((host, port))
             sock.close()
             return result == 0
-        except:
+        except Exception:
             return False
 
     async def connect_tool(self, tool_name: str) -> bool:
@@ -444,7 +464,9 @@ class MCPToolRegistry:
             health_url = f"{instance.endpoint_url}/health"
 
             async with aiohttp.ClientSession() as session:
-                async with session.get(health_url, timeout=aiohttp.ClientTimeout(total=5)) as response:
+                async with session.get(
+                    health_url, timeout=aiohttp.ClientTimeout(total=5)
+                ) as response:
                     if response.status == 200:
                         instance.last_health_check = datetime.now()
                         return True
@@ -522,16 +544,22 @@ class MCPToolRegistry:
     def get_registry_stats(self) -> Dict[str, Any]:
         """獲取註冊表統計信息"""
         # 更新實時統計
-        active_count = sum(1 for instance in self.tool_instances.values()
-                          if instance.status == MCPToolStatus.ACTIVE)
-        error_count = sum(1 for instance in self.tool_instances.values()
-                         if instance.status == MCPToolStatus.ERROR)
+        active_count = sum(
+            1
+            for instance in self.tool_instances.values()
+            if instance.status == MCPToolStatus.ACTIVE
+        )
+        error_count = sum(
+            1 for instance in self.tool_instances.values() if instance.status == MCPToolStatus.ERROR
+        )
 
-        self.registry_stats.update({
-            "active_tools": active_count,
-            "error_tools": error_count,
-            "last_updated": datetime.now()
-        })
+        self.registry_stats.update(
+            {
+                "active_tools": active_count,
+                "error_tools": error_count,
+                "last_updated": datetime.now(),
+            }
+        )
 
         return self.registry_stats.copy()
 
@@ -549,8 +577,10 @@ class MCPToolRegistry:
 
         self.logger.info("MCP工具註冊表已關閉")
 
+
 # 全局單例實例
 _registry_instance = None
+
 
 def get_mcp_registry() -> MCPToolRegistry:
     """獲取MCP工具註冊表單例實例"""

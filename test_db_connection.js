@@ -54,13 +54,14 @@ async function testDatabaseConnection() {
         if (artworks.length > 0) {
             const artworkDetails = await artworkModel.getArtworkDetails(artworks[0].id);
             if (artworkDetails) {
-                console.log(`✅ 關聯查詢: ${artworkDetails.title} by ${artworkDetails.artist_name || '未知藝術家'}`);
+                console.log(
+                    `✅ 關聯查詢: ${artworkDetails.title} by ${artworkDetails.artist_name || '未知藝術家'}`
+                );
             }
         }
 
         console.log('\n🎉 資料庫連接測試完成！');
         console.log('📝 資料庫已準備就緒，可以啟動API服務');
-
     } catch (error) {
         console.error('❌ 資料庫連接測試失敗:', error.message);
         process.exit(1);

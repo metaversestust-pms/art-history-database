@@ -8,18 +8,18 @@ const axios = require('axios');
 
 // 測試查詢集
 const testQueries = [
-    { query: "達文西的作品", type: "artist", language: "zh" },
-    { query: "Leonardo da Vinci artworks", type: "artist", language: "en" },
-    { query: "Renaissance paintings", type: "period", language: "en" },
-    { query: "文藝復興時期的繪畫", type: "period", language: "zh" },
-    { query: "Mona Lisa", type: "artwork", language: "en" },
-    { query: "蒙娜麗莎", type: "artwork", language: "zh" },
-    { query: "Baroque art in museums", type: "complex", language: "en" },
-    { query: "羅浮宮收藏的作品", type: "complex", language: "zh" }
+    { query: '達文西的作品', type: 'artist', language: 'zh' },
+    { query: 'Leonardo da Vinci artworks', type: 'artist', language: 'en' },
+    { query: 'Renaissance paintings', type: 'period', language: 'en' },
+    { query: '文藝復興時期的繪畫', type: 'period', language: 'zh' },
+    { query: 'Mona Lisa', type: 'artwork', language: 'en' },
+    { query: '蒙娜麗莎', type: 'artwork', language: 'zh' },
+    { query: 'Baroque art in museums', type: 'complex', language: 'en' },
+    { query: '羅浮宮收藏的作品', type: 'complex', language: 'zh' }
 ];
 
 // 測試策略
-const strategies = ["graph_only", "vector_only", "hybrid_balanced"];
+const strategies = ['graph_only', 'vector_only', 'hybrid_balanced'];
 
 async function testStrategy(strategy, query) {
     try {
@@ -37,7 +37,7 @@ async function testStrategy(strategy, query) {
             strategy: strategy,
             confidence: data.confidence_score,
             processing_time: data.processing_time,
-            sources: data.sources.map(s => ({
+            sources: data.sources.map((s) => ({
                 title: s.title,
                 artist: s.artist,
                 score: s.score,
@@ -103,7 +103,7 @@ async function runTests() {
             }
 
             // 避免過快請求
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
     }
 
@@ -112,7 +112,7 @@ async function runTests() {
     console.log('═'.repeat(80));
 
     const stats = {};
-    strategies.forEach(strategy => {
+    strategies.forEach((strategy) => {
         stats[strategy] = {
             avg_confidence: 0,
             avg_processing_time: 0,
@@ -121,7 +121,7 @@ async function runTests() {
         };
     });
 
-    Object.values(results).forEach(queryResults => {
+    Object.values(results).forEach((queryResults) => {
         Object.entries(queryResults).forEach(([strategy, data]) => {
             stats[strategy].avg_confidence += data.confidence;
             stats[strategy].avg_processing_time += data.processing_time;
@@ -130,26 +130,39 @@ async function runTests() {
         });
     });
 
-    strategies.forEach(strategy => {
+    strategies.forEach((strategy) => {
         if (stats[strategy].count > 0) {
             console.log(`\n${strategy}:`);
-            console.log(`  平均信心分數: ${(stats[strategy].avg_confidence / stats[strategy].count).toFixed(3)}`);
-            console.log(`  平均處理時間: ${(stats[strategy].avg_processing_time / stats[strategy].count * 1000).toFixed(1)}ms`);
-            console.log(`  平均結果數: ${(stats[strategy].total_results / stats[strategy].count).toFixed(1)}`);
+            console.log(
+                `  平均信心分數: ${(stats[strategy].avg_confidence / stats[strategy].count).toFixed(3)}`
+            );
+            console.log(
+                `  平均處理時間: ${((stats[strategy].avg_processing_time / stats[strategy].count) * 1000).toFixed(1)}ms`
+            );
+            console.log(
+                `  平均結果數: ${(stats[strategy].total_results / stats[strategy].count).toFixed(1)}`
+            );
         }
     });
 
     // 保存詳細結果
     const fs = require('fs');
-    fs.writeFileSync('ranking-optimization-test-results.json', JSON.stringify({
-        timestamp: new Date().toISOString(),
-        test_config: {
-            total_queries: testQueries.length,
-            strategies: strategies
-        },
-        results: results,
-        stats: stats
-    }, null, 2));
+    fs.writeFileSync(
+        'ranking-optimization-test-results.json',
+        JSON.stringify(
+            {
+                timestamp: new Date().toISOString(),
+                test_config: {
+                    total_queries: testQueries.length,
+                    strategies: strategies
+                },
+                results: results,
+                stats: stats
+            },
+            null,
+            2
+        )
+    );
 
     console.log('\n\n✅ 詳細結果已保存到: ranking-optimization-test-results.json');
 

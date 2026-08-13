@@ -8,12 +8,12 @@
 4. 查詢日誌記錄
 """
 
-import re
-import logging
-from typing import List, Dict, Tuple, Optional, Set
-from datetime import datetime
 import json
+import logging
+import re
+from datetime import datetime
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -39,21 +39,76 @@ class SmartKeywordExtractor:
         # 擴展的停用詞列表
         self.stop_words = {
             # 基本停用詞
-            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-            'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
-            'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
-            'can', 'could', 'should', 'may', 'might', 'must',
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "from",
+            "as",
+            "is",
+            "was",
+            "are",
+            "were",
+            "been",
+            "be",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "can",
+            "could",
+            "should",
+            "may",
+            "might",
+            "must",
             # 姓名連接詞（重要！）
-            'da', 'de', 'di', 'del', 'della', 'van', 'von', 'le', 'la', 'el',
+            "da",
+            "de",
+            "di",
+            "del",
+            "della",
+            "van",
+            "von",
+            "le",
+            "la",
+            "el",
             # 其他常見詞
-            'this', 'that', 'these', 'those', 'which', 'what', 'who', 'where',
-            'when', 'why', 'how', 'all', 'any', 'some', 'much', 'many'
+            "this",
+            "that",
+            "these",
+            "those",
+            "which",
+            "what",
+            "who",
+            "where",
+            "when",
+            "why",
+            "how",
+            "all",
+            "any",
+            "some",
+            "much",
+            "many",
         }
 
         # 獲取已知藝術術語
         self.known_art_terms = self._load_art_terms()
 
-        logger.info(f"✅ 智能關鍵詞提取器初始化完成")
+        logger.info("✅ 智能關鍵詞提取器初始化完成")
         logger.info(f"   - 停用詞數量: {len(self.stop_words)}")
         logger.info(f"   - 已知藝術術語: {len(self.known_art_terms)}")
         logger.info(f"   - 查詢日誌: {'開啟' if self.log_queries else '關閉'}")
@@ -62,7 +117,7 @@ class SmartKeywordExtractor:
         """從翻譯器載入已知藝術術語"""
         terms = set()
 
-        if self.translator and hasattr(self.translator, 'term_index'):
+        if self.translator and hasattr(self.translator, "term_index"):
             # 獲取所有英文術語（翻譯字典的值）
             for term in self.translator.term_index.values():
                 terms.add(term.lower())
@@ -74,10 +129,7 @@ class SmartKeywordExtractor:
         return terms
 
     def extract_keywords(
-        self,
-        query: str,
-        max_keywords: int = 5,
-        min_word_length: int = 2
+        self, query: str, max_keywords: int = 5, min_word_length: int = 2
     ) -> Tuple[List[str], Dict[str, any]]:
         """
         從查詢中提取關鍵詞
@@ -91,21 +143,21 @@ class SmartKeywordExtractor:
             (關鍵詞列表, 提取信息字典)
         """
         extraction_info = {
-            'original_query': query,
-            'method': 'smart_extraction',
-            'timestamp': datetime.now().isoformat()
+            "original_query": query,
+            "method": "smart_extraction",
+            "timestamp": datetime.now().isoformat(),
         }
 
         # 步驟 1: 識別短語（如 "Leonardo da Vinci"）
         phrases = self._extract_phrases(query)
-        extraction_info['phrases'] = phrases
+        extraction_info["phrases"] = phrases
 
         if phrases:
             logger.info(f"🔤 識別到短語: {phrases}")
 
         # 步驟 2: 提取英文單詞
-        english_words = re.findall(r'\b[a-zA-Z]{2,}\b', query)
-        extraction_info['english_words'] = english_words
+        english_words = re.findall(r"\b[a-zA-Z]{2,}\b", query)
+        extraction_info["english_words"] = english_words
 
         # 步驟 3: 分類單詞（術語 vs 普通詞）
         art_term_words = []
@@ -124,8 +176,8 @@ class SmartKeywordExtractor:
             elif len(word) >= min_word_length:
                 regular_words.append(word)
 
-        extraction_info['art_term_words'] = art_term_words
-        extraction_info['regular_words'] = regular_words
+        extraction_info["art_term_words"] = art_term_words
+        extraction_info["regular_words"] = regular_words
 
         # 步驟 4: 優先級組合關鍵詞
         keywords = []
@@ -153,8 +205,8 @@ class SmartKeywordExtractor:
                 unique_keywords.append(kw)
 
         final_keywords = unique_keywords[:max_keywords]
-        extraction_info['final_keywords'] = final_keywords
-        extraction_info['keyword_count'] = len(final_keywords)
+        extraction_info["final_keywords"] = final_keywords
+        extraction_info["keyword_count"] = len(final_keywords)
 
         # 記錄日誌
         if self.log_queries:
@@ -177,18 +229,20 @@ class SmartKeywordExtractor:
         2. 在已知術語字典中的短語
         """
         phrases = []
-        english_words = re.findall(r'\b[a-zA-Z]+\b', query)
+        english_words = re.findall(r"\b[a-zA-Z]+\b", query)
 
         # 檢查 2-4 個詞的組合
         for n in range(4, 1, -1):  # 從長到短
             for i in range(len(english_words) - n + 1):
-                phrase = ' '.join(english_words[i:i+n])
+                phrase = " ".join(english_words[i : i + n])
                 phrase_lower = phrase.lower()
 
                 # 檢查是否為已知術語
-                if self.translator and hasattr(self.translator, 'term_index'):
-                    if phrase_lower in self.translator.term_index or \
-                       phrase in self.translator.term_index.values():
+                if self.translator and hasattr(self.translator, "term_index"):
+                    if (
+                        phrase_lower in self.translator.term_index
+                        or phrase in self.translator.term_index.values()
+                    ):
                         phrases.append(phrase)
                         # 從單詞列表中移除這些詞，避免重複
                         for j in range(i, i + n):
@@ -200,9 +254,11 @@ class SmartKeywordExtractor:
     def _log_extraction(self, info: Dict[str, any]):
         """記錄提取信息到日誌文件"""
         try:
-            log_file = self.query_log_path / f"extractions_{datetime.now().strftime('%Y%m%d')}.jsonl"
-            with open(log_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(info, ensure_ascii=False) + '\n')
+            log_file = (
+                self.query_log_path / f"extractions_{datetime.now().strftime('%Y%m%d')}.jsonl"
+            )
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(info, ensure_ascii=False) + "\n")
         except Exception as e:
             logger.warning(f"⚠️ 無法記錄提取日誌: {e}")
 
@@ -214,7 +270,7 @@ class SmartKeywordExtractor:
             date: 日期字符串（YYYYMMDD），默認為今天
         """
         if date is None:
-            date = datetime.now().strftime('%Y%m%d')
+            date = datetime.now().strftime("%Y%m%d")
 
         log_file = self.query_log_path / f"extractions_{date}.jsonl"
 
@@ -222,52 +278,52 @@ class SmartKeywordExtractor:
             return {"error": "No log file found", "date": date}
 
         stats = {
-            'date': date,
-            'total_queries': 0,
-            'total_keywords': 0,
-            'total_phrases': 0,
-            'total_art_terms': 0,
-            'avg_keywords_per_query': 0,
-            'most_common_keywords': {},
-            'most_common_phrases': {}
+            "date": date,
+            "total_queries": 0,
+            "total_keywords": 0,
+            "total_phrases": 0,
+            "total_art_terms": 0,
+            "avg_keywords_per_query": 0,
+            "most_common_keywords": {},
+            "most_common_phrases": {},
         }
 
         keyword_counts = {}
         phrase_counts = {}
 
         try:
-            with open(log_file, 'r', encoding='utf-8') as f:
+            with open(log_file, "r", encoding="utf-8") as f:
                 for line in f:
                     data = json.loads(line)
-                    stats['total_queries'] += 1
-                    stats['total_keywords'] += data.get('keyword_count', 0)
-                    stats['total_phrases'] += len(data.get('phrases', []))
-                    stats['total_art_terms'] += len(data.get('art_term_words', []))
+                    stats["total_queries"] += 1
+                    stats["total_keywords"] += data.get("keyword_count", 0)
+                    stats["total_phrases"] += len(data.get("phrases", []))
+                    stats["total_art_terms"] += len(data.get("art_term_words", []))
 
                     # 統計關鍵詞頻率
-                    for kw in data.get('final_keywords', []):
+                    for kw in data.get("final_keywords", []):
                         keyword_counts[kw] = keyword_counts.get(kw, 0) + 1
 
                     # 統計短語頻率
-                    for phrase in data.get('phrases', []):
+                    for phrase in data.get("phrases", []):
                         phrase_counts[phrase] = phrase_counts.get(phrase, 0) + 1
 
-            if stats['total_queries'] > 0:
-                stats['avg_keywords_per_query'] = stats['total_keywords'] / stats['total_queries']
+            if stats["total_queries"] > 0:
+                stats["avg_keywords_per_query"] = stats["total_keywords"] / stats["total_queries"]
 
             # 最常見的關鍵詞（前10）
-            stats['most_common_keywords'] = dict(
+            stats["most_common_keywords"] = dict(
                 sorted(keyword_counts.items(), key=lambda x: x[1], reverse=True)[:10]
             )
 
             # 最常見的短語（前10）
-            stats['most_common_phrases'] = dict(
+            stats["most_common_phrases"] = dict(
                 sorted(phrase_counts.items(), key=lambda x: x[1], reverse=True)[:10]
             )
 
         except Exception as e:
             logger.error(f"❌ 無法讀取統計信息: {e}")
-            stats['error'] = str(e)
+            stats["error"] = str(e)
 
         return stats
 
@@ -282,7 +338,7 @@ if __name__ == "__main__":
         "文藝復興時期的Renaissance著名藝術家",
         "Baroque painting characteristics",
         "Rembrandt self-portraits",
-        "比較Leonardo da Vinci和Michelangelo的作品風格"
+        "比較Leonardo da Vinci和Michelangelo的作品風格",
     ]
 
     extractor = SmartKeywordExtractor()

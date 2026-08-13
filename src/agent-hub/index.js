@@ -34,22 +34,15 @@ class AgentHub extends EventEmitter {
         this.workflows = {
             // 完整的數據處理管線
             fullPipeline: [
-                'webCrawler',      // 1. 爬取數據
+                'webCrawler', // 1. 爬取數據
                 'metadataExtractor', // 2. 提取元數據
-                'classification',    // 3. 分類
+                'classification', // 3. 分類
                 'summarizationTranslation' // 4. 摘要翻譯
             ],
             // 僅處理現有數據
-            processExisting: [
-                'metadataExtractor',
-                'classification',
-                'summarizationTranslation'
-            ],
+            processExisting: ['metadataExtractor', 'classification', 'summarizationTranslation'],
             // 僅爬取和基本處理
-            crawlOnly: [
-                'webCrawler',
-                'metadataExtractor'
-            ]
+            crawlOnly: ['webCrawler', 'metadataExtractor']
         };
 
         // 任務管理
@@ -92,7 +85,6 @@ class AgentHub extends EventEmitter {
             console.log('✅ Agent Hub 初始化完成');
             console.log('📋 可用工作流程:', Object.keys(this.workflows));
             this.emit('initialized');
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ Agent Hub 初始化失敗:', error.message);
@@ -143,13 +135,16 @@ class AgentHub extends EventEmitter {
         });
 
         const results = await Promise.all(initPromises);
-        const successful = results.filter(r => r.success).length;
-        const failed = results.filter(r => !r.success);
+        const successful = results.filter((r) => r.success).length;
+        const failed = results.filter((r) => !r.success);
 
         console.log(`🎯 Agent初始化完成: ${successful}/${results.length} 成功`);
 
         if (failed.length > 0) {
-            console.warn('⚠️ 以下Agent初始化失敗:', failed.map(f => f.name));
+            console.warn(
+                '⚠️ 以下Agent初始化失敗:',
+                failed.map((f) => f.name)
+            );
             // 記錄失敗但不拋出異常，允許部分Agent運行
         }
     }
@@ -244,7 +239,6 @@ class AgentHub extends EventEmitter {
                     });
 
                     console.log(`✅ 步驟 ${stepName} 完成`);
-
                 } catch (error) {
                     console.error(`❌ 步驟 ${stepName} 失敗:`, error.message);
 
@@ -286,7 +280,6 @@ class AgentHub extends EventEmitter {
                 report,
                 statistics: this.statistics
             };
-
         } catch (error) {
             this.status = 'error';
             this.statistics.endTime = new Date();
@@ -337,7 +330,11 @@ class AgentHub extends EventEmitter {
             case 'classification':
                 return await agent.startClassification({
                     inputSources: config.inputSources || ['metadata'],
-                    classificationTypes: config.classificationTypes || ['period', 'style', 'medium'],
+                    classificationTypes: config.classificationTypes || [
+                        'period',
+                        'style',
+                        'medium'
+                    ],
                     generateReports: config.generateReports !== false
                 });
 
@@ -464,7 +461,8 @@ class AgentHub extends EventEmitter {
         }
 
         const duration = this.statistics.endTime - this.statistics.startTime;
-        if (duration > 300000) { // 超過5分鐘
+        if (duration > 300000) {
+            // 超過5分鐘
             recommendations.push({
                 type: 'performance',
                 priority: 'medium',
@@ -556,7 +554,7 @@ class AgentHub extends EventEmitter {
     createCustomWorkflow(name, steps, description = '') {
         // 驗證步驟
         const validSteps = Object.keys(this.agents);
-        const invalidSteps = steps.filter(step => !validSteps.includes(step));
+        const invalidSteps = steps.filter((step) => !validSteps.includes(step));
 
         if (invalidSteps.length > 0) {
             throw new Error(`無效的步驟: ${invalidSteps.join(', ')}`);

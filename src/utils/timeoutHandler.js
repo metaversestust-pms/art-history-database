@@ -9,11 +9,11 @@ class TimeoutHandler extends EventEmitter {
     constructor() {
         super();
         this.defaultTimeouts = {
-            database: 30000,     // 30秒 - 資料庫查詢
-            http: 60000,         // 60秒 - HTTP請求
-            upload: 300000,      // 5分鐘 - 文件上傳
-            external: 120000,    // 2分鐘 - 外部API調用
-            heavy: 600000        // 10分鐘 - 重度計算任務
+            database: 30000, // 30秒 - 資料庫查詢
+            http: 60000, // 60秒 - HTTP請求
+            upload: 300000, // 5分鐘 - 文件上傳
+            external: 120000, // 2分鐘 - 外部API調用
+            heavy: 600000 // 10分鐘 - 重度計算任務
         };
         this.activeTimeouts = new Map();
         this.stats = {
@@ -190,8 +190,10 @@ class TimeoutHandler extends EventEmitter {
         return {
             ...this.stats,
             activeOperations: this.activeTimeouts.size,
-            timeoutRate: this.stats.totalRequests > 0 ?
-                (this.stats.timeouts / this.stats.totalRequests * 100).toFixed(2) + '%' : '0%'
+            timeoutRate:
+                this.stats.totalRequests > 0
+                    ? ((this.stats.timeouts / this.stats.totalRequests) * 100).toFixed(2) + '%'
+                    : '0%'
         };
     }
 

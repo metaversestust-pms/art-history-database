@@ -45,7 +45,8 @@ describe('高級錯誤處理系統測試', () => {
         });
 
         test('應該在可重試錯誤時執行重試', async () => {
-            const failingOperation = jest.fn()
+            const failingOperation = jest
+                .fn()
                 .mockRejectedValueOnce(new Error('Temporary failure'))
                 .mockRejectedValueOnce(new Error('Another failure'))
                 .mockResolvedValue('success');
@@ -57,11 +58,13 @@ describe('高級錯誤處理系統測試', () => {
         });
 
         test('應該在達到最大重試次數後拋出錯誤', async () => {
-            const alwaysFailingOperation = jest.fn()
+            const alwaysFailingOperation = jest
+                .fn()
                 .mockRejectedValue(new Error('Permanent failure'));
 
-            await expect(errorHandler.executeWithRetry(alwaysFailingOperation, 'test-context'))
-                .rejects.toThrow('Permanent failure');
+            await expect(
+                errorHandler.executeWithRetry(alwaysFailingOperation, 'test-context')
+            ).rejects.toThrow('Permanent failure');
 
             expect(alwaysFailingOperation).toHaveBeenCalledTimes(3); // 初始調用 + 2次重試
         });
@@ -247,9 +250,9 @@ describe('高級錯誤處理系統測試', () => {
                 timeout: 100
             });
 
-            const slowApiFn = jest.fn().mockImplementation(() =>
-                new Promise(resolve => setTimeout(resolve, 200))
-            );
+            const slowApiFn = jest
+                .fn()
+                .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 200)));
 
             const wrappedFn = apiWrapper(slowApiFn);
 
@@ -313,7 +316,9 @@ describe('高級錯誤處理系統測試', () => {
             errorHandler.cleanup();
 
             const afterCleanupMemoryUsage = errorHandler.getMemoryUsage();
-            expect(afterCleanupMemoryUsage.errorHistory).toBeLessThan(initialMemoryUsage.errorHistory);
+            expect(afterCleanupMemoryUsage.errorHistory).toBeLessThan(
+                initialMemoryUsage.errorHistory
+            );
         });
     });
 });

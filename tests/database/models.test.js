@@ -3,7 +3,14 @@
  * 測試資料庫模型的基本功能
  */
 
-const { Artist, Artwork, Institution, Tag, DocumentVector, CrawlTask } = require('../../src/database/models');
+const {
+    Artist,
+    Artwork,
+    Institution,
+    Tag,
+    DocumentVector,
+    CrawlTask
+} = require('../../src/database/models');
 const { dbManager } = require('../../src/database/connection');
 
 // 測試前設置
@@ -384,12 +391,9 @@ describe('CrawlTask Model', () => {
             });
         }
 
-        const updatedTask = await crawlTaskModel.updateTaskStatus(
-            testTask.id,
-            'completed',
-            null,
-            { items_processed: 10 }
-        );
+        const updatedTask = await crawlTaskModel.updateTaskStatus(testTask.id, 'completed', null, {
+            items_processed: 10
+        });
 
         expect(updatedTask.status).toBe('completed');
     });

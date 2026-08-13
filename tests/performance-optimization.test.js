@@ -13,7 +13,6 @@ const PerformanceMonitor = require('../src/utils/performanceMonitor');
 const MetadataExtractorAgent = require('../agents/metadata-extractor');
 
 describe('Agent性能優化測試', () => {
-
     describe('PerformanceOptimizer 性能優化器', () => {
         let optimizer;
 
@@ -46,7 +45,7 @@ describe('Agent性能優化測試', () => {
                 });
 
                 expect(results).to.have.length(25);
-                expect(results.every(r => r.processed)).to.be.true;
+                expect(results.every((r) => r.processed)).to.be.true;
                 expect(processor.callCount).to.equal(25);
             });
 
@@ -80,7 +79,7 @@ describe('Agent性能優化測試', () => {
                 const results = await optimizer.processBatch(testData, processor);
 
                 // 應該跳過錯誤項目，處理其他項目
-                expect(results.filter(r => r !== null)).to.have.length(9);
+                expect(results.filter((r) => r !== null)).to.have.length(9);
             });
         });
 
@@ -90,7 +89,7 @@ describe('Agent性能優化測試', () => {
                 const startTimes = [];
                 const processor = sinon.stub().callsFake(async (item) => {
                     startTimes.push(Date.now());
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                     return { ...item, processed: true };
                 });
 
@@ -103,7 +102,7 @@ describe('Agent性能優化測試', () => {
                 const totalTime = endTime - startTime;
 
                 expect(results).to.have.length(12);
-                expect(results.every(r => r.processed)).to.be.true;
+                expect(results.every((r) => r.processed)).to.be.true;
 
                 // 並行處理應該比串行處理快
                 expect(totalTime).to.be.lessThan(12 * 100 * 0.8); // 允許一些誤差
@@ -115,9 +114,12 @@ describe('Agent性能優化測試', () => {
 
                 const processor = sinon.stub().callsFake(async (item) => {
                     activeTasks.count++;
-                    activeTasks.maxConcurrent = Math.max(activeTasks.maxConcurrent, activeTasks.count);
+                    activeTasks.maxConcurrent = Math.max(
+                        activeTasks.maxConcurrent,
+                        activeTasks.count
+                    );
 
-                    await new Promise(resolve => setTimeout(resolve, 50));
+                    await new Promise((resolve) => setTimeout(resolve, 50));
 
                     activeTasks.count--;
                     return { ...item, processed: true };
@@ -149,7 +151,7 @@ describe('Agent性能優化測試', () => {
                 // 模擬資源不足情況
                 sinon.stub(optimizer, 'getSystemResourceUsage').returns({
                     memory: 0.95, // 極高內存使用
-                    cpu: 0.85     // 高CPU使用
+                    cpu: 0.85 // 高CPU使用
                 });
 
                 const results = await optimizer.processBatch(testData, processor);
@@ -194,7 +196,7 @@ describe('Agent性能優化測試', () => {
                 const taskId = await scheduler.scheduleTask(task, 'normal');
 
                 // 等待任務執行
-                await new Promise(resolve => {
+                await new Promise((resolve) => {
                     scheduler.on('taskCompleted', (completedTask) => {
                         if (completedTask.id === taskId) {
                             resolve();
@@ -212,7 +214,7 @@ describe('Agent性能優化測試', () => {
                     id: id,
                     executor: async () => {
                         executionOrder.push(id);
-                        await new Promise(resolve => setTimeout(resolve, 50));
+                        await new Promise((resolve) => setTimeout(resolve, 50));
                         return 'success';
                     },
                     priority: priority
@@ -227,7 +229,7 @@ describe('Agent性能優化測試', () => {
                 await scheduler.scheduleTask(createTask('normal-task', 'normal'), 'normal');
 
                 // 等待所有任務完成
-                await new Promise(resolve => {
+                await new Promise((resolve) => {
                     let completedCount = 0;
                     scheduler.on('taskCompleted', () => {
                         completedCount++;
@@ -259,7 +261,7 @@ describe('Agent性能優化測試', () => {
                 await scheduler.scheduleTask(failingTask, 'normal');
 
                 // 等待任務最終完成或失敗
-                await new Promise(resolve => {
+                await new Promise((resolve) => {
                     scheduler.on('taskCompleted', resolve);
                     scheduler.on('taskFailed', resolve);
                 });
@@ -274,9 +276,12 @@ describe('Agent性能優化測試', () => {
                     id: id,
                     executor: async () => {
                         activeTasks.count++;
-                        activeTasks.maxConcurrent = Math.max(activeTasks.maxConcurrent, activeTasks.count);
+                        activeTasks.maxConcurrent = Math.max(
+                            activeTasks.maxConcurrent,
+                            activeTasks.count
+                        );
 
-                        await new Promise(resolve => setTimeout(resolve, 200));
+                        await new Promise((resolve) => setTimeout(resolve, 200));
 
                         activeTasks.count--;
                         return 'success';
@@ -291,7 +296,7 @@ describe('Agent性能優化測試', () => {
                 }
 
                 // 等待所有任務完成
-                await new Promise(resolve => {
+                await new Promise((resolve) => {
                     let completedCount = 0;
                     scheduler.on('taskCompleted', () => {
                         completedCount++;
@@ -333,7 +338,7 @@ describe('Agent性能優化測試', () => {
                 await scheduler.scheduleTask(task1, 'normal');
 
                 // 等待任務完成
-                await new Promise(resolve => {
+                await new Promise((resolve) => {
                     let completedCount = 0;
                     scheduler.on('taskCompleted', () => {
                         completedCount++;
@@ -375,7 +380,7 @@ describe('Agent性能優化測試', () => {
                 await monitor.start();
 
                 // 等待幾個指標收集周期
-                await new Promise(resolve => setTimeout(resolve, 2500));
+                await new Promise((resolve) => setTimeout(resolve, 2500));
 
                 const report = monitor.getPerformanceReport();
 
@@ -509,7 +514,6 @@ describe('Agent性能優化測試', () => {
 
                 expect(result).to.be.an('object');
                 expect(result).to.have.property('recordsProcessed', 10);
-
             } finally {
                 fsStub.restore();
                 writeStub.restore();
@@ -519,7 +523,6 @@ describe('Agent性能優化測試', () => {
 
     describe('整體性能測試', () => {
         it('應該在大量數據處理中維持良好性能', async () => {
-
             const optimizer = new PerformanceOptimizer({
                 maxConcurrency: 8
             });
@@ -533,7 +536,7 @@ describe('Agent性能優化測試', () => {
             const startTime = Date.now();
             const processor = sinon.stub().callsFake(async (item) => {
                 // 模擬一些處理時間
-                await new Promise(resolve => setTimeout(resolve, Math.random() * 10));
+                await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
                 return { ...item, processed: true };
             });
 
@@ -545,7 +548,7 @@ describe('Agent性能優化測試', () => {
             const totalTime = endTime - startTime;
 
             expect(results).to.have.length(1000);
-            expect(results.every(r => r.processed)).to.be.true;
+            expect(results.every((r) => r.processed)).to.be.true;
 
             console.log(`處理1000個項目耗時: ${totalTime}ms`);
 
@@ -570,21 +573,21 @@ describe('Agent性能優化測試', () => {
 
                 // 添加一些任務
                 for (let i = 0; i < 10; i++) {
-                    await scheduler.scheduleTask({
-                        id: `integration-task-${i}`,
-                        executor: async () => {
-                            // 使用性能優化器處理數據
-                            const data = Array.from({ length: 20 }, (_, j) => ({ id: j }));
-                            return await optimizer.processBatch(
-                                data,
-                                async (item) => item
-                            );
-                        }
-                    }, 'normal');
+                    await scheduler.scheduleTask(
+                        {
+                            id: `integration-task-${i}`,
+                            executor: async () => {
+                                // 使用性能優化器處理數據
+                                const data = Array.from({ length: 20 }, (_, j) => ({ id: j }));
+                                return await optimizer.processBatch(data, async (item) => item);
+                            }
+                        },
+                        'normal'
+                    );
                 }
 
                 // 等待任務完成
-                await new Promise(resolve => {
+                await new Promise((resolve) => {
                     let completedCount = 0;
                     scheduler.on('taskCompleted', () => {
                         completedCount++;
@@ -601,7 +604,6 @@ describe('Agent性能優化測試', () => {
                 // 檢查調度器狀態
                 const status = scheduler.getStatus();
                 expect(status.completedTasks).to.equal(10);
-
             } finally {
                 await scheduler.stop();
                 await monitor.stop();

@@ -6,8 +6,8 @@ description: 最基礎的圖譜檢索：關鍵詞比對 + 單跳關係展開，�
 """
 
 import requests
-from pydantic import BaseModel, Field
 from opencc import OpenCC
+from pydantic import BaseModel, Field
 
 _opencc = OpenCC("s2twp")
 
@@ -44,7 +44,8 @@ class Pipe:
 
         if isinstance(user_message, list):
             user_message = " ".join(
-                part.get("text", "") for part in user_message
+                part.get("text", "")
+                for part in user_message
                 if isinstance(part, dict) and part.get("type") == "text"
             )
 

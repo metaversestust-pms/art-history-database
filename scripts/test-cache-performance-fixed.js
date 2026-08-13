@@ -50,7 +50,6 @@ class CachePerformanceTester {
 
             // 生成測試報告
             this.generateReport();
-
         } catch (error) {
             console.error('❌ 測試過程中發生錯誤:', error);
         } finally {
@@ -177,13 +176,23 @@ class CachePerformanceTester {
         const startTime = Date.now();
 
         // 註冊測試預熱任務
-        cachePreloader.registerTask('test', 'warmup_item1', async () => {
-            return { id: 'warmup1', data: 'Warmed up data 1' };
-        }, { priority: 10 });
+        cachePreloader.registerTask(
+            'test',
+            'warmup_item1',
+            async () => {
+                return { id: 'warmup1', data: 'Warmed up data 1' };
+            },
+            { priority: 10 }
+        );
 
-        cachePreloader.registerTask('test', 'warmup_item2', async () => {
-            return { id: 'warmup2', data: 'Warmed up data 2' };
-        }, { priority: 8 });
+        cachePreloader.registerTask(
+            'test',
+            'warmup_item2',
+            async () => {
+                return { id: 'warmup2', data: 'Warmed up data 2' };
+            },
+            { priority: 8 }
+        );
 
         // 執行預熱
         await cachePreloader.startPreloading();
@@ -303,7 +312,10 @@ class CachePerformanceTester {
 
         // 並發寫入測試
         const writePromises = Array.from({ length: concurrentOperations }, (_, i) =>
-            cacheManager.set('concurrent', `write_item_${i}`, { id: i, data: `concurrent_data_${i}` })
+            cacheManager.set('concurrent', `write_item_${i}`, {
+                id: i,
+                data: `concurrent_data_${i}`
+            })
         );
 
         await Promise.all(writePromises);
@@ -318,7 +330,7 @@ class CachePerformanceTester {
         const readResults = await Promise.all(readPromises);
         const readTime = Date.now() - readStartTime;
 
-        const successfulReads = readResults.filter(result => result !== null).length;
+        const successfulReads = readResults.filter((result) => result !== null).length;
 
         this.testResults.concurrent = {
             operations: concurrentOperations,
@@ -347,8 +359,12 @@ class CachePerformanceTester {
         console.log('📋 === 快取系統效能測試報告 ===\n');
 
         console.log('🔧 基礎功能測試:');
-        console.log(`  單項操作: 設置(${this.testResults.basic.singleOperations.set ? '通過' : '失敗'}), 獲取(${this.testResults.basic.singleOperations.get ? '通過' : '失敗'}), 刪除(${this.testResults.basic.singleOperations.delete ? '通過' : '失敗'})`);
-        console.log(`  批量操作: 平均設置時間 ${this.testResults.basic.batchOperations.avgSetTime}, 平均獲取時間 ${this.testResults.basic.batchOperations.avgGetTime}`);
+        console.log(
+            `  單項操作: 設置(${this.testResults.basic.singleOperations.set ? '通過' : '失敗'}), 獲取(${this.testResults.basic.singleOperations.get ? '通過' : '失敗'}), 刪除(${this.testResults.basic.singleOperations.delete ? '通過' : '失敗'})`
+        );
+        console.log(
+            `  批量操作: 平均設置時間 ${this.testResults.basic.batchOperations.avgSetTime}, 平均獲取時間 ${this.testResults.basic.batchOperations.avgGetTime}`
+        );
         console.log();
 
         console.log('🗜️ 壓縮功能測試:');
@@ -407,7 +423,7 @@ class CachePerformanceTester {
      * 延遲工具函數
      */
     delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 }
 

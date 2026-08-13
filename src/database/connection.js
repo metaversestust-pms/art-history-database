@@ -31,7 +31,7 @@ class DatabaseManager {
                 port: process.env.DB_PORT || 5432,
                 max: 20,
                 idleTimeoutMillis: 30000,
-                connectionTimeoutMillis: 2000,
+                connectionTimeoutMillis: 2000
             });
 
             // 測試連接
@@ -92,10 +92,13 @@ class DatabaseManager {
         try {
             this.esClient = new Client({
                 node: process.env.ES_URL || 'http://localhost:9200',
-                auth: process.env.ES_USERNAME && process.env.ES_PASSWORD ? {
-                    username: process.env.ES_USERNAME,
-                    password: process.env.ES_PASSWORD
-                } : undefined,
+                auth:
+                    process.env.ES_USERNAME && process.env.ES_PASSWORD
+                        ? {
+                              username: process.env.ES_USERNAME,
+                              password: process.env.ES_PASSWORD
+                          }
+                        : undefined,
                 maxRetries: 5,
                 requestTimeout: 60000,
                 sniffOnStart: true
@@ -105,7 +108,12 @@ class DatabaseManager {
             const health = await this.esClient.cluster.health();
             console.log('🔍 Elasticsearch 健康檢查回應:', health);
 
-            if (health && (health.statusCode === 200 || health.status === 'green' || health.status === 'yellow')) {
+            if (
+                health &&
+                (health.statusCode === 200 ||
+                    health.status === 'green' ||
+                    health.status === 'yellow')
+            ) {
                 this.isConnected.elasticsearch = true;
                 console.log('✅ Elasticsearch 連接成功');
                 return true;
@@ -171,7 +179,11 @@ class DatabaseManager {
         if (this.esClient) {
             try {
                 const health = await this.esClient.cluster.health();
-                status.elasticsearch = health && (health.statusCode === 200 || health.status === 'green' || health.status === 'yellow');
+                status.elasticsearch =
+                    health &&
+                    (health.statusCode === 200 ||
+                        health.status === 'green' ||
+                        health.status === 'yellow');
             } catch {
                 status.elasticsearch = false;
             }
@@ -264,43 +276,49 @@ class DatabaseManager {
 
         try {
             // 設置藝術作品索引
-            await this.esClient.indices.create({
-                index: 'artworks',
-                body: {
-                    mappings: {
-                        properties: {
-                            title: { type: 'text', analyzer: 'standard' },
-                            description: { type: 'text', analyzer: 'standard' },
-                            artist_name: { type: 'text', analyzer: 'standard' },
-                            creation_year: { type: 'integer' },
-                            style: { type: 'keyword' },
-                            medium: { type: 'keyword' },
-                            tags: { type: 'keyword' },
-                            location: { type: 'text' },
-                            significance: { type: 'text', analyzer: 'standard' },
-                            created_at: { type: 'date' }
+            await this.esClient.indices.create(
+                {
+                    index: 'artworks',
+                    body: {
+                        mappings: {
+                            properties: {
+                                title: { type: 'text', analyzer: 'standard' },
+                                description: { type: 'text', analyzer: 'standard' },
+                                artist_name: { type: 'text', analyzer: 'standard' },
+                                creation_year: { type: 'integer' },
+                                style: { type: 'keyword' },
+                                medium: { type: 'keyword' },
+                                tags: { type: 'keyword' },
+                                location: { type: 'text' },
+                                significance: { type: 'text', analyzer: 'standard' },
+                                created_at: { type: 'date' }
+                            }
                         }
                     }
-                }
-            }, { ignore: [400] }); // 忽略已存在錯誤
+                },
+                { ignore: [400] }
+            ); // 忽略已存在錯誤
 
             // 設置藝術家索引
-            await this.esClient.indices.create({
-                index: 'artists',
-                body: {
-                    mappings: {
-                        properties: {
-                            name: { type: 'text', analyzer: 'standard' },
-                            biography: { type: 'text', analyzer: 'standard' },
-                            nationality: { type: 'keyword' },
-                            art_movement: { type: 'keyword' },
-                            birth_year: { type: 'integer' },
-                            death_year: { type: 'integer' },
-                            created_at: { type: 'date' }
+            await this.esClient.indices.create(
+                {
+                    index: 'artists',
+                    body: {
+                        mappings: {
+                            properties: {
+                                name: { type: 'text', analyzer: 'standard' },
+                                biography: { type: 'text', analyzer: 'standard' },
+                                nationality: { type: 'keyword' },
+                                art_movement: { type: 'keyword' },
+                                birth_year: { type: 'integer' },
+                                death_year: { type: 'integer' },
+                                created_at: { type: 'date' }
+                            }
                         }
                     }
-                }
-            }, { ignore: [400] });
+                },
+                { ignore: [400] }
+            );
 
             console.log('✅ Elasticsearch 索引設置完成');
             return true;

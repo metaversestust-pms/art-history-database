@@ -25,11 +25,7 @@ async function testChromaDBQuery() {
         console.log(`   Metadata: ${JSON.stringify(collectionInfo.data.metadata, null, 2)}`);
 
         // 2. 測試查詢（使用文本，讓 ChromaDB 自動生成嵌入）
-        const testQueries = [
-            '達文西的畫作',
-            '文藝復興時期',
-            '巴洛克風格'
-        ];
+        const testQueries = ['達文西的畫作', '文藝復興時期', '巴洛克風格'];
 
         for (const query of testQueries) {
             console.log('\n' + '='.repeat(60));
@@ -41,7 +37,7 @@ async function testChromaDBQuery() {
                 const queryUrl = `${CHROMA_BASE_URL}/api/v2/tenants/${TENANT}/databases/${DATABASE}/collections/${collectionInfo.data.id}/query`;
 
                 const response = await axios.post(queryUrl, {
-                    query_texts: [query],  // 使用文本查詢
+                    query_texts: [query], // 使用文本查詢
                     n_results: 3,
                     include: ['metadatas', 'documents', 'distances']
                 });
@@ -65,7 +61,6 @@ async function testChromaDBQuery() {
 
                     console.log(`內容: ${doc.substring(0, 150)}...`);
                 });
-
             } catch (error) {
                 console.error(`❌ 查詢失敗: ${error.message}`);
                 if (error.response) {
@@ -77,7 +72,6 @@ async function testChromaDBQuery() {
         console.log('\n' + '='.repeat(60));
         console.log('✅ 測試完成！');
         console.log('='.repeat(60));
-
     } catch (error) {
         console.error(`❌ 錯誤: ${error.message}`);
         if (error.response) {

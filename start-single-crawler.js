@@ -49,7 +49,9 @@ class SimpleMETCrawler {
             }
 
             const objectIDs = response.data.objectIDs.slice(0, limit);
-            console.log(`   📊 找到 ${response.data.total} 件作品，將收集前 ${objectIDs.length} 件`);
+            console.log(
+                `   📊 找到 ${response.data.total} 件作品，將收集前 ${objectIDs.length} 件`
+            );
             return objectIDs;
         } catch (error) {
             console.error(`❌ 搜尋部門失敗 (${departmentName}):`, error.message);
@@ -109,7 +111,11 @@ class SimpleMETCrawler {
         for (const dept of departments) {
             console.log(`\n📚 處理部門: "${dept.displayName}"`);
 
-            const objectIDs = await this.searchDepartment(dept.departmentId, dept.displayName, this.perDepartmentLimit);
+            const objectIDs = await this.searchDepartment(
+                dept.departmentId,
+                dept.displayName,
+                this.perDepartmentLimit
+            );
 
             if (objectIDs.length === 0) {
                 continue;
@@ -127,17 +133,21 @@ class SimpleMETCrawler {
                 }
 
                 // 添加延遲避免請求過於頻繁
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             }
 
             console.log(`   ✅ "${dept.displayName}": 成功收集 ${successCount} 件作品`);
         }
 
-        console.log(`\n🎉 收集完成！總共收集了 ${this.collectedData.length} 件藝術品，涵蓋 ${departments.length} 個部門`);
+        console.log(
+            `\n🎉 收集完成！總共收集了 ${this.collectedData.length} 件藝術品，涵蓋 ${departments.length} 個部門`
+        );
     }
 
     // 備援：若部門列表 API 無法取得時，退回原本的關鍵字搜尋模式
-    async crawlByFallbackQueries(queries = ['Renaissance painting', 'Impressionist painting', 'Modern sculpture']) {
+    async crawlByFallbackQueries(
+        queries = ['Renaissance painting', 'Impressionist painting', 'Modern sculpture']
+    ) {
         for (const query of queries) {
             console.log(`\n📚 處理查詢: "${query}"`);
             const searchUrl = `${this.baseUrl}/search?hasImages=true&q=${encodeURIComponent(query)}`;
@@ -157,7 +167,7 @@ class SimpleMETCrawler {
                     this.collectedData.push(artworkData);
                     successCount++;
                 }
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             }
             console.log(`   ✅ "${query}": 成功收集 ${successCount} 件作品`);
         }
@@ -178,8 +188,10 @@ class SimpleMETCrawler {
             console.log(`💾 資料已保存到: ${filePath}`);
             console.log(`📊 統計資訊:`);
             console.log(`   - 總作品數: ${this.collectedData.length}`);
-            console.log(`   - 有圖片的作品: ${this.collectedData.filter(a => a.primaryImage).length}`);
-            console.log(`   - 高亮作品: ${this.collectedData.filter(a => a.isHighlight).length}`);
+            console.log(
+                `   - 有圖片的作品: ${this.collectedData.filter((a) => a.primaryImage).length}`
+            );
+            console.log(`   - 高亮作品: ${this.collectedData.filter((a) => a.isHighlight).length}`);
 
             const byDept = {};
             for (const a of this.collectedData) {

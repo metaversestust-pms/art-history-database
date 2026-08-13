@@ -105,19 +105,11 @@ async function runTestScenario(scenario) {
                 simulateAsyncOperation(actualDelay * 0.8),
                 simulateAsyncOperation(actualDelay * 1.2)
             ];
-            result = await globalTimeoutHandler.withBatchTimeout(
-                promises,
-                timeout,
-                '批量測試操作'
-            );
+            result = await globalTimeoutHandler.withBatchTimeout(promises, timeout, '批量測試操作');
         } else {
             // 測試一般超時
             const operation = simulateAsyncOperation(actualDelay);
-            result = await globalTimeoutHandler.withTimeout(
-                operation,
-                timeout,
-                name
-            );
+            result = await globalTimeoutHandler.withTimeout(operation, timeout, name);
         }
 
         const executionTime = Date.now() - startTime;
@@ -135,7 +127,6 @@ async function runTestScenario(scenario) {
             success: expectedResult === actualResult,
             result
         };
-
     } catch (error) {
         const executionTime = Date.now() - startTime;
         const actualResult = error instanceof TimeoutError ? 'timeout' : 'error';
@@ -165,21 +156,9 @@ async function testConcurrentTimeouts() {
     console.log('\n🔄 測試並發超時處理...');
 
     const concurrentPromises = [
-        globalTimeoutHandler.withTimeout(
-            simulateAsyncOperation(1000),
-            2000,
-            '並發操作1'
-        ),
-        globalTimeoutHandler.withTimeout(
-            simulateAsyncOperation(3000),
-            2500,
-            '並發操作2'
-        ),
-        globalTimeoutHandler.withTimeout(
-            simulateAsyncOperation(500),
-            1500,
-            '並發操作3'
-        )
+        globalTimeoutHandler.withTimeout(simulateAsyncOperation(1000), 2000, '並發操作1'),
+        globalTimeoutHandler.withTimeout(simulateAsyncOperation(3000), 2500, '並發操作2'),
+        globalTimeoutHandler.withTimeout(simulateAsyncOperation(500), 1500, '並發操作3')
     ];
 
     try {
@@ -200,15 +179,14 @@ async function testConcurrentTimeouts() {
 
         return {
             total: results.length,
-            successful: results.filter(r => r.status === 'fulfilled').length,
-            timeouts: results.filter(r =>
-                r.status === 'rejected' && r.reason instanceof TimeoutError
+            successful: results.filter((r) => r.status === 'fulfilled').length,
+            timeouts: results.filter(
+                (r) => r.status === 'rejected' && r.reason instanceof TimeoutError
             ).length,
-            errors: results.filter(r =>
-                r.status === 'rejected' && !(r.reason instanceof TimeoutError)
+            errors: results.filter(
+                (r) => r.status === 'rejected' && !(r.reason instanceof TimeoutError)
             ).length
         };
-
     } catch (error) {
         console.error('   ❌ 並發測試失敗:', error.message);
         return { error: error.message };
@@ -223,16 +201,8 @@ async function testTimeoutStats() {
 
     // 執行一些操作來生成統計數據
     const statsTestPromises = [
-        globalTimeoutHandler.withTimeout(
-            simulateAsyncOperation(100),
-            1000,
-            '統計測試1'
-        ),
-        globalTimeoutHandler.withTimeout(
-            simulateAsyncOperation(2000),
-            1500,
-            '統計測試2'
-        )
+        globalTimeoutHandler.withTimeout(simulateAsyncOperation(100), 1000, '統計測試1'),
+        globalTimeoutHandler.withTimeout(simulateAsyncOperation(2000), 1500, '統計測試2')
     ];
 
     await Promise.allSettled(statsTestPromises);
@@ -268,7 +238,7 @@ async function runTimeoutTests() {
             testResults.push(result);
 
             // 在測試之間稍作停頓
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
         // 測試並發處理
@@ -283,13 +253,17 @@ async function runTimeoutTests() {
         console.log('='.repeat(60));
 
         const totalTests = testResults.length;
-        const passedTests = testResults.filter(r => r.success).length;
+        const passedTests = testResults.filter((r) => r.success).length;
         const failedTests = totalTests - passedTests;
 
         console.log(`\n📈 基本測試統計:`);
         console.log(`   總測試數: ${totalTests}`);
-        console.log(`   通過測試: ${passedTests} (${(passedTests/totalTests*100).toFixed(1)}%)`);
-        console.log(`   失敗測試: ${failedTests} (${(failedTests/totalTests*100).toFixed(1)}%)`);
+        console.log(
+            `   通過測試: ${passedTests} (${((passedTests / totalTests) * 100).toFixed(1)}%)`
+        );
+        console.log(
+            `   失敗測試: ${failedTests} (${((failedTests / totalTests) * 100).toFixed(1)}%)`
+        );
 
         console.log(`\n🔄 並發測試統計:`);
         if (concurrentResult.error) {
@@ -306,7 +280,7 @@ async function runTimeoutTests() {
 
         // 測試詳細結果
         console.log('\n📋 詳細測試結果:');
-        testResults.forEach(result => {
+        testResults.forEach((result) => {
             const status = result.success ? '✅ 通過' : '❌ 失敗';
             console.log(`   ${result.scenario}: ${status} (${result.executionTime}ms)`);
             if (!result.success) {
@@ -337,7 +311,6 @@ async function runTimeoutTests() {
             statsResult,
             testResults
         };
-
     } catch (error) {
         console.error('💥 測試執行失敗:', error);
         return { success: false, error: error.message };
@@ -362,7 +335,6 @@ if (require.main === module) {
                 console.log('\n⚠️  測試完成，但存在問題');
                 process.exit(1);
             }
-
         } catch (error) {
             console.error('💥 測試腳本執行失敗:', error);
             process.exit(1);

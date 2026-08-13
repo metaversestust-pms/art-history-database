@@ -5,37 +5,37 @@
 整合 Ollama 模型和 Neo4j/ChromaDB
 """
 
+import hashlib
 import json
 import logging
 import os
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from datetime import datetime, timedelta
 from collections import OrderedDict
-import hashlib
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import uvicorn
-import httpx
-from neo4j import GraphDatabase
 import chromadb
-from chromadb.config import Settings
+import httpx
+import uvicorn
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 # 導入多語言查詢翻譯器
 from multilingual_query_translator import MultilingualQueryTranslator
+from neo4j import GraphDatabase
+from pydantic import BaseModel
+
 # 導入智能關鍵詞提取器
 from smart_keyword_extractor import SmartKeywordExtractor
 
 # 配置日誌
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # ==================== 查詢緩存 ====================
+
 
 class QueryCache:
     """查詢結果緩存 - LRU with TTL"""
@@ -51,18 +51,13 @@ class QueryCache:
         self.max_size = max_size
         self.ttl = timedelta(seconds=ttl_seconds)
         self.cache: OrderedDict = OrderedDict()
-        self.stats = {
-            'hits': 0,
-            'misses': 0,
-            'evictions': 0,
-            'expirations': 0
-        }
+        self.stats = {"hits": 0, "misses": 0, "evictions": 0, "expirations": 0}
 
     def _make_key(self, query: str, strategy: str, max_results: int) -> str:
         """生成緩存鍵"""
         # 使用 MD5 hash 來創建唯一的緩存鍵
         content = f"{query}|{strategy}|{max_results}"
-        return hashlib.md5(content.encode('utf-8')).hexdigest()
+        return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     def get(self, query: str, strategy: str, max_results: int) -> Optional[List[Dict[str, Any]]]:
         """獲取緩存結果"""
@@ -71,19 +66,19 @@ class QueryCache:
         if key in self.cache:
             entry = self.cache[key]
             # 檢查是否過期
-            if datetime.now() - entry['timestamp'] < self.ttl:
+            if datetime.now() - entry["timestamp"] < self.ttl:
                 # 移到最後（LRU）
                 self.cache.move_to_end(key)
-                self.stats['hits'] += 1
+                self.stats["hits"] += 1
                 logger.info(f"💾 緩存命中: {query[:30]}... | 策略: {strategy}")
-                return entry['data']
+                return entry["data"]
             else:
                 # 過期，刪除
                 del self.cache[key]
-                self.stats['expirations'] += 1
+                self.stats["expirations"] += 1
                 logger.debug(f"⏰ 緩存過期: {query[:30]}...")
 
-        self.stats['misses'] += 1
+        self.stats["misses"] += 1
         return None
 
     def set(self, query: str, strategy: str, max_results: int, data: List[Dict[str, Any]]):
@@ -94,13 +89,10 @@ class QueryCache:
         if len(self.cache) >= self.max_size and key not in self.cache:
             oldest_key = next(iter(self.cache))
             del self.cache[oldest_key]
-            self.stats['evictions'] += 1
+            self.stats["evictions"] += 1
 
         # 添加新條目
-        self.cache[key] = {
-            'data': data,
-            'timestamp': datetime.now()
-        }
+        self.cache[key] = {"data": data, "timestamp": datetime.now()}
 
         # 移到最後（LRU）
         self.cache.move_to_end(key)
@@ -115,16 +107,16 @@ class QueryCache:
 
     def get_stats(self) -> Dict[str, Any]:
         """獲取緩存統計信息"""
-        total_requests = self.stats['hits'] + self.stats['misses']
-        hit_rate = (self.stats['hits'] / total_requests * 100) if total_requests > 0 else 0
+        total_requests = self.stats["hits"] + self.stats["misses"]
+        hit_rate = (self.stats["hits"] / total_requests * 100) if total_requests > 0 else 0
 
         return {
             **self.stats,
-            'total_requests': total_requests,
-            'hit_rate_percent': round(hit_rate, 2),
-            'current_size': len(self.cache),
-            'max_size': self.max_size,
-            'ttl_seconds': int(self.ttl.total_seconds())
+            "total_requests": total_requests,
+            "hit_rate_percent": round(hit_rate, 2),
+            "current_size": len(self.cache),
+            "max_size": self.max_size,
+            "ttl_seconds": int(self.ttl.total_seconds()),
         }
 
 
@@ -132,7 +124,7 @@ class QueryCache:
 app = FastAPI(
     title="Art History RAG Manager V2",
     description="統一 RAG 管理器 - 支援 42 種 RAG+LLM 組合",
-    version="2.0.0"
+    version="2.0.0",
 )
 
 # 添加 CORS 中間件
@@ -147,12 +139,14 @@ app.add_middleware(
 # ==================== 配置加載 ====================
 
 config_path = Path(__file__).parent / "rag_config.json"
-with open(config_path, 'r', encoding='utf-8') as f:
+with open(config_path, "r", encoding="utf-8") as f:
     RAG_CONFIG = json.load(f)
 
 # 環境變數配置
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7688")  # 原生 Neo4j（WSL 直接執行，非 Docker），7688 是因為 WSL 環境本身有另一個系統 Neo4j 服務佔用了 7687
+NEO4J_URI = os.getenv(
+    "NEO4J_URI", "bolt://127.0.0.1:7688"
+)  # 原生 Neo4j（WSL 直接執行，非 Docker），7688 是因為 WSL 環境本身有另一個系統 Neo4j 服務佔用了 7687
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "arthistory123")
 CHROMADB_HOST = os.getenv("CHROMADB_HOST", "localhost")
@@ -160,8 +154,10 @@ CHROMADB_PORT = int(os.getenv("CHROMADB_PORT", "8001"))
 
 # ==================== 請求/響應模型 ====================
 
+
 class QueryRequest(BaseModel):
     """查詢請求模型"""
+
     query: str
     model_combination_id: str
     max_results: int = 5
@@ -170,8 +166,10 @@ class QueryRequest(BaseModel):
     max_tokens: Optional[int] = None
     source_filter: Optional[str] = None  # 限定只檢索 ChromaDB metadata.source 等於此值的文件
 
+
 class QueryResponse(BaseModel):
     """查詢響應模型"""
+
     answer: str
     sources: List[Dict[str, Any]]
     model_used: str
@@ -180,13 +178,17 @@ class QueryResponse(BaseModel):
     generation_time_ms: float
     metadata: Dict[str, Any]
 
+
 class HealthResponse(BaseModel):
     """健康檢查響應"""
+
     status: str
     services: Dict[str, bool]
     timestamp: str
 
+
 # ==================== 連接管理器 ====================
+
 
 class ConnectionManager:
     """管理外部服務連接"""
@@ -201,10 +203,7 @@ class ConnectionManager:
         try:
             # Neo4j 連接
             logger.info(f"連接 Neo4j: {NEO4J_URI}")
-            self.neo4j_driver = GraphDatabase.driver(
-                NEO4J_URI,
-                auth=(NEO4J_USER, NEO4J_PASSWORD)
-            )
+            self.neo4j_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
             # 測試連接
             self.neo4j_driver.verify_connectivity()
             logger.info("✅ Neo4j 連接成功")
@@ -215,10 +214,7 @@ class ConnectionManager:
         try:
             # ChromaDB 連接
             logger.info(f"連接 ChromaDB: {CHROMADB_HOST}:{CHROMADB_PORT}")
-            self.chroma_client = chromadb.HttpClient(
-                host=CHROMADB_HOST,
-                port=CHROMADB_PORT
-            )
+            self.chroma_client = chromadb.HttpClient(host=CHROMADB_HOST, port=CHROMADB_PORT)
             # 測試連接
             self.chroma_client.heartbeat()
             logger.info("✅ ChromaDB 連接成功")
@@ -245,18 +241,14 @@ class ConnectionManager:
 
     def get_health_status(self) -> Dict[str, bool]:
         """獲取服務健康狀態"""
-        status = {
-            "neo4j": False,
-            "chromadb": False,
-            "ollama": False
-        }
+        status = {"neo4j": False, "chromadb": False, "ollama": False}
 
         # 檢查 Neo4j
         if self.neo4j_driver:
             try:
                 self.neo4j_driver.verify_connectivity()
                 status["neo4j"] = True
-            except:
+            except Exception:
                 pass
 
         # 檢查 ChromaDB
@@ -264,10 +256,11 @@ class ConnectionManager:
             try:
                 self.chroma_client.heartbeat()
                 status["chromadb"] = True
-            except:
+            except Exception:
                 pass
 
         return status
+
 
 # 全局連接管理器
 conn_manager = ConnectionManager()
@@ -283,6 +276,7 @@ query_cache = None
 
 # ==================== RAG 策略實現 ====================
 
+
 class RAGStrategy:
     """RAG 策略基類"""
 
@@ -294,9 +288,14 @@ class RAGStrategy:
         """檢索相關文檔"""
         raise NotImplementedError
 
-    async def generate(self, query: str, context: List[Dict[str, Any]],
-                      model_id: str, temperature: float = 0.1,
-                      max_tokens: int = 2048) -> str:
+    async def generate(
+        self,
+        query: str,
+        context: List[Dict[str, Any]],
+        model_id: str,
+        temperature: float = 0.1,
+        max_tokens: int = 2048,
+    ) -> str:
         """生成答案"""
         # 構建提示詞
         context_text = self._format_context(context)
@@ -310,9 +309,9 @@ class RAGStrategy:
                     "model": model_id,
                     "prompt": prompt,
                     "temperature": temperature,
-                    "stream": False
+                    "stream": False,
                 },
-                timeout=300.0
+                timeout=300.0,
             )
 
             if response.status_code == 200:
@@ -333,8 +332,8 @@ class RAGStrategy:
 
         formatted = []
         for i, doc in enumerate(context, 1):
-            content = doc.get('content', doc.get('text', ''))
-            source = doc.get('source', '未知來源')
+            content = doc.get("content", doc.get("text", ""))
+            source = doc.get("source", "未知來源")
             formatted.append(f"[文檔 {i}] 來源: {source}\n{content}")
 
         return "\n\n".join(formatted)
@@ -358,8 +357,9 @@ class VectorOnlyRAG(RAGStrategy):
     def __init__(self):
         super().__init__("Vector Only RAG", "使用向量數據庫進行語義檢索")
 
-    async def retrieve(self, query: str, max_results: int = 5,
-                       source_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def retrieve(
+        self, query: str, max_results: int = 5, source_filter: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """使用 ChromaDB 進行向量檢索"""
         if not conn_manager.chroma_client:
             logger.warning("ChromaDB 未連接，返回空結果")
@@ -367,30 +367,30 @@ class VectorOnlyRAG(RAGStrategy):
 
         try:
             # 獲取或創建集合
-            collection = conn_manager.chroma_client.get_or_create_collection(
-                name="art_history"
-            )
+            collection = conn_manager.chroma_client.get_or_create_collection(name="art_history")
 
             # 執行查詢（若指定 source_filter，僅檢索 metadata.source 相符的文件）
             results = collection.query(
                 query_texts=[query],
                 n_results=max_results,
-                where={"source": source_filter} if source_filter else None
+                where={"source": source_filter} if source_filter else None,
             )
 
             # 格式化結果
             documents = []
-            if results and results['documents']:
-                for i, doc in enumerate(results['documents'][0]):
-                    metadata = results['metadatas'][0][i] if results['metadatas'] else {}
-                    distance = results['distances'][0][i] if results['distances'] else 0
+            if results and results["documents"]:
+                for i, doc in enumerate(results["documents"][0]):
+                    metadata = results["metadatas"][0][i] if results["metadatas"] else {}
+                    distance = results["distances"][0][i] if results["distances"] else 0
 
-                    documents.append({
-                        'content': doc,
-                        'metadata': metadata,
-                        'score': 1 - distance,  # 轉換為相似度分數
-                        'source': metadata.get('source', 'ChromaDB')
-                    })
+                    documents.append(
+                        {
+                            "content": doc,
+                            "metadata": metadata,
+                            "score": 1 - distance,  # 轉換為相似度分數
+                            "source": metadata.get("source", "ChromaDB"),
+                        }
+                    )
 
             logger.info(f"向量檢索返回 {len(documents)} 個結果")
             return documents
@@ -418,18 +418,46 @@ class GraphOnlyRAG(RAGStrategy):
                 search_terms, extraction_info = keyword_extractor.extract_keywords(
                     query,
                     max_keywords=5,
-                    min_word_length=3  # 提高最小長度以避免 'da' 這樣的詞
+                    min_word_length=3,  # 提高最小長度以避免 'da' 這樣的詞
                 )
                 if not search_terms:
                     search_terms = [query]
             else:
                 # 回退到基礎提取
                 import re
+
                 keywords = []
-                english_words = re.findall(r'\b[a-zA-Z]{3,}\b', query)  # 最少3個字母
-                stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-                              'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were',
-                              'da', 'de', 'di', 'del', 'van', 'von', 'le', 'la'}
+                english_words = re.findall(r"\b[a-zA-Z]{3,}\b", query)  # 最少3個字母
+                stop_words = {
+                    "the",
+                    "a",
+                    "an",
+                    "and",
+                    "or",
+                    "but",
+                    "in",
+                    "on",
+                    "at",
+                    "to",
+                    "for",
+                    "of",
+                    "with",
+                    "by",
+                    "from",
+                    "as",
+                    "is",
+                    "was",
+                    "are",
+                    "were",
+                    "da",
+                    "de",
+                    "di",
+                    "del",
+                    "van",
+                    "von",
+                    "le",
+                    "la",
+                }
                 keywords = [w for w in english_words if w.lower() not in stop_words]
                 search_terms = keywords if keywords else [query]
 
@@ -456,21 +484,19 @@ class GraphOnlyRAG(RAGStrategy):
                     """
 
                     artist_result = session.run(
-                        artist_query,
-                        search_term=fuzzy_term,
-                        limit=max_results
+                        artist_query, search_term=fuzzy_term, limit=max_results
                     )
 
                     # 收集藝術家結果
                     for record in artist_result:
-                        node = record['n']
-                        score = record['score']
-                        title = node.get('name')
+                        node = record["n"]
+                        score = record["score"]
+                        title = node.get("name")
 
                         # 去重檢查
                         if title and title not in seen_titles:
                             seen_titles.add(title)
-                            relationships = record['relationships']
+                            relationships = record["relationships"]
                             content = self._format_graph_node(node, relationships)
 
                             # 安全轉換Node為dict
@@ -482,19 +508,21 @@ class GraphOnlyRAG(RAGStrategy):
                                     metadata[key] = value
                                 elif isinstance(value, (list, tuple)):
                                     metadata[key] = str(value)  # 轉換為字符串
-                                elif hasattr(value, 'isoformat'):
+                                elif hasattr(value, "isoformat"):
                                     # Neo4j DateTime/Date/Time objects
                                     metadata[key] = value.isoformat()
                                 else:
                                     # 其他類型轉為字符串
                                     metadata[key] = str(value)
 
-                            all_documents.append({
-                                'content': content,
-                                'metadata': metadata,
-                                'score': float(score),  # 使用全文搜索分數
-                                'source': 'Neo4j Knowledge Graph (Artist)'
-                            })
+                            all_documents.append(
+                                {
+                                    "content": content,
+                                    "metadata": metadata,
+                                    "score": float(score),  # 使用全文搜索分數
+                                    "source": "Neo4j Knowledge Graph (Artist)",
+                                }
+                            )
 
                         # 限制總結果數量
                         if len(all_documents) >= max_results:
@@ -516,19 +544,19 @@ class GraphOnlyRAG(RAGStrategy):
                     artwork_result = session.run(
                         artwork_title_query,
                         search_term=fuzzy_term,
-                        limit=max_results - len(all_documents)
+                        limit=max_results - len(all_documents),
                     )
 
                     # 收集作品結果
                     for record in artwork_result:
-                        node = record['n']
-                        score = record['score']
-                        title = node.get('title')
+                        node = record["n"]
+                        score = record["score"]
+                        title = node.get("title")
 
                         # 去重檢查
                         if title and title not in seen_titles:
                             seen_titles.add(title)
-                            relationships = record['relationships']
+                            relationships = record["relationships"]
                             content = self._format_graph_node(node, relationships)
 
                             # 安全轉換Node為dict
@@ -540,19 +568,21 @@ class GraphOnlyRAG(RAGStrategy):
                                     metadata[key] = value
                                 elif isinstance(value, (list, tuple)):
                                     metadata[key] = str(value)  # 轉換為字符串
-                                elif hasattr(value, 'isoformat'):
+                                elif hasattr(value, "isoformat"):
                                     # Neo4j DateTime/Date/Time objects
                                     metadata[key] = value.isoformat()
                                 else:
                                     # 其他類型轉為字符串
                                     metadata[key] = str(value)
 
-                            all_documents.append({
-                                'content': content,
-                                'metadata': metadata,
-                                'score': float(score),  # 使用全文搜索分數
-                                'source': 'Neo4j Knowledge Graph (Artwork)'
-                            })
+                            all_documents.append(
+                                {
+                                    "content": content,
+                                    "metadata": metadata,
+                                    "score": float(score),  # 使用全文搜索分數
+                                    "source": "Neo4j Knowledge Graph (Artwork)",
+                                }
+                            )
 
                         # 限制總結果數量
                         if len(all_documents) >= max_results:
@@ -562,7 +592,7 @@ class GraphOnlyRAG(RAGStrategy):
                         break
 
                 # 按分數排序結果
-                all_documents.sort(key=lambda x: x['score'], reverse=True)
+                all_documents.sort(key=lambda x: x["score"], reverse=True)
 
                 logger.info(f"圖譜檢索返回 {len(all_documents)} 個結果 (使用全文索引模糊匹配)")
                 return all_documents
@@ -574,23 +604,39 @@ class GraphOnlyRAG(RAGStrategy):
     def _extract_entities(self, query: str) -> List[str]:
         """簡單的實體提取（分詞）"""
         # 移除常見停用詞
-        stop_words = {'的', '是', '有', '在', '和', '與', '或', '對', '為', '了', '個', '著', '嗎', '呢', '吧'}
+        stop_words = {
+            "的",
+            "是",
+            "有",
+            "在",
+            "和",
+            "與",
+            "或",
+            "對",
+            "為",
+            "了",
+            "個",
+            "著",
+            "嗎",
+            "呢",
+            "吧",
+        }
         words = [w for w in query if len(w) > 1 and w not in stop_words]
         return words[:5]  # 限制最多5個實體
 
     def _format_graph_node(self, node, relationships) -> str:
         """格式化圖譜節點信息"""
         # 判斷節點類型並獲取名稱
-        node_name = node.get('title') or node.get('name', '未知')
+        node_name = node.get("title") or node.get("name", "未知")
         content = f"實體: {node_name}\n"
 
         # 添加屬性 - 安全處理各種類型
         for key, value in node.items():
-            if key not in ['name', 'title'] and value:
+            if key not in ["name", "title"] and value:
                 # 安全序列化value
                 if isinstance(value, (list, tuple, dict)):
                     content += f"{key}: {str(value)}\n"
-                elif hasattr(value, 'isoformat'):
+                elif hasattr(value, "isoformat"):
                     content += f"{key}: {value.isoformat()}\n"
                 else:
                     content += f"{key}: {value}\n"
@@ -599,12 +645,12 @@ class GraphOnlyRAG(RAGStrategy):
         if relationships:
             content += "\n相關關係:\n"
             for rel in relationships[:5]:  # 限制關係數量
-                if rel.get('node'):
-                    rel_type = rel.get('rel', 'RELATED')
+                if rel.get("node"):
+                    rel_type = rel.get("rel", "RELATED")
                     # 安全獲取關聯節點名稱
-                    related_node = rel['node']
-                    if hasattr(related_node, 'get'):
-                        rel_node = related_node.get('title') or related_node.get('name', '未知')
+                    related_node = rel["node"]
+                    if hasattr(related_node, "get"):
+                        rel_node = related_node.get("title") or related_node.get("name", "未知")
                     else:
                         rel_node = str(related_node)
                     content += f"  - {rel_type} -> {rel_node}\n"
@@ -629,8 +675,15 @@ class AdvancedGraphRAG(RAGStrategy):
     """Advanced Graph RAG - 查詢改寫(術語正規化) + 多跳圖檢索(2-hop) + 子圖重排序"""
 
     # 作品節點可能延伸出去的關係類型（12類分類體系裡的風格/材質/技法/產地/機構/主題/概念）
-    EXTENDED_REL_TYPES = ['BELONGS_TO_STYLE', 'USES_MATERIAL', 'USES_TECHNIQUE',
-                          'FROM_PLACE', 'HELD_BY', 'DEPICTS_THEME', 'MENTIONS_CONCEPT']
+    EXTENDED_REL_TYPES = [
+        "BELONGS_TO_STYLE",
+        "USES_MATERIAL",
+        "USES_TECHNIQUE",
+        "FROM_PLACE",
+        "HELD_BY",
+        "DEPICTS_THEME",
+        "MENTIONS_CONCEPT",
+    ]
 
     def __init__(self):
         super().__init__("Advanced Graph RAG", "查詢改寫、多跳圖檢索(2-hop)與子圖重排序")
@@ -652,7 +705,9 @@ class AdvancedGraphRAG(RAGStrategy):
 
         # 2. 抽取關鍵詞
         if keyword_extractor:
-            search_terms, _ = keyword_extractor.extract_keywords(normalized_query, max_keywords=5, min_word_length=3)
+            search_terms, _ = keyword_extractor.extract_keywords(
+                normalized_query, max_keywords=5, min_word_length=3
+            )
             if not search_terms:
                 search_terms = [normalized_query]
         else:
@@ -680,10 +735,14 @@ class AdvancedGraphRAG(RAGStrategy):
                            collect(DISTINCT CASE WHEN aw IS NOT NULL THEN {rel: 'CREATED', node: aw} END) as hop1,
                            collect(DISTINCT CASE WHEN ext IS NOT NULL THEN {rel: type(r2), node: ext} END) as hop2
                     """
-                    result = session.run(artist_query, search_term=fuzzy_term, limit=max_results,
-                                          ext_types=self.EXTENDED_REL_TYPES)
+                    result = session.run(
+                        artist_query,
+                        search_term=fuzzy_term,
+                        limit=max_results,
+                        ext_types=self.EXTENDED_REL_TYPES,
+                    )
                     for record in result:
-                        candidates.append(self._build_candidate(record, 'Artist'))
+                        candidates.append(self._build_candidate(record, "Artist"))
 
                     # 同樣針對作品標題全文索引做 2-hop（作品 -> 延伸關係 -> 相關實體，以及作品 <- 藝術家）
                     artwork_query = """
@@ -697,10 +756,14 @@ class AdvancedGraphRAG(RAGStrategy):
                            collect(DISTINCT CASE WHEN artist IS NOT NULL THEN {rel: 'CREATED_BY', node: artist} END) as hop1,
                            collect(DISTINCT CASE WHEN ext IS NOT NULL THEN {rel: type(r2), node: ext} END) as hop2
                     """
-                    result2 = session.run(artwork_query, search_term=fuzzy_term, limit=max_results,
-                                           ext_types=self.EXTENDED_REL_TYPES)
+                    result2 = session.run(
+                        artwork_query,
+                        search_term=fuzzy_term,
+                        limit=max_results,
+                        ext_types=self.EXTENDED_REL_TYPES,
+                    )
                     for record in result2:
-                        candidates.append(self._build_candidate(record, 'Artwork'))
+                        candidates.append(self._build_candidate(record, "Artwork"))
         except Exception as e:
             logger.error(f"Advanced Graph RAG 檢索失敗: {e}")
             return []
@@ -711,45 +774,53 @@ class AdvancedGraphRAG(RAGStrategy):
         return ranked
 
     def _build_candidate(self, record, node_type: str) -> Dict[str, Any]:
-        node = record['n']
-        hop1 = [h for h in record['hop1'] if h and h.get('node') is not None]
-        hop2 = [h for h in record['hop2'] if h and h.get('node') is not None]
-        name = node.get('title') or node.get('name', '未知')
+        node = record["n"]
+        hop1 = [h for h in record["hop1"] if h and h.get("node") is not None]
+        hop2 = [h for h in record["hop2"] if h and h.get("node") is not None]
+        name = node.get("title") or node.get("name", "未知")
 
         content_lines = [f"實體: {name} ({node_type})"]
         if hop1:
             content_lines.append("一跳關係:")
             for h in hop1[:5]:
-                related = h['node']
-                related_name = (related.get('title') or related.get('name', '未知')) if hasattr(related, 'get') else str(related)
+                related = h["node"]
+                related_name = (
+                    (related.get("title") or related.get("name", "未知"))
+                    if hasattr(related, "get")
+                    else str(related)
+                )
                 content_lines.append(f"  - {h['rel']} -> {related_name}")
         if hop2:
             content_lines.append("二跳擴展(風格/材質/技法/產地/機構/主題/概念):")
             for h in hop2[:8]:
-                related = h['node']
-                related_name = (related.get('name') or related.get('title', '未知')) if hasattr(related, 'get') else str(related)
+                related = h["node"]
+                related_name = (
+                    (related.get("name") or related.get("title", "未知"))
+                    if hasattr(related, "get")
+                    else str(related)
+                )
                 content_lines.append(f"  - {h['rel']} -> {related_name}")
 
         return {
-            'content': "\n".join(content_lines),
-            'metadata': {'name': name, 'node_type': node_type},
-            'score': float(record['score']),
-            'hop2_richness': len(hop2),
-            'source': f'Neo4j Knowledge Graph 2-hop ({node_type})'
+            "content": "\n".join(content_lines),
+            "metadata": {"name": name, "node_type": node_type},
+            "score": float(record["score"]),
+            "hop2_richness": len(hop2),
+            "source": f"Neo4j Knowledge Graph 2-hop ({node_type})",
         }
 
     def _rerank(self, candidates: List[Dict[str, Any]], max_results: int) -> List[Dict[str, Any]]:
         seen = set()
         deduped = []
         for c in candidates:
-            key = c['metadata'].get('name')
+            key = c["metadata"].get("name")
             if key and key not in seen:
                 seen.add(key)
                 deduped.append(c)
         # 綜合分數：全文分數 + 2-hop 擴展豐富度加成（每個延伸關係 +0.3 分，最多加3分）
         for c in deduped:
-            c['combined_score'] = c['score'] + min(c.get('hop2_richness', 0) * 0.3, 3.0)
-        deduped.sort(key=lambda x: x['combined_score'], reverse=True)
+            c["combined_score"] = c["score"] + min(c.get("hop2_richness", 0) * 0.3, 3.0)
+        deduped.sort(key=lambda x: x["combined_score"], reverse=True)
         return deduped[:max_results]
 
 
@@ -779,9 +850,9 @@ class AgenticGraphRAG(RAGStrategy):
                 docs = await self._advanced_graph_rag.retrieve(term, max_results)
                 round_docs.extend(docs)
 
-            new_docs = [d for d in round_docs if d['metadata'].get('name') not in seen_names]
+            new_docs = [d for d in round_docs if d["metadata"].get("name") not in seen_names]
             for d in new_docs:
-                seen_names.add(d['metadata'].get('name'))
+                seen_names.add(d["metadata"].get("name"))
             collected.extend(new_docs)
 
             sufficient, assessment = await self._assess_sufficiency(query, collected)
@@ -795,22 +866,31 @@ class AgenticGraphRAG(RAGStrategy):
             current_focus = assessment
 
         trace_doc = {
-            'content': "\n".join(reasoning_trace),
-            'metadata': {'name': 'Agent 推理路徑'},
-            'score': 0.0,
-            'source': 'Agentic Graph RAG (推理過程)'
+            "content": "\n".join(reasoning_trace),
+            "metadata": {"name": "Agent 推理路徑"},
+            "score": 0.0,
+            "source": "Agentic Graph RAG (推理過程)",
         }
 
-        ranked = sorted(collected, key=lambda x: x.get('combined_score', x.get('score', 0)), reverse=True)[:max_results]
-        logger.info(f"Agentic Graph RAG 完成 {len(reasoning_trace)} 輪迭代，返回 {len(ranked)} 個結果")
+        ranked = sorted(
+            collected, key=lambda x: x.get("combined_score", x.get("score", 0)), reverse=True
+        )[:max_results]
+        logger.info(
+            f"Agentic Graph RAG 完成 {len(reasoning_trace)} 輪迭代，返回 {len(ranked)} 個結果"
+        )
         return ranked + [trace_doc]
 
     async def _call_llm(self, prompt: str) -> Optional[str]:
         try:
             response = await conn_manager.http_client.post(
                 f"{OLLAMA_BASE_URL}/api/generate",
-                json={"model": self.planner_model, "prompt": prompt, "temperature": 0.1, "stream": False},
-                timeout=120.0
+                json={
+                    "model": self.planner_model,
+                    "prompt": prompt,
+                    "temperature": 0.1,
+                    "stream": False,
+                },
+                timeout=120.0,
             )
             if response.status_code == 200:
                 return response.json().get("response", "").strip()
@@ -818,8 +898,11 @@ class AgenticGraphRAG(RAGStrategy):
             logger.warning(f"Agent 呼叫 LLM 失敗: {e}")
         return None
 
-    async def _plan_search_terms(self, original_query: str, current_focus: str, history: List[str]) -> List[str]:
+    async def _plan_search_terms(
+        self, original_query: str, current_focus: str, history: List[str]
+    ) -> List[str]:
         import re
+
         history_text = "\n".join(history) if history else "（第一輪，尚無歷史）"
         prompt = f"""你是一個知識圖譜檢索規劃助手。原始問題：「{original_query}」
 目前檢索焦點：「{current_focus}」
@@ -830,7 +913,7 @@ class AgenticGraphRAG(RAGStrategy):
 用逗號分隔，不要任何說明文字，直接輸出關鍵詞列表。"""
         text = await self._call_llm(prompt)
         if text:
-            terms = [t.strip() for t in re.split(r'[,，、\n]', text) if t.strip()]
+            terms = [t.strip() for t in re.split(r"[,，、\n]", text) if t.strip()]
             if terms:
                 return terms[:3]
         return [original_query]
@@ -873,7 +956,9 @@ class HybridBalancedRAG(RAGStrategy):
         # 合並結果
         all_docs = vector_docs + graph_docs
 
-        logger.info(f"混合檢索返回 {len(all_docs)} 個結果 (向量: {len(vector_docs)}, 圖譜: {len(graph_docs)})")
+        logger.info(
+            f"混合檢索返回 {len(all_docs)} 個結果 (向量: {len(vector_docs)}, 圖譜: {len(graph_docs)})"
+        )
         return all_docs
 
 
@@ -907,7 +992,7 @@ class AdvancedRAG(RAGStrategy):
         merged = []
 
         for doc in docs1 + docs2:
-            content_hash = hash(doc['content'][:100])  # 使用前100字符作為特徵
+            content_hash = hash(doc["content"][:100])  # 使用前100字符作為特徵
             if content_hash not in seen_content:
                 seen_content.add(content_hash)
                 merged.append(doc)
@@ -917,7 +1002,7 @@ class AdvancedRAG(RAGStrategy):
     def _rerank(self, docs: List[Dict], query: str, max_results: int) -> List[Dict]:
         """重排序文檔"""
         # 基於分數排序
-        sorted_docs = sorted(docs, key=lambda x: x.get('score', 0), reverse=True)
+        sorted_docs = sorted(docs, key=lambda x: x.get("score", 0), reverse=True)
         return sorted_docs[:max_results]
 
 
@@ -947,9 +1032,9 @@ class AgenticRAG(RAGStrategy):
     def _analyze_intent(self, query: str) -> str:
         """分析查詢意圖（簡化版）"""
         # 關係關鍵詞
-        relationship_keywords = ['關係', '影響', '比較', '差異', '聯繫', '之間']
+        relationship_keywords = ["關係", "影響", "比較", "差異", "聯繫", "之間"]
         # 語義關鍵詞
-        semantic_keywords = ['是什麼', '特點', '描述', '介紹', '說明']
+        semantic_keywords = ["是什麼", "特點", "描述", "介紹", "說明"]
 
         query_lower = query.lower()
 
@@ -990,7 +1075,7 @@ class SelfRAG(RAGStrategy):
             return 0.0
 
         # 基於文檔數量和平均分數
-        avg_score = sum(doc.get('score', 0) for doc in docs) / len(docs)
+        avg_score = sum(doc.get("score", 0) for doc in docs) / len(docs)
         coverage = min(len(docs) / 5, 1.0)  # 期望至少5個結果
 
         return (avg_score + coverage) / 2
@@ -1029,10 +1114,11 @@ RAG_STRATEGIES = {
     # Graph RAG 三種變體（見與 unified_rag_manager_v2.py 同段的類別定義）
     "naive_graph_rag": NaiveGraphRAG(),
     "advanced_graph_rag": AdvancedGraphRAG(),
-    "agentic_graph_rag": AgenticGraphRAG()
+    "agentic_graph_rag": AgenticGraphRAG(),
 }
 
 # ==================== API 端點 ====================
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -1052,10 +1138,7 @@ async def startup_event():
 
     # 初始化智能關鍵詞提取器
     try:
-        keyword_extractor = SmartKeywordExtractor(
-            translator=query_translator,
-            log_queries=True
-        )
+        keyword_extractor = SmartKeywordExtractor(translator=query_translator, log_queries=True)
         logger.info("✅ 智能關鍵詞提取器已初始化")
     except Exception as e:
         logger.warning(f"⚠️ 關鍵詞提取器初始化失敗: {e}，將使用基礎提取")
@@ -1073,12 +1156,14 @@ async def startup_event():
 
     logger.info("✅ RAG 管理器服務已就緒")
 
+
 @app.on_event("shutdown")
 async def shutdown_event():
     """應用關閉時清理連接"""
     logger.info("🛑 RAG 管理器服務關閉中...")
     await conn_manager.close()
     logger.info("✅ RAG 管理器服務已關閉")
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -1087,48 +1172,43 @@ async def health_check():
 
     # 檢查 Ollama
     try:
-        response = await conn_manager.http_client.get(
-            f"{OLLAMA_BASE_URL}/api/tags",
-            timeout=5.0
-        )
+        response = await conn_manager.http_client.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5.0)
         services["ollama"] = response.status_code == 200
-    except:
+    except Exception:
         services["ollama"] = False
 
     # 判斷整體狀態
     all_healthy = all(services.values())
     status = "healthy" if all_healthy else "degraded"
 
-    return HealthResponse(
-        status=status,
-        services=services,
-        timestamp=datetime.now().isoformat()
-    )
+    return HealthResponse(status=status, services=services, timestamp=datetime.now().isoformat())
+
 
 @app.get("/api/v1/models")
 async def list_models():
     """列出所有可用的模型組合"""
     return {
         "models": RAG_CONFIG.get("model_combinations", []),
-        "total": len(RAG_CONFIG.get("model_combinations", []))
+        "total": len(RAG_CONFIG.get("model_combinations", [])),
     }
+
 
 @app.get("/api/v1/strategies")
 async def list_strategies():
     """列出所有可用的 RAG 策略"""
     strategies = []
     for strategy_id, strategy_config in RAG_CONFIG.get("rag_strategies", {}).items():
-        strategies.append({
-            "id": strategy_id,
-            "name": strategy_config.get("name"),
-            "display_name": strategy_config.get("display_name"),
-            "description": strategy_config.get("description"),
-            "emoji": strategy_config.get("emoji")
-        })
-    return {
-        "strategies": strategies,
-        "total": len(strategies)
-    }
+        strategies.append(
+            {
+                "id": strategy_id,
+                "name": strategy_config.get("name"),
+                "display_name": strategy_config.get("display_name"),
+                "description": strategy_config.get("description"),
+                "emoji": strategy_config.get("emoji"),
+            }
+        )
+    return {"strategies": strategies, "total": len(strategies)}
+
 
 @app.get("/api/v1/cache/stats")
 async def get_cache_stats():
@@ -1136,25 +1216,18 @@ async def get_cache_stats():
     if query_cache:
         return query_cache.get_stats()
     else:
-        return {
-            "error": "Cache not enabled",
-            "enabled": False
-        }
+        return {"error": "Cache not enabled", "enabled": False}
+
 
 @app.post("/api/v1/cache/clear")
 async def clear_cache():
     """清空緩存"""
     if query_cache:
         query_cache.clear()
-        return {
-            "success": True,
-            "message": "Cache cleared successfully"
-        }
+        return {"success": True, "message": "Cache cleared successfully"}
     else:
-        return {
-            "success": False,
-            "message": "Cache not enabled"
-        }
+        return {"success": False, "message": "Cache not enabled"}
+
 
 @app.post("/api/v1/query", response_model=QueryResponse)
 async def process_query(request: QueryRequest):
@@ -1167,16 +1240,13 @@ async def process_query(request: QueryRequest):
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"無效的模型組合 ID: {request.model_combination_id}，格式應為 'llm_model@rag_strategy'"
+            detail=f"無效的模型組合 ID: {request.model_combination_id}，格式應為 'llm_model@rag_strategy'",
         )
 
     # 獲取 RAG 策略
     strategy = RAG_STRATEGIES.get(rag_strategy)
     if not strategy:
-        raise HTTPException(
-            status_code=404,
-            detail=f"未找到 RAG 策略: {rag_strategy}"
-        )
+        raise HTTPException(status_code=404, detail=f"未找到 RAG 策略: {rag_strategy}")
 
     # 多語言查詢翻譯
     original_query = request.query
@@ -1185,21 +1255,24 @@ async def process_query(request: QueryRequest):
     if query_translator:
         try:
             translation_result = query_translator.translate_query(request.query)
-            translated_query = translation_result['translated_query']
+            translated_query = translation_result["translated_query"]
 
             # 如果檢測到非英文且進行了翻譯，使用翻譯後的查詢
-            if translation_result['detected_language'] != 'en' and translation_result['found_terms']:
+            if (
+                translation_result["detected_language"] != "en"
+                and translation_result["found_terms"]
+            ):
                 logger.info(
                     f"🌐 查詢翻譯: '{original_query}' -> '{translated_query}' "
                     f"({translation_result['detected_language']}, {len(translation_result['found_terms'])} 個術語)"
                 )
                 request.query = translated_query
                 translation_info = {
-                    'original_query': original_query,
-                    'translated_query': translated_query,
-                    'detected_language': translation_result['detected_language'],
-                    'found_terms': translation_result['found_terms'],
-                    'translation_method': translation_result['translation_method']
+                    "original_query": original_query,
+                    "translated_query": translated_query,
+                    "detected_language": translation_result["detected_language"],
+                    "found_terms": translation_result["found_terms"],
+                    "translation_method": translation_result["translation_method"],
                 }
         except Exception as e:
             logger.warning(f"⚠️ 查詢翻譯失敗: {e}，使用原始查詢")
@@ -1209,11 +1282,15 @@ async def process_query(request: QueryRequest):
     cache_hit = False
 
     # source_filter 只有 VectorOnlyRAG 支援，且會影響檢索結果，需併入快取鍵
-    cache_strategy_key = f"{rag_strategy}:{request.source_filter}" if request.source_filter else rag_strategy
+    cache_strategy_key = (
+        f"{rag_strategy}:{request.source_filter}" if request.source_filter else rag_strategy
+    )
 
     async def _retrieve():
         if isinstance(strategy, VectorOnlyRAG):
-            return await strategy.retrieve(request.query, request.max_results, source_filter=request.source_filter)
+            return await strategy.retrieve(
+                request.query, request.max_results, source_filter=request.source_filter
+            )
         return await strategy.retrieve(request.query, request.max_results)
 
     try:
@@ -1256,11 +1333,7 @@ async def process_query(request: QueryRequest):
                     break
 
         answer = await strategy.generate(
-            request.query,
-            sources,
-            llm_model,
-            temperature=temperature,
-            max_tokens=max_tokens
+            request.query, sources, llm_model, temperature=temperature, max_tokens=max_tokens
         )
     except Exception as e:
         logger.error(f"生成失敗: {e}")
@@ -1275,7 +1348,7 @@ async def process_query(request: QueryRequest):
         "num_sources": len(sources),
         "query_length": len(request.query),
         "answer_length": len(answer),
-        "cache_hit": cache_hit
+        "cache_hit": cache_hit,
     }
 
     # 如果有翻譯信息，添加到元數據
@@ -1289,7 +1362,7 @@ async def process_query(request: QueryRequest):
         rag_strategy=rag_strategy,
         retrieval_time_ms=retrieval_time,
         generation_time_ms=generation_time,
-        metadata=metadata
+        metadata=metadata,
     )
 
     logger.info(
@@ -1299,6 +1372,7 @@ async def process_query(request: QueryRequest):
     )
 
     return response
+
 
 @app.get("/")
 async def root():
@@ -1313,9 +1387,10 @@ async def root():
             "strategies": "/api/v1/strategies",
             "query": "/api/v1/query",
             "cache_stats": "/api/v1/cache/stats",
-            "cache_clear": "/api/v1/cache/clear"
-        }
+            "cache_clear": "/api/v1/cache/clear",
+        },
     }
+
 
 # ==================== 主程序 ====================
 
@@ -1327,9 +1402,4 @@ if __name__ == "__main__":
     logger.info(f"   Neo4j: {NEO4J_URI}")
     logger.info(f"   ChromaDB: {CHROMADB_HOST}:{CHROMADB_PORT}")
 
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=port,
-        log_level="info"
-    )
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

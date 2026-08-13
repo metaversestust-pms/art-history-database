@@ -34,9 +34,9 @@ class OllamaSummarizationAgent extends EventEmitter {
                 name: '繁體中文',
                 culturalContext: 'Traditional Chinese',
                 adaptations: {
-                    'Renaissance': '文藝復興',
-                    'Baroque': '巴洛克',
-                    'Impressionism': '印象派',
+                    Renaissance: '文藝復興',
+                    Baroque: '巴洛克',
+                    Impressionism: '印象派',
                     'Modern Art': '現代美術',
                     'Contemporary Art': '當代藝術'
                 }
@@ -45,23 +45,23 @@ class OllamaSummarizationAgent extends EventEmitter {
                 name: '简体中文',
                 culturalContext: 'Simplified Chinese',
                 adaptations: {
-                    'Renaissance': '文艺复兴',
-                    'Baroque': '巴洛克',
-                    'Impressionism': '印象派',
+                    Renaissance: '文艺复兴',
+                    Baroque: '巴洛克',
+                    Impressionism: '印象派',
                     'Modern Art': '现代美术'
                 }
             },
-            'ja': {
+            ja: {
                 name: '日本語',
                 culturalContext: 'Japanese',
                 adaptations: {
-                    'Renaissance': 'ルネサンス',
-                    'Baroque': 'バロック',
-                    'Impressionism': '印象派',
+                    Renaissance: 'ルネサンス',
+                    Baroque: 'バロック',
+                    Impressionism: '印象派',
                     'Modern Art': '近代美術'
                 }
             },
-            'en': {
+            en: {
                 name: 'English',
                 culturalContext: 'English',
                 adaptations: {}
@@ -94,7 +94,10 @@ class OllamaSummarizationAgent extends EventEmitter {
         };
 
         // 輸入和輸出路徑
-        this.inputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'classified');
+        this.inputDir = path.join(
+            process.env.DATA_PROCESSED_DIR || './data/processed',
+            'classified'
+        );
         this.outputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'final');
 
         logger.info(`🦙 ${this.name} 初始化完成`);
@@ -130,7 +133,6 @@ class OllamaSummarizationAgent extends EventEmitter {
                 status: this.status,
                 models: health.models
             });
-
         } catch (error) {
             this.status = 'error';
             logger.error('❌ Ollama 摘要翻譯代理初始化失敗:', error);
@@ -171,9 +173,8 @@ class OllamaSummarizationAgent extends EventEmitter {
             logger.info('✅ 文本生成測試通過');
 
             // 測試嵌入向量
-            const testEmbedding = await ollamaService.generateEmbedding(
-                '藝術史是研究藝術發展歷程的學科'
-            );
+            const testEmbedding =
+                await ollamaService.generateEmbedding('藝術史是研究藝術發展歷程的學科');
             logger.info(`✅ 嵌入向量測試通過 (維度: ${testEmbedding.dimensions})`);
 
             // 測試藝術史摘要
@@ -194,7 +195,6 @@ class OllamaSummarizationAgent extends EventEmitter {
                 'zh-TW'
             );
             logger.info('✅ 翻譯功能測試通過');
-
         } catch (error) {
             logger.error('❌ 模型功能測試失敗:', error.message);
             throw new Error(`模型功能測試失敗: ${error.message}`);
@@ -243,7 +243,9 @@ class OllamaSummarizationAgent extends EventEmitter {
             const duration = Date.now() - this.stats.startTime;
 
             logger.info(`✅ 處理完成！`);
-            logger.info(`📊 統計: 處理 ${this.stats.processed} 個項目，生成 ${this.stats.summariesGenerated} 個摘要，${this.stats.translationsGenerated} 個翻譯`);
+            logger.info(
+                `📊 統計: 處理 ${this.stats.processed} 個項目，生成 ${this.stats.summariesGenerated} 個摘要，${this.stats.translationsGenerated} 個翻譯`
+            );
             logger.info(`⏱️ 總耗時: ${Math.round(duration / 1000)} 秒`);
 
             this.emit('processingComplete', {
@@ -255,7 +257,6 @@ class OllamaSummarizationAgent extends EventEmitter {
             });
 
             return results;
-
         } catch (error) {
             this.status = 'error';
             this.stats.errors++;
@@ -275,7 +276,10 @@ class OllamaSummarizationAgent extends EventEmitter {
             const sourceDir = path.join(this.inputDir, source);
 
             try {
-                const dirExists = await fs.access(sourceDir).then(() => true).catch(() => false);
+                const dirExists = await fs
+                    .access(sourceDir)
+                    .then(() => true)
+                    .catch(() => false);
                 if (!dirExists) {
                     logger.warn(`輸入目錄不存在: ${sourceDir}`);
                     continue;
@@ -305,16 +309,32 @@ class OllamaSummarizationAgent extends EventEmitter {
     /**
      * 處理文件批次
      */
-    async processFiles(files, targetLanguages, generateSummaries, generateTranslations, culturalAdaptation) {
+    async processFiles(
+        files,
+        targetLanguages,
+        generateSummaries,
+        generateTranslations,
+        culturalAdaptation
+    ) {
         const results = [];
 
         // 分批處理
         for (let i = 0; i < files.length; i += this.config.batchSize) {
             const batch = files.slice(i, i + this.config.batchSize);
-            logger.info(`📦 處理批次 ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(files.length / this.config.batchSize)} (${batch.length} 個文件)`);
+            logger.info(
+                `📦 處理批次 ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(files.length / this.config.batchSize)} (${batch.length} 個文件)`
+            );
 
             const batchResults = await Promise.allSettled(
-                batch.map(file => this.processFile(file, targetLanguages, generateSummaries, generateTranslations, culturalAdaptation))
+                batch.map((file) =>
+                    this.processFile(
+                        file,
+                        targetLanguages,
+                        generateSummaries,
+                        generateTranslations,
+                        culturalAdaptation
+                    )
+                )
             );
 
             for (const result of batchResults) {
@@ -328,7 +348,7 @@ class OllamaSummarizationAgent extends EventEmitter {
 
             // 批次間短暫休息
             if (i + this.config.batchSize < files.length) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             }
         }
 
@@ -338,7 +358,13 @@ class OllamaSummarizationAgent extends EventEmitter {
     /**
      * 處理單個文件
      */
-    async processFile(fileInfo, targetLanguages, generateSummaries, generateTranslations, culturalAdaptation) {
+    async processFile(
+        fileInfo,
+        targetLanguages,
+        generateSummaries,
+        generateTranslations,
+        culturalAdaptation
+    ) {
         try {
             // 讀取原始數據
             const rawData = await fs.readFile(fileInfo.path, 'utf-8');
@@ -361,7 +387,10 @@ class OllamaSummarizationAgent extends EventEmitter {
                 // 生成摘要
                 if (generateSummaries) {
                     const summaryType = this.detectContentType(data.metadata);
-                    const summary = await ollamaService.generateArtSummary(data.metadata, summaryType);
+                    const summary = await ollamaService.generateArtSummary(
+                        data.metadata,
+                        summaryType
+                    );
 
                     result.data.summary = {
                         text: summary.summary,
@@ -425,7 +454,6 @@ class OllamaSummarizationAgent extends EventEmitter {
             logger.debug(`✅ 處理完成: ${fileInfo.filename} (${targetLanguages.length} 語言版本)`);
 
             return results;
-
         } catch (error) {
             logger.error(`處理文件失敗: ${fileInfo.path}`, error);
             this.stats.errors++;
@@ -489,7 +517,10 @@ class OllamaSummarizationAgent extends EventEmitter {
             ...this.stats,
             duration: duration,
             avgProcessingTime: this.stats.processed > 0 ? duration / this.stats.processed : 0,
-            errorRate: this.stats.processed > 0 ? (this.stats.errors / this.stats.processed * 100).toFixed(2) + '%' : '0%'
+            errorRate:
+                this.stats.processed > 0
+                    ? ((this.stats.errors / this.stats.processed) * 100).toFixed(2) + '%'
+                    : '0%'
         };
     }
 

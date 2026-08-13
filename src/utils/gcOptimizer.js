@@ -104,7 +104,6 @@ class GCOptimizer {
 
             // 調整 V8 引擎參數（如果可用）
             this.optimizeV8Settings();
-
         } catch (error) {
             logger.error('GC 最佳化執行失敗:', error);
         }
@@ -182,8 +181,8 @@ class GCOptimizer {
         if (this.memoryHistory.length < 5) return false;
 
         const recent = this.memoryHistory.slice(-5);
-        const avgUtilization = recent.reduce((sum, record) =>
-            sum + record.utilization, 0) / recent.length;
+        const avgUtilization =
+            recent.reduce((sum, record) => sum + record.utilization, 0) / recent.length;
 
         return avgUtilization > this.gcThresholds.memoryPressure;
     }
@@ -202,7 +201,7 @@ class GCOptimizer {
 
         // 如果在10個採樣週期內記憶體增長超過50MB
         const growthRate = (memoryGrowth / timeSpan) * 1000; // bytes per second
-        return growthRate > (50 * 1024 * 1024 / 60); // 50MB per minute
+        return growthRate > (50 * 1024 * 1024) / 60; // 50MB per minute
     }
 
     /**
@@ -247,8 +246,10 @@ class GCOptimizer {
                 memoryFreed,
                 beforeHeap: beforeMemory.heapUsed,
                 afterHeap: afterMemory.heapUsed,
-                efficiency: beforeMemory.heapUsed > 0 ?
-                    (memoryFreed / beforeMemory.heapUsed * 100).toFixed(2) : 0
+                efficiency:
+                    beforeMemory.heapUsed > 0
+                        ? ((memoryFreed / beforeMemory.heapUsed) * 100).toFixed(2)
+                        : 0
             };
 
             this.gcHistory.push(gcRecord);
@@ -263,7 +264,6 @@ class GCOptimizer {
             });
 
             return gcRecord;
-
         } catch (error) {
             logger.error('執行垃圾回收時發生錯誤:', error);
             return null;
@@ -287,7 +287,6 @@ class GCOptimizer {
             if (analysis.shouldOptimize) {
                 this.applyV8Optimizations(analysis);
             }
-
         } catch (error) {
             logger.debug('V8 引擎最佳化失敗:', error.message);
         }
@@ -303,7 +302,7 @@ class GCOptimizer {
         };
 
         for (const space of spaceStats) {
-            const utilization = space.used_size / space.space_size * 100;
+            const utilization = (space.used_size / space.space_size) * 100;
 
             if (space.space_name === 'new_space' && utilization > 90) {
                 analysis.shouldOptimize = true;
@@ -348,11 +347,16 @@ class GCOptimizer {
      */
     getGCReport() {
         const recentGCs = this.gcHistory.slice(-10);
-        const avgGCTime = recentGCs.length > 0 ?
-            recentGCs.reduce((sum, gc) => sum + gc.duration, 0) / recentGCs.length : 0;
+        const avgGCTime =
+            recentGCs.length > 0
+                ? recentGCs.reduce((sum, gc) => sum + gc.duration, 0) / recentGCs.length
+                : 0;
 
-        const avgEfficiency = recentGCs.length > 0 ?
-            recentGCs.reduce((sum, gc) => sum + parseFloat(gc.efficiency), 0) / recentGCs.length : 0;
+        const avgEfficiency =
+            recentGCs.length > 0
+                ? recentGCs.reduce((sum, gc) => sum + parseFloat(gc.efficiency), 0) /
+                  recentGCs.length
+                : 0;
 
         return {
             stats: {
@@ -362,7 +366,7 @@ class GCOptimizer {
                 totalMemoryFreed: `${Math.round(this.gcStats.memoryFreed / 1024 / 1024)}MB`,
                 totalGCTime: `${this.gcStats.totalGCTime}ms`
             },
-            recentActivity: recentGCs.map(gc => ({
+            recentActivity: recentGCs.map((gc) => ({
                 timestamp: new Date(gc.timestamp).toISOString(),
                 type: gc.type,
                 reason: gc.reason,
@@ -392,15 +396,17 @@ class GCOptimizer {
         const recommendations = [];
 
         if (this.gcHistory.length === 0) {
-            return [{
-                type: 'INFO',
-                message: '暫無 GC 活動記錄'
-            }];
+            return [
+                {
+                    type: 'INFO',
+                    message: '暫無 GC 活動記錄'
+                }
+            ];
         }
 
         const recentGCs = this.gcHistory.slice(-10);
-        const avgEfficiency = recentGCs.reduce((sum, gc) =>
-            sum + parseFloat(gc.efficiency), 0) / recentGCs.length;
+        const avgEfficiency =
+            recentGCs.reduce((sum, gc) => sum + parseFloat(gc.efficiency), 0) / recentGCs.length;
 
         // 效率建議
         if (avgEfficiency < 20) {
@@ -412,7 +418,7 @@ class GCOptimizer {
         }
 
         // 頻率建議
-        const majorGCs = recentGCs.filter(gc => gc.type === 'major').length;
+        const majorGCs = recentGCs.filter((gc) => gc.type === 'major').length;
         if (majorGCs > 5) {
             recommendations.push({
                 type: 'FREQUENCY',
@@ -459,7 +465,8 @@ class GCOptimizer {
     configure(options) {
         if (options.enabled !== undefined) this.enabled = options.enabled;
         if (options.aggressiveMode !== undefined) this.aggressiveMode = options.aggressiveMode;
-        if (options.monitoringInterval !== undefined) this.monitoringInterval = options.monitoringInterval;
+        if (options.monitoringInterval !== undefined)
+            this.monitoringInterval = options.monitoringInterval;
         if (options.gcThresholds) {
             this.gcThresholds = { ...this.gcThresholds, ...options.gcThresholds };
         }

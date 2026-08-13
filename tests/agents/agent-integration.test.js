@@ -89,7 +89,7 @@ describe('Agent Integration Tests', () => {
                 'dc:date': '1503-1519',
                 'dc:type': 'painting',
                 'dc:description': 'Renaissance portrait painting',
-                '_source': 'test'
+                _source: 'test'
             };
 
             const result = await agent.classifyArtwork(testArtwork, ['period', 'style']);
@@ -112,7 +112,7 @@ describe('Agent Integration Tests', () => {
                 'dc:title': 'Mona Lisa',
                 'dc:creator': 'Leonardo da Vinci',
                 'dc:description': 'Famous Renaissance portrait painting',
-                '_source': 'test'
+                _source: 'test'
             };
 
             const summary = await agent.generateSummary(testRecord, 'artwork');
@@ -245,7 +245,7 @@ describe('Agent Integration Tests', () => {
 
             const startTime = Date.now();
             const results = await Promise.all(
-                testData.map(record => agent.extractMetadata(record))
+                testData.map((record) => agent.extractMetadata(record))
             );
             const endTime = Date.now();
 
@@ -266,7 +266,7 @@ describe('Agent Integration Tests', () => {
                 await agent.classifyArtwork({
                     'dc:title': `Test ${i}`,
                     'dc:creator': 'Test Artist',
-                    '_source': 'memory_test'
+                    _source: 'memory_test'
                 });
             }
 
@@ -320,15 +320,16 @@ describe('Agent Integration Tests', () => {
                 'dc:creator': 'Vincent van Gogh',
                 'dc:date': '1889',
                 'dc:description': 'Post-impressionist painting',
-                '_source': 'consistency_test'
+                _source: 'consistency_test'
             };
 
             // 多次分類同一作品應得到一致結果
             const result1 = await classifier.classifyArtwork(testArtwork, ['period']);
             const result2 = await classifier.classifyArtwork(testArtwork, ['period']);
 
-            expect(result1._classifications.period.category)
-                .toBe(result2._classifications.period.category);
+            expect(result1._classifications.period.category).toBe(
+                result2._classifications.period.category
+            );
 
             await classifier.stop();
         });

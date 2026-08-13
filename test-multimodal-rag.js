@@ -50,7 +50,6 @@ class MultimodalRAGTester {
 
             // 顯示測試結果
             this.showTestSummary();
-
         } catch (error) {
             console.error('❌ 多模態 RAG 測試失敗:', error.message);
         }
@@ -65,7 +64,7 @@ class MultimodalRAGTester {
                 '《蒙娜麗莎》是達文西在文藝復興時期創作的著名肖像畫',
                 'The Starry Night is a painting by Vincent van Gogh',
                 '浮世絵は江戸時代の日本の木版画芸術である',
-                'L\'impressionnisme est un mouvement artistique français'
+                "L'impressionnisme est un mouvement artistique français"
             ];
 
             const response = await axios.post(
@@ -83,7 +82,7 @@ class MultimodalRAGTester {
             }
 
             // 驗證向量維度一致性
-            const dimensions = result.embeddings.map(emb => emb.length);
+            const dimensions = result.embeddings.map((emb) => emb.length);
             const uniqueDimensions = [...new Set(dimensions)];
             if (uniqueDimensions.length !== 1) {
                 throw new Error('向量維度不一致');
@@ -145,11 +144,13 @@ class MultimodalRAGTester {
             await collection.upsert({
                 ids: [testId],
                 embeddings: [embedding],
-                metadatas: [{
-                    type: 'text',
-                    period: '文藝復興',
-                    test: true
-                }],
+                metadatas: [
+                    {
+                        type: 'text',
+                        period: '文藝復興',
+                        test: true
+                    }
+                ],
                 documents: [testDoc]
             });
 
@@ -240,12 +241,14 @@ class MultimodalRAGTester {
             await collection.upsert({
                 ids: [testId],
                 embeddings: [simulatedImageVector],
-                metadatas: [{
-                    type: 'image',
-                    style: '印象派',
-                    artist: '莫內',
-                    test: true
-                }],
+                metadatas: [
+                    {
+                        type: 'image',
+                        style: '印象派',
+                        artist: '莫內',
+                        test: true
+                    }
+                ],
                 documents: ['印象派風格的睡蓮系列畫作']
             });
 
@@ -298,8 +301,8 @@ class MultimodalRAGTester {
                 throw new Error('跨模態檢索無結果');
             }
 
-            const relevantResults = searchResults.metadatas[0].filter(meta =>
-                meta.type === 'image' || (meta.type === 'text' && meta.period)
+            const relevantResults = searchResults.metadatas[0].filter(
+                (meta) => meta.type === 'image' || (meta.type === 'text' && meta.period)
             );
 
             return `✅ 找到 ${searchResults.ids[0].length} 個跨模態匹配結果`;
@@ -312,9 +315,7 @@ class MultimodalRAGTester {
             const imageVector = Array.from({ length: 768 }, () => Math.random() - 0.5);
 
             // 向量融合 (文本0.6權重，圖像0.4權重)
-            const fusedVector = textVector.map((val, idx) =>
-                0.6 * val + 0.4 * imageVector[idx]
-            );
+            const fusedVector = textVector.map((val, idx) => 0.6 * val + 0.4 * imageVector[idx]);
 
             const collection = await this.chromaClient.getCollection({
                 name: 'art_history_artwork_descriptions'
@@ -330,7 +331,9 @@ class MultimodalRAGTester {
                 throw new Error('融合檢索失敗');
             }
 
-            const avgDistance = searchResults.distances[0].reduce((a, b) => a + b, 0) / searchResults.distances[0].length;
+            const avgDistance =
+                searchResults.distances[0].reduce((a, b) => a + b, 0) /
+                searchResults.distances[0].length;
             const avgSimilarity = 1 - avgDistance;
 
             return `✅ 多模態融合檢索完成，平均相似度: ${(avgSimilarity * 100).toFixed(1)}%`;
@@ -360,12 +363,14 @@ class MultimodalRAGTester {
             await collection.upsert({
                 ids: [testId],
                 embeddings: [queryEmbedding],
-                metadatas: [{
-                    period: '文藝復興',
-                    theme: '宗教',
-                    year_range: '1400-1600',
-                    test: true
-                }],
+                metadatas: [
+                    {
+                        period: '文藝復興',
+                        theme: '宗教',
+                        year_range: '1400-1600',
+                        test: true
+                    }
+                ],
                 documents: [periodQuery]
             });
 
@@ -409,11 +414,9 @@ class MultimodalRAGTester {
                 temperature: 0.7
             };
 
-            const response = await axios.post(
-                `${this.mlServiceUrl}/rag/generate`,
-                ragRequest,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
+            const response = await axios.post(`${this.mlServiceUrl}/rag/generate`, ragRequest, {
+                headers: { 'Content-Type': 'application/json' }
+            });
 
             const result = response.data;
             if (!result.success || !result.generated_text) {
@@ -483,9 +486,7 @@ class MultimodalRAGTester {
             }
 
             // 驗證推薦品質
-            const relevantRecs = result.recommendations.filter(rec =>
-                rec.confidence_score > 0.6
-            );
+            const relevantRecs = result.recommendations.filter((rec) => rec.confidence_score > 0.6);
 
             if (relevantRecs.length < 3) {
                 throw new Error('推薦相關性不足');
@@ -514,7 +515,6 @@ class MultimodalRAGTester {
                 status: 'passed',
                 message: result
             });
-
         } catch (error) {
             console.log(`     ❌ 失敗: ${error.message}`);
 
@@ -554,7 +554,8 @@ class MultimodalRAGTester {
 
         console.log('-'.repeat(40));
         const grandTotal = totalPassed + totalFailed;
-        const overallPassRate = grandTotal > 0 ? ((totalPassed / grandTotal) * 100).toFixed(1) : '0.0';
+        const overallPassRate =
+            grandTotal > 0 ? ((totalPassed / grandTotal) * 100).toFixed(1) : '0.0';
 
         console.log(`總計: ${totalPassed}/${grandTotal} 通過 (${overallPassRate}%)`);
 
@@ -581,7 +582,7 @@ async function main() {
 }
 
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('❌ 多模態 RAG 測試執行失敗:', error);
         process.exit(1);
     });

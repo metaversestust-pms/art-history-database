@@ -42,13 +42,9 @@ class ArtworkController {
             const { id } = req.params;
 
             // 使用快取包裝器
-            const artwork = await cacheManager.wrap(
-                'artwork',
-                `details_${id}`,
-                async () => {
-                    return await this.artworkModel.getArtworkDetails(id);
-                }
-            );
+            const artwork = await cacheManager.wrap('artwork', `details_${id}`, async () => {
+                return await this.artworkModel.getArtworkDetails(id);
+            });
 
             if (!artwork) {
                 return errorResponse(res, 'Artwork not found', null, 404);
@@ -161,13 +157,9 @@ class ArtworkController {
             const limit = Math.min(parseInt(req.query.limit) || 50, 100);
 
             // 使用快取包裝器檢查藝術家
-            const artist = await cacheManager.wrap(
-                'artist',
-                `details_${artistId}`,
-                async () => {
-                    return await this.artistModel.findById(artistId);
-                }
-            );
+            const artist = await cacheManager.wrap('artist', `details_${artistId}`, async () => {
+                return await this.artistModel.findById(artistId);
+            });
 
             if (!artist) {
                 return errorResponse(res, 'Artist not found', null, 404);
@@ -356,7 +348,6 @@ class ArtworkController {
 
             // 失效搜尋快取
             await cacheManager.clearCategory('search');
-
         } catch (error) {
             console.warn('快取失效失敗:', error.message);
         }

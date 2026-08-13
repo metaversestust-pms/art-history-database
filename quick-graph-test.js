@@ -3,12 +3,16 @@ const axios = require('axios');
 
 async function quickTest() {
     try {
-        const response = await axios.post('http://localhost:8007/api/v1/query', {
-            query: 'American paintings',
-            model_combination_id: 'llama3.1:8b@graph_only',
-            max_results: 3,
-            include_sources: true
-        }, { timeout: 60000 });
+        const response = await axios.post(
+            'http://localhost:8007/api/v1/query',
+            {
+                query: 'American paintings',
+                model_combination_id: 'llama3.1:8b@graph_only',
+                max_results: 3,
+                include_sources: true
+            },
+            { timeout: 60000 }
+        );
 
         console.log('✅ 查詢成功！');
         console.log(`📚 找到文檔: ${response.data.metadata.num_sources} 個`);
@@ -17,7 +21,7 @@ async function quickTest() {
         if (response.data.sources && response.data.sources.length > 0) {
             console.log('\n📖 檢索結果:');
             response.data.sources.forEach((s, i) => {
-                console.log(`  [${i+1}] ${s.source} - 分數: ${s.score?.toFixed(2)}`);
+                console.log(`  [${i + 1}] ${s.source} - 分數: ${s.score?.toFixed(2)}`);
                 console.log(`      ${s.content.substring(0, 100)}...`);
             });
         }

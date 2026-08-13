@@ -80,9 +80,12 @@ class SchedulerMonitor extends EventEmitter {
             }, this.options.monitoringInterval);
 
             // 設定清理任務
-            this.cleanupInterval = setInterval(() => {
-                this.performCleanup();
-            }, 60 * 60 * 1000); // 每小時執行一次
+            this.cleanupInterval = setInterval(
+                () => {
+                    this.performCleanup();
+                },
+                60 * 60 * 1000
+            ); // 每小時執行一次
 
             // 監聽排程器事件
             this.setupEventListeners();
@@ -94,7 +97,6 @@ class SchedulerMonitor extends EventEmitter {
             });
 
             this.emit('monitoringStarted');
-
         } catch (error) {
             logger.error('啟動排程監控失敗', { error: error.message });
             throw error;
@@ -134,7 +136,6 @@ class SchedulerMonitor extends EventEmitter {
             logger.info('排程監控系統已停止');
 
             this.emit('monitoringStopped');
-
         } catch (error) {
             logger.error('停止排程監控失敗', { error: error.message });
         }
@@ -227,7 +228,6 @@ class SchedulerMonitor extends EventEmitter {
                 timestamp: new Date(),
                 systemMetrics: this.metrics.systemMetrics
             });
-
         } catch (error) {
             logger.error('收集監控指標失敗', { error: error.message });
         }
@@ -280,12 +280,14 @@ class SchedulerMonitor extends EventEmitter {
 
                 // 計算成功率
                 if (jobMetrics.totalExecutions > 0) {
-                    jobMetrics.successRate = jobMetrics.successfulExecutions / jobMetrics.totalExecutions;
+                    jobMetrics.successRate =
+                        jobMetrics.successfulExecutions / jobMetrics.totalExecutions;
                 }
 
                 // 更新平均執行時間
                 if (jobStats.totalExecutionTime && jobStats.totalExecutions > 0) {
-                    jobMetrics.averageExecutionTime = jobStats.totalExecutionTime / jobStats.totalExecutions;
+                    jobMetrics.averageExecutionTime =
+                        jobStats.totalExecutionTime / jobStats.totalExecutions;
                 }
 
                 // 計算健康評分
@@ -305,7 +307,8 @@ class SchedulerMonitor extends EventEmitter {
         const timestamp = new Date();
         const performanceSnapshot = {
             timestamp,
-            systemLoad: this.metrics.systemMetrics.memoryUsage / this.metrics.systemMetrics.memoryTotal,
+            systemLoad:
+                this.metrics.systemMetrics.memoryUsage / this.metrics.systemMetrics.memoryTotal,
             activeJobs: this.metrics.systemMetrics.activeJobs,
             totalJobs: this.metrics.systemMetrics.totalJobs,
             averageHealthScore: this.calculateAverageHealthScore(),
@@ -316,7 +319,8 @@ class SchedulerMonitor extends EventEmitter {
         this.metrics.performanceHistory.push(performanceSnapshot);
 
         // 限制歷史記錄長度
-        if (this.metrics.performanceHistory.length > 288) { // 24小時的資料點 (每5分鐘)
+        if (this.metrics.performanceHistory.length > 288) {
+            // 24小時的資料點 (每5分鐘)
             this.metrics.performanceHistory.shift();
         }
     }
@@ -330,7 +334,10 @@ class SchedulerMonitor extends EventEmitter {
         // 系統健康檢查
         healthChecks.set('system_memory', {
             name: '系統記憶體使用',
-            status: this.metrics.systemMetrics.memoryUsage < this.options.alertThresholds.memoryUsage ? 'healthy' : 'warning',
+            status:
+                this.metrics.systemMetrics.memoryUsage < this.options.alertThresholds.memoryUsage
+                    ? 'healthy'
+                    : 'warning',
             value: this.metrics.systemMetrics.memoryUsage,
             threshold: this.options.alertThresholds.memoryUsage,
             lastCheck: new Date()
@@ -351,7 +358,8 @@ class SchedulerMonitor extends EventEmitter {
 
         healthChecks.set('jobs_health', {
             name: '任務整體健康',
-            status: totalActiveJobs > 0 && (healthyJobs / totalActiveJobs) >= 0.8 ? 'healthy' : 'warning',
+            status:
+                totalActiveJobs > 0 && healthyJobs / totalActiveJobs >= 0.8 ? 'healthy' : 'warning',
             value: totalActiveJobs > 0 ? healthyJobs / totalActiveJobs : 1,
             threshold: 0.8,
             lastCheck: new Date(),
@@ -361,7 +369,10 @@ class SchedulerMonitor extends EventEmitter {
         // 排程器狀態檢查
         healthChecks.set('scheduler_status', {
             name: '排程器狀態',
-            status: this.cronScheduler.isRunning && this.cronScheduler.isInitialized ? 'healthy' : 'error',
+            status:
+                this.cronScheduler.isRunning && this.cronScheduler.isInitialized
+                    ? 'healthy'
+                    : 'error',
             value: this.cronScheduler.isRunning ? 1 : 0,
             threshold: 1,
             lastCheck: new Date()
@@ -387,7 +398,6 @@ class SchedulerMonitor extends EventEmitter {
 
             // 清理過期告警
             this.cleanupExpiredAlerts();
-
         } catch (error) {
             logger.error('檢查告警失敗', { error: error.message });
         }
@@ -435,7 +445,9 @@ class SchedulerMonitor extends EventEmitter {
             const alerts = [];
 
             // 連續失敗告警
-            if (jobMetrics.consecutiveFailures >= this.options.alertThresholds.consecutiveFailures) {
+            if (
+                jobMetrics.consecutiveFailures >= this.options.alertThresholds.consecutiveFailures
+            ) {
                 alerts.push({
                     type: 'job_consecutive_failures',
                     severity: 'error',
@@ -449,7 +461,10 @@ class SchedulerMonitor extends EventEmitter {
             }
 
             // 成功率告警
-            if (jobMetrics.totalExecutions > 5 && jobMetrics.successRate < this.options.alertThresholds.successRate) {
+            if (
+                jobMetrics.totalExecutions > 5 &&
+                jobMetrics.successRate < this.options.alertThresholds.successRate
+            ) {
                 alerts.push({
                     type: 'job_low_success_rate',
                     severity: 'warning',
@@ -496,8 +511,8 @@ class SchedulerMonitor extends EventEmitter {
 
         // 檢查告警狀態變化
         const lastAlertState = this.alertStates.get(alertKey);
-        const shouldTrigger = !lastAlertState ||
-                            (Date.now() - lastAlertState.timestamp) > 5 * 60 * 1000; // 5分鐘冷卻
+        const shouldTrigger =
+            !lastAlertState || Date.now() - lastAlertState.timestamp > 5 * 60 * 1000; // 5分鐘冷卻
 
         if (shouldTrigger) {
             // 記錄告警
@@ -516,8 +531,12 @@ class SchedulerMonitor extends EventEmitter {
             this.emit('alert', alert);
 
             // 記錄告警日誌
-            const logLevel = alert.severity === 'critical' ? 'error' :
-                           alert.severity === 'error' ? 'error' : 'warn';
+            const logLevel =
+                alert.severity === 'critical'
+                    ? 'error'
+                    : alert.severity === 'error'
+                      ? 'error'
+                      : 'warn';
 
             logger[logLevel]('排程監控告警', {
                 type: alert.type,
@@ -542,7 +561,7 @@ class SchedulerMonitor extends EventEmitter {
 
         // 基於連續失敗次數
         if (jobMetrics.consecutiveFailures > 0) {
-            score *= Math.max(0.1, 1 - (jobMetrics.consecutiveFailures * 0.2));
+            score *= Math.max(0.1, 1 - jobMetrics.consecutiveFailures * 0.2);
         }
 
         // 基於執行時間
@@ -552,7 +571,8 @@ class SchedulerMonitor extends EventEmitter {
 
         // 基於最近執行狀態
         if (jobMetrics.lastExecution) {
-            const timeSinceLastExecution = Date.now() - new Date(jobMetrics.lastExecution).getTime();
+            const timeSinceLastExecution =
+                Date.now() - new Date(jobMetrics.lastExecution).getTime();
             const expectedInterval = this.getExpectedInterval(jobMetrics.cronExpression);
 
             if (timeSinceLastExecution > expectedInterval * 2) {
@@ -719,19 +739,19 @@ class SchedulerMonitor extends EventEmitter {
         try {
             // 清理過期的性能歷史
             this.metrics.performanceHistory = this.metrics.performanceHistory.filter(
-                record => record.timestamp.getTime() > retentionTime
+                (record) => record.timestamp.getTime() > retentionTime
             );
 
             // 清理過期的告警歷史
             this.metrics.alertHistory = this.metrics.alertHistory.filter(
-                alert => alert.timestamp.getTime() > retentionTime
+                (alert) => alert.timestamp.getTime() > retentionTime
             );
 
             // 清理任務執行歷史
             for (const [, jobMetrics] of this.metrics.jobMetrics) {
                 if (jobMetrics.executionHistory) {
                     jobMetrics.executionHistory = jobMetrics.executionHistory.filter(
-                        record => record.timestamp > retentionTime
+                        (record) => record.timestamp > retentionTime
                     );
                 }
             }
@@ -741,7 +761,6 @@ class SchedulerMonitor extends EventEmitter {
                 performanceHistorySize: this.metrics.performanceHistory.length,
                 alertHistorySize: this.metrics.alertHistory.length
             });
-
         } catch (error) {
             logger.error('監控資料清理失敗', { error: error.message });
         }
@@ -807,10 +826,11 @@ class SchedulerMonitor extends EventEmitter {
         return {
             ...jobMetrics,
             recentAlerts: this.metrics.alertHistory
-                .filter(alert => alert.jobId === jobId)
+                .filter((alert) => alert.jobId === jobId)
                 .slice(-10),
-            healthChecks: this.metrics.healthChecks.has(`job_${jobId}`) ?
-                         this.metrics.healthChecks.get(`job_${jobId}`) : null
+            healthChecks: this.metrics.healthChecks.has(`job_${jobId}`)
+                ? this.metrics.healthChecks.get(`job_${jobId}`)
+                : null
         };
     }
 
@@ -820,7 +840,7 @@ class SchedulerMonitor extends EventEmitter {
     getPerformanceReport(timeRange = 24 * 60 * 60 * 1000) {
         const cutoffTime = Date.now() - timeRange;
         const recentHistory = this.metrics.performanceHistory.filter(
-            record => record.timestamp.getTime() > cutoffTime
+            (record) => record.timestamp.getTime() > cutoffTime
         );
 
         if (recentHistory.length === 0) {
@@ -836,11 +856,15 @@ class SchedulerMonitor extends EventEmitter {
         }
 
         const summary = {
-            avgSystemLoad: recentHistory.reduce((sum, r) => sum + r.systemLoad, 0) / recentHistory.length,
-            avgMemoryUsage: recentHistory.reduce((sum, r) => sum + r.memoryUsageMB, 0) / recentHistory.length,
-            avgHealthScore: recentHistory.reduce((sum, r) => sum + r.averageHealthScore, 0) / recentHistory.length,
-            peakMemoryUsage: Math.max(...recentHistory.map(r => r.memoryUsageMB)),
-            lowestHealthScore: Math.min(...recentHistory.map(r => r.averageHealthScore))
+            avgSystemLoad:
+                recentHistory.reduce((sum, r) => sum + r.systemLoad, 0) / recentHistory.length,
+            avgMemoryUsage:
+                recentHistory.reduce((sum, r) => sum + r.memoryUsageMB, 0) / recentHistory.length,
+            avgHealthScore:
+                recentHistory.reduce((sum, r) => sum + r.averageHealthScore, 0) /
+                recentHistory.length,
+            peakMemoryUsage: Math.max(...recentHistory.map((r) => r.memoryUsageMB)),
+            lowestHealthScore: Math.min(...recentHistory.map((r) => r.averageHealthScore))
         };
 
         return {

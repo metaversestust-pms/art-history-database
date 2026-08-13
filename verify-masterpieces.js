@@ -6,21 +6,21 @@
 const neo4j = require('neo4j-driver');
 
 const masterpieces = [
-    "Mona Lisa",
-    "The Last Supper",
-    "Vitruvian Man",
-    "David",
-    "The Creation of Adam",
-    "Pietà",
-    "The School of Athens",
-    "Sistine Madonna",
-    "The Birth of Venus",
-    "Primavera",
-    "The Calling of St Matthew",
-    "The Night Watch",
-    "Girl with a Pearl Earring",
-    "Las Meninas",
-    "The Descent from the Cross"
+    'Mona Lisa',
+    'The Last Supper',
+    'Vitruvian Man',
+    'David',
+    'The Creation of Adam',
+    'Pietà',
+    'The School of Athens',
+    'Sistine Madonna',
+    'The Birth of Venus',
+    'Primavera',
+    'The Calling of St Matthew',
+    'The Night Watch',
+    'Girl with a Pearl Earring',
+    'Las Meninas',
+    'The Descent from the Cross'
 ];
 
 async function verifyMasterpieces() {
@@ -39,12 +39,15 @@ async function verifyMasterpieces() {
         let notFound = 0;
 
         for (const title of masterpieces) {
-            const result = await session.run(`
+            const result = await session.run(
+                `
                 MATCH (a:Artwork)
                 WHERE a.title CONTAINS $title
                 RETURN a.title as title, a.artist as artist, a.date as date, a.period as period
                 LIMIT 1
-            `, { title });
+            `,
+                { title }
+            );
 
             if (result.records.length > 0) {
                 const record = result.records[0];
@@ -63,10 +66,9 @@ async function verifyMasterpieces() {
 
         console.log('═══════════════════════════════════════');
         console.log(`總計: ${masterpieces.length} 件`);
-        console.log(`找到: ${found} 件 (${(found/masterpieces.length*100).toFixed(1)}%)`);
+        console.log(`找到: ${found} 件 (${((found / masterpieces.length) * 100).toFixed(1)}%)`);
         console.log(`未找到: ${notFound} 件`);
         console.log('═══════════════════════════════════════');
-
     } finally {
         await session.close();
         await driver.close();

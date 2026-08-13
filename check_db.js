@@ -6,7 +6,7 @@ const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
     database: process.env.DB_NAME || 'art_history_db',
     password: process.env.DB_PASSWORD || 'password',
-    port: process.env.DB_PORT || 5432,
+    port: process.env.DB_PORT || 5432
 });
 
 async function checkDatabase() {
@@ -22,7 +22,7 @@ async function checkDatabase() {
         `;
 
         const result = await pool.query(tablesQuery);
-        const tables = result.rows.map(row => row.table_name);
+        const tables = result.rows.map((row) => row.table_name);
 
         console.log('\n📊 現有資料表：');
         console.log(tables.length > 0 ? tables : '(無資料表)');
@@ -44,7 +44,7 @@ async function checkDatabase() {
                     ORDER BY ordinal_position;
                 `;
                 const colResult = await pool.query(columnsQuery, [table]);
-                console.log(`   欄位: ${colResult.rows.map(r => r.column_name).join(', ')}`);
+                console.log(`   欄位: ${colResult.rows.map((r) => r.column_name).join(', ')}`);
             }
         }
 
@@ -59,7 +59,6 @@ async function checkDatabase() {
                 console.log(`${table}: 無法查詢 (${error.message})`);
             }
         }
-
     } catch (error) {
         console.error('❌ 資料庫檢查失敗:', error.message);
     } finally {

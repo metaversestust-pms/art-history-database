@@ -9,11 +9,11 @@ const { logger } = require('./logger');
  * 錯誤嚴重程度級別
  */
 const SEVERITY_LEVELS = {
-    CRITICAL: 'critical',    // 系統無法繼續運行
-    HIGH: 'high',           // 重要功能受影響
-    MEDIUM: 'medium',       // 部分功能受影響
-    LOW: 'low',             // 輕微影響
-    INFO: 'info'            // 僅供參考
+    CRITICAL: 'critical', // 系統無法繼續運行
+    HIGH: 'high', // 重要功能受影響
+    MEDIUM: 'medium', // 部分功能受影響
+    LOW: 'low', // 輕微影響
+    INFO: 'info' // 僅供參考
 };
 
 /**
@@ -257,7 +257,7 @@ class ErrorClassifier {
         // 基於匹配長度和位置計算信心度
         const matchLength = matches[0].length;
         const totalLength = text.length;
-        const confidence = Math.min(matchLength / totalLength * 2, 1);
+        const confidence = Math.min((matchLength / totalLength) * 2, 1);
 
         return Math.round(confidence * 100) / 100;
     }
@@ -427,7 +427,8 @@ class RecoveryStrategyManager {
         for (let attempt = 1; attempt <= strategy.maxAttempts; attempt++) {
             try {
                 // 計算延遲時間
-                const delay = strategy.baseDelay * Math.pow(strategy.backoffMultiplier, attempt - 1);
+                const delay =
+                    strategy.baseDelay * Math.pow(strategy.backoffMultiplier, attempt - 1);
                 if (attempt > 1 && delay > 0) {
                     logger.debug('恢復策略等待中', { delay, attempt });
                     await this.delay(delay);
@@ -451,7 +452,6 @@ class RecoveryStrategyManager {
                     maxAttempts: strategy.maxAttempts,
                     message: result.message
                 });
-
             } catch (recoveryError) {
                 logger.error('恢復策略執行錯誤', {
                     strategy: strategy.name,
@@ -501,7 +501,7 @@ class RecoveryStrategyManager {
      * 延遲函數
      */
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**
@@ -578,7 +578,11 @@ class ErrorAnalyzer {
         const startTime = Date.now();
 
         try {
-            const result = await this.recoveryManager.executeRecovery(error, classification, context);
+            const result = await this.recoveryManager.executeRecovery(
+                error,
+                classification,
+                context
+            );
             const recoveryTime = Date.now() - startTime;
 
             return {
@@ -731,7 +735,7 @@ class ErrorPatternAnalyzer {
 
         // 分析頻率
         const recentOccurrences = pattern.occurrences.filter(
-            time => Date.now() - time < 3600000 // 最近1小時
+            (time) => Date.now() - time < 3600000 // 最近1小時
         ).length;
 
         if (recentOccurrences > 10) {

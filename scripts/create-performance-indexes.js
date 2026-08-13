@@ -14,14 +14,17 @@ async function createPerformanceIndexes() {
         console.log('🔍 開始創建效能優化索引...');
 
         // 讀取索引SQL文件
-        const sqlPath = path.join(__dirname, '../context/database/03-performance-indexes-clean.sql');
+        const sqlPath = path.join(
+            __dirname,
+            '../context/database/03-performance-indexes-clean.sql'
+        );
         const sqlContent = fs.readFileSync(sqlPath, 'utf8');
 
         // 分割SQL語句
         const sqlStatements = sqlContent
             .split(';')
-            .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('/*'));
+            .map((stmt) => stmt.trim())
+            .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('/*'));
 
         console.log(`📊 準備執行 ${sqlStatements.length} 個索引創建語句...`);
 
@@ -33,8 +36,10 @@ async function createPerformanceIndexes() {
             const statement = sqlStatements[i];
 
             // 跳過查詢語句和DO塊
-            if (statement.toLowerCase().includes('select') ||
-                statement.toLowerCase().includes('do $$')) {
+            if (
+                statement.toLowerCase().includes('select') ||
+                statement.toLowerCase().includes('do $$')
+            ) {
                 console.log(`⏭️  跳過非索引語句: ${statement.substring(0, 50)}...`);
                 skipCount++;
                 continue;
@@ -56,7 +61,6 @@ async function createPerformanceIndexes() {
                 const indexName = indexNameMatch ? indexNameMatch[1] : 'unknown';
 
                 console.log(`✅ 索引創建成功: ${indexName}`);
-
             } catch (error) {
                 errorCount++;
 
@@ -97,7 +101,7 @@ async function createPerformanceIndexes() {
 
         // 按表分組顯示索引
         const indexesByTable = {};
-        indexResult.rows.forEach(row => {
+        indexResult.rows.forEach((row) => {
             if (!indexesByTable[row.tablename]) {
                 indexesByTable[row.tablename] = [];
             }
@@ -107,7 +111,7 @@ async function createPerformanceIndexes() {
         console.log('\n📊 索引分佈統計:');
         Object.entries(indexesByTable).forEach(([tableName, indexes]) => {
             console.log(`   ${tableName}: ${indexes.length} 個索引`);
-            indexes.forEach(indexName => {
+            indexes.forEach((indexName) => {
                 console.log(`     - ${indexName}`);
             });
         });
@@ -137,7 +141,6 @@ async function createPerformanceIndexes() {
             errorCount,
             totalIndexes: indexResult.rows.length
         };
-
     } catch (error) {
         console.error('❌ 索引創建過程發生錯誤:', error);
         throw error;
@@ -163,7 +166,6 @@ if (require.main === module) {
                 console.log('⚠️  索引創建腳本執行完成，但有部分失敗');
                 process.exit(1);
             }
-
         } catch (error) {
             console.error('💥 腳本執行失敗:', error);
             process.exit(1);

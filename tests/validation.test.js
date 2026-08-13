@@ -2,12 +2,16 @@
  * 資料驗證與清理機制測試
  */
 
-const { ArtDataCleaner, TextCleaner, NumberCleaner, DataQualityChecker } = require('../src/utils/dataCleaner');
+const {
+    ArtDataCleaner,
+    TextCleaner,
+    NumberCleaner,
+    DataQualityChecker
+} = require('../src/utils/dataCleaner');
 const { validateArtwork } = require('../src/api/validators/artworkValidator');
 const { validateArtist } = require('../src/api/validators/artistValidator');
 
 describe('資料驗證與清理機制測試', () => {
-
     describe('文本清理測試', () => {
         test('應該正確清理和標準化文本', () => {
             const dirtyText = '  這是一個  測試\n\n文本   \t  ';
@@ -161,10 +165,11 @@ describe('資料驗證與清理機制測試', () => {
                 description: '描述'
             };
 
-            const result = DataQualityChecker.checkCompleteness(
-                data,
-                ['title', 'artist_id', 'medium']
-            );
+            const result = DataQualityChecker.checkCompleteness(data, [
+                'title',
+                'artist_id',
+                'medium'
+            ]);
 
             expect(result.score).toBeCloseTo(0.67, 2); // 2/3
             expect(result.missing).toContain('medium');

@@ -112,14 +112,13 @@ class HarvardArtMuseumsCrawler {
             this.currentCalls++;
 
             // API限制：每秒不超過1次請求
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             return response.data;
-
         } catch (error) {
             if (error.response?.status === 429) {
                 console.warn('⚠️  API 頻率限制，等待後重試...');
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise((resolve) => setTimeout(resolve, 5000));
                 return this.makeApiCall(endpoint, params);
             } else if (error.response?.status === 401) {
                 throw new Error('API Key 無效或已過期');
@@ -264,7 +263,6 @@ class HarvardArtMuseumsCrawler {
             };
 
             return processedObject;
-
         } catch (error) {
             console.warn(`   ⚠️ 處理Harvard物件失敗: ${error.message}`);
             return null;
@@ -395,28 +393,28 @@ class HarvardArtMuseumsCrawler {
 
         const crawlPlan = [
             // 按分類搜尋
-            ...this.artHistoryClassifications.map(cls => ({
+            ...this.artHistoryClassifications.map((cls) => ({
                 type: 'classification',
                 query: cls,
-                limit: Math.floor(maxObjects * 0.4 / this.artHistoryClassifications.length)
+                limit: Math.floor((maxObjects * 0.4) / this.artHistoryClassifications.length)
             })),
             // 按著名藝術家搜尋
-            ...this.famousArtists.slice(0, 5).map(artist => ({
+            ...this.famousArtists.slice(0, 5).map((artist) => ({
                 type: 'artist',
                 query: artist,
-                limit: Math.floor(maxObjects * 0.3 / 5)
+                limit: Math.floor((maxObjects * 0.3) / 5)
             })),
             // 按文化搜尋
-            ...this.cultures.slice(0, 5).map(culture => ({
+            ...this.cultures.slice(0, 5).map((culture) => ({
                 type: 'culture',
                 query: culture,
-                limit: Math.floor(maxObjects * 0.2 / 5)
+                limit: Math.floor((maxObjects * 0.2) / 5)
             })),
             // 按時期搜尋
-            ...this.periods.slice(0, 3).map(period => ({
+            ...this.periods.slice(0, 3).map((period) => ({
                 type: 'period',
                 query: period,
-                limit: Math.floor(maxObjects * 0.1 / 3)
+                limit: Math.floor((maxObjects * 0.1) / 3)
             }))
         ];
 
@@ -451,7 +449,6 @@ class HarvardArtMuseumsCrawler {
                     console.log('⚠️  接近每日API調用限制，停止爬取');
                     break;
                 }
-
             } catch (error) {
                 console.error(`   ❌ ${plan.type} "${plan.query}" 失敗: ${error.message}`);
             }
@@ -478,16 +475,19 @@ class HarvardArtMuseumsCrawler {
         const unique = [];
 
         for (const item of data) {
-            const key = item.harvardId || `${item.title}_${item.people.map(p => p.name).join(',')}_${item.dated}`;
+            const key =
+                item.harvardId ||
+                `${item.title}_${item.people.map((p) => p.name).join(',')}_${item.dated}`;
 
             if (!seen.has(key)) {
                 seen.set(key, true);
                 unique.push(item);
             } else {
                 // 如果重複，保留品質分數更高的
-                const existingIndex = unique.findIndex(u =>
-                    (u.harvardId && u.harvardId === item.harvardId) ||
-                    `${u.title}_${u.people.map(p => p.name).join(',')}_${u.dated}` === key
+                const existingIndex = unique.findIndex(
+                    (u) =>
+                        (u.harvardId && u.harvardId === item.harvardId) ||
+                        `${u.title}_${u.people.map((p) => p.name).join(',')}_${u.dated}` === key
                 );
 
                 if (existingIndex !== -1) {
@@ -513,8 +513,10 @@ class HarvardArtMuseumsCrawler {
                 source: 'Harvard Art Museums API',
                 apiCallsUsed: this.currentCalls,
                 dailyLimit: this.dailyLimit,
-                averageQualityScore: data.reduce((sum, item) => sum + item.qualityScore, 0) / data.length,
-                averageResearchValue: data.reduce((sum, item) => sum + item.researchValue, 0) / data.length,
+                averageQualityScore:
+                    data.reduce((sum, item) => sum + item.qualityScore, 0) / data.length,
+                averageResearchValue:
+                    data.reduce((sum, item) => sum + item.researchValue, 0) / data.length,
                 classificationDistribution: this.getClassificationDistribution(data),
                 cultureDistribution: this.getCultureDistribution(data),
                 periodDistribution: this.getPeriodDistribution(data)
@@ -571,13 +573,14 @@ class HarvardArtMuseumsCrawler {
 
             if (results.length > 0) {
                 console.log(`✅ 快速測試成功！找到 ${results.length} 項結果`);
-                console.log(`範例: ${results[0].title} - ${results[0].people.map(p => p.name).join(', ')}`);
+                console.log(
+                    `範例: ${results[0].title} - ${results[0].people.map((p) => p.name).join(', ')}`
+                );
                 return true;
             } else {
                 console.log('⚠️  快速測試：沒有找到結果');
                 return false;
             }
-
         } catch (error) {
             console.error('❌ 快速測試失敗:', error.message);
             return false;

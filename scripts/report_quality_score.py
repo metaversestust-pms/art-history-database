@@ -5,7 +5,6 @@
 （Harvard 只有「研究價值」不是同一套 0-100 分制，不在此比較；其餘來源尚無品質分數機制。）
 """
 
-import glob
 import json
 from pathlib import Path
 

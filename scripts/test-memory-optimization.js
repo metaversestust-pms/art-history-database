@@ -46,7 +46,6 @@ class MemoryOptimizationTester {
 
             // 生成測試報告
             this.generateReport();
-
         } catch (error) {
             console.error('❌ 測試過程中發生錯誤:', error);
         } finally {
@@ -117,7 +116,9 @@ class MemoryOptimizationTester {
         console.log(`- 基準記憶體: ${this.testResults.memoryMonitoring.baselineHeap}`);
         console.log(`- 峰值記憶體: ${this.testResults.memoryMonitoring.peakHeap}`);
         console.log(`- 記憶體增長: ${this.testResults.memoryMonitoring.memoryIncrease}`);
-        console.log(`- 監控狀態: ${this.testResults.memoryMonitoring.monitoringActive ? '✅ 運行中' : '❌ 未運行'}`);
+        console.log(
+            `- 監控狀態: ${this.testResults.memoryMonitoring.monitoringActive ? '✅ 運行中' : '❌ 未運行'}`
+        );
         console.log(`- 數據點: ${this.testResults.memoryMonitoring.dataPoints}`);
         console.log('✅ 記憶體監控測試完成\n');
     }
@@ -163,7 +164,7 @@ class MemoryOptimizationTester {
         }
 
         // 歸還緩衝區
-        buffers.forEach(buffer => {
+        buffers.forEach((buffer) => {
             objectPoolManager.releaseBuffer('medium', buffer);
         });
 
@@ -232,7 +233,9 @@ class MemoryOptimizationTester {
             finalGCs: finalReport.stats.manualGCs || 0,
             manualGCExecuted: manualGCResult ? '✅ 成功' : '❌ 失敗',
             gcEfficiency: manualGCResult ? manualGCResult.efficiency + '%' : 'N/A',
-            memoryFreed: manualGCResult ? `${Math.round(manualGCResult.memoryFreed / 1024 / 1024)}MB` : 'N/A',
+            memoryFreed: manualGCResult
+                ? `${Math.round(manualGCResult.memoryFreed / 1024 / 1024)}MB`
+                : 'N/A',
             avgGCTime: finalReport.stats.avgGCTime,
             avgEfficiency: finalReport.stats.avgEfficiency,
             totalMemoryFreed: finalReport.stats.totalMemoryFreed
@@ -323,7 +326,9 @@ class MemoryOptimizationTester {
         console.log(`- 最終壓力等級: ${this.testResults.pressureManagement.finalLevel}`);
         console.log(`- 總執行動作: ${this.testResults.pressureManagement.totalActions}`);
         console.log(`- 手動動作執行: ${this.testResults.pressureManagement.manualActionExecuted}`);
-        console.log(`- 記憶體利用率 - 堆疊: ${this.testResults.pressureManagement.memoryUtilization.heap}`);
+        console.log(
+            `- 記憶體利用率 - 堆疊: ${this.testResults.pressureManagement.memoryUtilization.heap}`
+        );
         console.log('✅ 壓力管理測試完成\n');
     }
 
@@ -416,7 +421,9 @@ class MemoryOptimizationTester {
         console.log('📋 === 記憶體最佳化測試報告 ===\n');
 
         console.log('🔍 記憶體監控測試:');
-        console.log(`  監控狀態: ${this.testResults.memoryMonitoring.monitoringActive ? '✅ 正常運行' : '❌ 異常'}`);
+        console.log(
+            `  監控狀態: ${this.testResults.memoryMonitoring.monitoringActive ? '✅ 正常運行' : '❌ 異常'}`
+        );
         console.log(`  記憶體增長監測: ${this.testResults.memoryMonitoring.memoryIncrease}`);
         console.log(`  數據收集: ${this.testResults.memoryMonitoring.dataPoints} 個數據點`);
         console.log();
@@ -434,7 +441,9 @@ class MemoryOptimizationTester {
         console.log();
 
         console.log('📊 壓力管理測試:');
-        console.log(`  壓力檢測: 從 ${this.testResults.pressureManagement.initialLevel} 到 ${this.testResults.pressureManagement.finalLevel}`);
+        console.log(
+            `  壓力檢測: 從 ${this.testResults.pressureManagement.initialLevel} 到 ${this.testResults.pressureManagement.finalLevel}`
+        );
         console.log(`  自動應對動作: ${this.testResults.pressureManagement.totalActions} 次`);
         console.log(`  手動動作執行: ${this.testResults.pressureManagement.manualActionExecuted}`);
         console.log();
@@ -463,7 +472,7 @@ class MemoryOptimizationTester {
             this.testResults.integration.systemStability === '✅ 穩定'
         ];
 
-        const successRate = checks.filter(check => check).length / checks.length;
+        const successRate = checks.filter((check) => check).length / checks.length;
         return successRate >= 0.8; // 80% 成功率
     }
 
@@ -498,7 +507,7 @@ class MemoryOptimizationTester {
      * 延遲工具函數
      */
     delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 }
 

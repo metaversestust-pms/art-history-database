@@ -11,11 +11,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Callable
-import json
+from typing import Any, Callable, Dict, List, Optional
+
 
 class AgentStatus(Enum):
     """Agent狀態枚舉"""
+
     INITIALIZING = "initializing"
     READY = "ready"
     BUSY = "busy"
@@ -23,8 +24,10 @@ class AgentStatus(Enum):
     STOPPING = "stopping"
     STOPPED = "stopped"
 
+
 class MessageType(Enum):
     """消息類型枚舉"""
+
     TASK_REQUEST = "task_request"
     TASK_RESPONSE = "task_response"
     STATUS_UPDATE = "status_update"
@@ -33,9 +36,11 @@ class MessageType(Enum):
     RESULT_SHARING = "result_sharing"
     HEARTBEAT = "heartbeat"
 
+
 @dataclass
 class AgentMessage:
     """Agent間消息格式"""
+
     message_id: str
     sender_id: str
     receiver_id: str
@@ -57,11 +62,11 @@ class AgentMessage:
             "timestamp": self.timestamp.isoformat(),
             "priority": self.priority,
             "correlation_id": self.correlation_id,
-            "expires_at": self.expires_at.isoformat() if self.expires_at else None
+            "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'AgentMessage':
+    def from_dict(cls, data: Dict[str, Any]) -> "AgentMessage":
         """從字典創建消息實例"""
         return cls(
             message_id=data["message_id"],
@@ -72,12 +77,16 @@ class AgentMessage:
             timestamp=datetime.fromisoformat(data["timestamp"]),
             priority=data.get("priority", 5),
             correlation_id=data.get("correlation_id"),
-            expires_at=datetime.fromisoformat(data["expires_at"]) if data.get("expires_at") else None
+            expires_at=datetime.fromisoformat(data["expires_at"])
+            if data.get("expires_at")
+            else None,
         )
+
 
 @dataclass
 class AgentCapability:
     """Agent能力描述"""
+
     name: str
     description: str
     input_types: List[str]
@@ -85,9 +94,11 @@ class AgentCapability:
     resource_requirements: Dict[str, Any]
     estimated_time: float  # 秒
 
+
 @dataclass
 class AgentMetrics:
     """Agent性能指標"""
+
     tasks_completed: int = 0
     tasks_failed: int = 0
     average_response_time: float = 0.0
@@ -95,6 +106,7 @@ class AgentMetrics:
     memory_usage: float = 0.0
     last_heartbeat: Optional[datetime] = None
     uptime: float = 0.0
+
 
 class BaseAgent(ABC):
     """
@@ -229,9 +241,7 @@ class BaseAgent(ABC):
         while self.status != AgentStatus.STOPPED:
             try:
                 # 等待消息，超時1秒
-                message = await asyncio.wait_for(
-                    self.message_queue.get(), timeout=1.0
-                )
+                message = await asyncio.wait_for(self.message_queue.get(), timeout=1.0)
 
                 await self._process_message(message)
 
@@ -259,12 +269,9 @@ class BaseAgent(ABC):
                 sender_id=self.agent_id,
                 receiver_id=message.sender_id,
                 message_type=MessageType.ERROR_REPORT,
-                payload={
-                    "error": str(e),
-                    "original_message_id": message.message_id
-                },
+                payload={"error": str(e), "original_message_id": message.message_id},
                 timestamp=datetime.now(),
-                correlation_id=message.correlation_id
+                correlation_id=message.correlation_id,
             )
             await self.send_message(error_response)
 
@@ -280,11 +287,11 @@ class BaseAgent(ABC):
                 "metrics": {
                     "tasks_completed": self.metrics.tasks_completed,
                     "tasks_failed": self.metrics.tasks_failed,
-                    "average_response_time": self.metrics.average_response_time
-                }
+                    "average_response_time": self.metrics.average_response_time,
+                },
             },
             timestamp=datetime.now(),
-            correlation_id=message.correlation_id
+            correlation_id=message.correlation_id,
         )
         await self.send_message(response)
 
@@ -321,8 +328,10 @@ class BaseAgent(ABC):
                 "tasks_completed": self.metrics.tasks_completed,
                 "tasks_failed": self.metrics.tasks_failed,
                 "average_response_time": self.metrics.average_response_time,
-                "last_heartbeat": self.metrics.last_heartbeat.isoformat() if self.metrics.last_heartbeat else None
-            }
+                "last_heartbeat": self.metrics.last_heartbeat.isoformat()
+                if self.metrics.last_heartbeat
+                else None,
+            },
         }
 
     def register_message_handler(self, message_type: MessageType, handler: Callable):
@@ -344,29 +353,33 @@ class BaseAgent(ABC):
         self.current_tasks[task_id] = {
             "task_id": task_id,
             "start_time": datetime.now(),
-            "data": task_data
+            "data": task_data,
         }
 
         try:
             result = await self._execute_task(task_id, task_data)
             self.metrics.tasks_completed += 1
-            self.task_history.append({
-                "task_id": task_id,
-                "status": "completed",
-                "start_time": self.current_tasks[task_id]["start_time"],
-                "end_time": datetime.now(),
-                "result": result
-            })
+            self.task_history.append(
+                {
+                    "task_id": task_id,
+                    "status": "completed",
+                    "start_time": self.current_tasks[task_id]["start_time"],
+                    "end_time": datetime.now(),
+                    "result": result,
+                }
+            )
             return result
         except Exception as e:
             self.metrics.tasks_failed += 1
-            self.task_history.append({
-                "task_id": task_id,
-                "status": "failed",
-                "start_time": self.current_tasks[task_id]["start_time"],
-                "end_time": datetime.now(),
-                "error": str(e)
-            })
+            self.task_history.append(
+                {
+                    "task_id": task_id,
+                    "status": "failed",
+                    "start_time": self.current_tasks[task_id]["start_time"],
+                    "end_time": datetime.now(),
+                    "error": str(e),
+                }
+            )
             raise
         finally:
             self.current_tasks.pop(task_id, None)

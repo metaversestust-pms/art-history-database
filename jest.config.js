@@ -8,18 +8,10 @@ module.exports = {
     testEnvironment: 'node',
 
     // 測試文件匹配模式
-    testMatch: [
-        '**/tests/**/*.test.js',
-        '**/tests/**/*.spec.js',
-        '**/__tests__/**/*.js'
-    ],
+    testMatch: ['**/tests/**/*.test.js', '**/tests/**/*.spec.js', '**/__tests__/**/*.js'],
 
     // 忽略的文件模式
-    testPathIgnorePatterns: [
-        '/node_modules/',
-        '/dist/',
-        '/build/'
-    ],
+    testPathIgnorePatterns: ['/node_modules/', '/dist/', '/build/'],
 
     // 覆蓋率收集配置
     collectCoverage: process.env.COLLECT_COVERAGE === 'true',
@@ -37,12 +29,7 @@ module.exports = {
     coverageDirectory: 'coverage',
 
     // 覆蓋率報告格式
-    coverageReporters: [
-        'text',
-        'lcov',
-        'html',
-        'json-summary'
-    ],
+    coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
 
     // 覆蓋率閾值
     coverageThreshold: {
@@ -99,9 +86,7 @@ module.exports = {
     maxWorkers: process.env.CI ? 2 : '50%',
 
     // 報告器配置
-    reporters: [
-        'default'
-    ],
+    reporters: ['default'],
 
     // 轉換配置
     transform: {

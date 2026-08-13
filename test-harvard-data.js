@@ -7,12 +7,16 @@ async function testHarvardQuery(query) {
     console.log('='.repeat(70));
 
     try {
-        const response = await axios.post('http://localhost:8007/api/v1/query', {
-            query: query,
-            model_combination_id: 'llama3.1:8b@graph_only',
-            max_results: 5,
-            include_sources: true
-        }, { timeout: 60000 });
+        const response = await axios.post(
+            'http://localhost:8007/api/v1/query',
+            {
+                query: query,
+                model_combination_id: 'llama3.1:8b@graph_only',
+                max_results: 5,
+                include_sources: true
+            },
+            { timeout: 60000 }
+        );
 
         console.log(`\n✅ 查詢成功！`);
         console.log(`📚 找到文檔: ${response.data.metadata.num_sources} 個`);
@@ -22,7 +26,7 @@ async function testHarvardQuery(query) {
         if (response.data.sources && response.data.sources.length > 0) {
             console.log('\n📖 檢索結果:\n');
             response.data.sources.forEach((s, i) => {
-                console.log(`[${i+1}] ${s.source} (分數: ${s.score.toFixed(2)})`);
+                console.log(`[${i + 1}] ${s.source} (分數: ${s.score.toFixed(2)})`);
                 console.log(`    ${s.content.substring(0, 150).replace(/\n/g, ' ')}...`);
                 if (s.metadata && s.metadata.source) {
                     console.log(`    來源: ${s.metadata.source}`);
@@ -65,7 +69,7 @@ async function main() {
         successCount++;
         if (hasResults) withResultsCount++;
 
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     console.log('\n' + '='.repeat(70));
@@ -85,7 +89,7 @@ async function main() {
     }
 }
 
-main().catch(error => {
+main().catch((error) => {
     console.error('❌ 測試失敗:', error.message);
     process.exit(1);
 });

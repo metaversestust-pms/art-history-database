@@ -9,10 +9,26 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const SEARCH_QUERIES = [
-    'Renaissance', 'Baroque', 'Impressionism', 'Modern art', 'Contemporary art',
-    'American art', 'Asian art', 'African art', 'Egyptian art', 'Islamic art',
-    'medieval art', 'photography', 'textile', 'ceramics', 'sculpture',
-    'painting', 'drawing', 'print', 'decorative arts', 'ancient art'
+    'Renaissance',
+    'Baroque',
+    'Impressionism',
+    'Modern art',
+    'Contemporary art',
+    'American art',
+    'Asian art',
+    'African art',
+    'Egyptian art',
+    'Islamic art',
+    'medieval art',
+    'photography',
+    'textile',
+    'ceramics',
+    'sculpture',
+    'painting',
+    'drawing',
+    'print',
+    'decorative arts',
+    'ancient art'
 ];
 
 class ClevelandMuseumCrawler {
@@ -71,7 +87,7 @@ class ClevelandMuseumCrawler {
         // creators[].description 格式為 "姓名 (國籍, 生卒年)"，本身就含逗號，
         // 只取名字部分（第一個左括號之前），避免後續依逗號拆分多位創作者時被誤切開
         const creators = (item.creators || [])
-            .map(c => (c.description || '').split('(')[0].trim())
+            .map((c) => (c.description || '').split('(')[0].trim())
             .filter(Boolean);
         const normalized = {
             id: item.id,
@@ -80,7 +96,11 @@ class ClevelandMuseumCrawler {
             date: item.creation_date || 'Unknown Date',
             medium: item.technique || null,
             department: item.department || null,
-            culture: item.culture ? (Array.isArray(item.culture) ? item.culture.join(', ') : item.culture) : null,
+            culture: item.culture
+                ? Array.isArray(item.culture)
+                    ? item.culture.join(', ')
+                    : item.culture
+                : null,
             description: item.description || item.wall_description || null,
             imageUrl: item.images?.web?.url || item.images?.print?.url || null,
             objectURL: item.url || null,
@@ -100,7 +120,7 @@ class ClevelandMuseumCrawler {
             for (const item of items) {
                 this.collectedData.push(this.normalizeItem(item));
             }
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise((resolve) => setTimeout(resolve, 800));
         }
 
         console.log(`\n🎉 收集完成！總共收集了 ${this.collectedData.length} 件藝術品`);
@@ -117,10 +137,12 @@ class ClevelandMuseumCrawler {
         const filePath = path.join(this.outputDir, filename);
 
         await fs.writeFile(filePath, JSON.stringify(this.collectedData, null, 2), 'utf8');
-        const avgScore = this.collectedData.reduce((sum, a) => sum + a.qualityScore, 0) / this.collectedData.length;
+        const avgScore =
+            this.collectedData.reduce((sum, a) => sum + a.qualityScore, 0) /
+            this.collectedData.length;
         console.log(`💾 資料已保存到: ${filePath}`);
         console.log(`📊 總作品數: ${this.collectedData.length}`);
-        console.log(`📊 有圖片的作品: ${this.collectedData.filter(a => a.imageUrl).length}`);
+        console.log(`📊 有圖片的作品: ${this.collectedData.filter((a) => a.imageUrl).length}`);
         console.log(`⭐ 平均品質分數: ${avgScore.toFixed(2)}/100`);
 
         return filePath;

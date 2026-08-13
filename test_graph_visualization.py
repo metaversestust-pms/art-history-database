@@ -3,9 +3,11 @@
 測試 Neo4j 圖譜視覺化功能
 """
 
-import requests
 import json
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+import requests
+
 
 class GraphVisualizationTester:
     def __init__(self):
@@ -71,13 +73,12 @@ class GraphVisualizationTester:
                 f"{self.neo4j_url}/db/neo4j/tx/commit",
                 auth=self.neo4j_auth,
                 json={
-                    "statements": [{
-                        "statement": cypher_query,
-                        "parameters": {"entity_names": entity_names}
-                    }]
+                    "statements": [
+                        {"statement": cypher_query, "parameters": {"entity_names": entity_names}}
+                    ]
                 },
                 headers={"Content-Type": "application/json"},
-                timeout=10
+                timeout=10,
             )
 
             if response.status_code == 200:
@@ -97,10 +98,10 @@ class GraphVisualizationTester:
                         "nodes": list(nodes_dict.values()),
                         "edges": data[2],
                         "entity_count": len(nodes_dict),
-                        "relationship_count": len(data[2])
+                        "relationship_count": len(data[2]),
                     }
 
-                    print(f"✅ 查詢成功:")
+                    print("✅ 查詢成功:")
                     print(f"   - 節點數量: {graph_data['entity_count']}")
                     print(f"   - 關係數量: {graph_data['relationship_count']}")
 
@@ -161,7 +162,7 @@ class GraphVisualizationTester:
                     "BELONGS_TO": "屬於",
                     "EXHIBITED_AT": "展出於",
                     "STUDIED_UNDER": "師從",
-                    "CONTEMPORARY_OF": "同時代"
+                    "CONTEMPORARY_OF": "同時代",
                 }
                 rel_label = rel_translations.get(rel_type, rel_type)
                 mermaid_lines.append(f"    {source} -->|{rel_label}| {target}")
@@ -179,7 +180,7 @@ class GraphVisualizationTester:
             "artists": "MATCH (a:Artist) RETURN count(a) as count",
             "artworks": "MATCH (a:Artwork) RETURN count(a) as count",
             "styles": "MATCH (s:Style) RETURN count(s) as count",
-            "periods": "MATCH (p:Period) RETURN count(p) as count"
+            "periods": "MATCH (p:Period) RETURN count(p) as count",
         }
 
         results = {}
@@ -188,13 +189,9 @@ class GraphVisualizationTester:
                 response = requests.post(
                     f"{self.neo4j_url}/db/neo4j/tx/commit",
                     auth=self.neo4j_auth,
-                    json={
-                        "statements": [{
-                            "statement": query
-                        }]
-                    },
+                    json={"statements": [{"statement": query}]},
                     headers={"Content-Type": "application/json"},
-                    timeout=5
+                    timeout=5,
                 )
 
                 if response.status_code == 200:
@@ -225,13 +222,9 @@ class GraphVisualizationTester:
             response = requests.post(
                 f"{self.neo4j_url}/db/neo4j/tx/commit",
                 auth=self.neo4j_auth,
-                json={
-                    "statements": [{
-                        "statement": query
-                    }]
-                },
+                json={"statements": [{"statement": query}]},
                 headers={"Content-Type": "application/json"},
-                timeout=5
+                timeout=5,
             )
 
             if response.status_code == 200:
@@ -295,7 +288,7 @@ class GraphVisualizationTester:
 
                 # 保存結果
                 output_file = f"graph_test_case_{i}.json"
-                with open(output_file, 'w', encoding='utf-8') as f:
+                with open(output_file, "w", encoding="utf-8") as f:
                     json.dump(graph_data, f, ensure_ascii=False, indent=2)
                 print(f"\n💾 圖譜數據已保存到: {output_file}")
             else:
@@ -315,6 +308,7 @@ class GraphVisualizationTester:
         print("   1. 在 OpenWebUI 中上傳新的函數文件")
         print("   2. 選擇支持圖譜的模型組合 (如 Enhanced RAG)")
         print("   3. 提問測試,例如: '達文西創作了哪些作品?'")
+
 
 if __name__ == "__main__":
     tester = GraphVisualizationTester()

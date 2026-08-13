@@ -85,9 +85,7 @@ describe('自動化排程系統測試', () => {
                 priority: 'normal'
             };
 
-            await expect(cronScheduler.createSchedule(invalidConfig))
-                .rejects
-                .toThrow();
+            await expect(cronScheduler.createSchedule(invalidConfig)).rejects.toThrow();
         });
 
         test('應該正確啟用和停用排程', async () => {
@@ -300,15 +298,16 @@ describe('自動化排程系統測試', () => {
         });
 
         test('應該處理任務執行超時', async () => {
-            const mockTask = () => new Promise(resolve => {
-                setTimeout(resolve, 2000); // 2秒任務
-            });
+            const mockTask = () =>
+                new Promise((resolve) => {
+                    setTimeout(resolve, 2000); // 2秒任務
+                });
 
             const timeout = 1000; // 1秒超時
 
-            await expect(cronScheduler.executeWithTimeout(mockTask, timeout))
-                .rejects
-                .toThrow('任務執行超時');
+            await expect(cronScheduler.executeWithTimeout(mockTask, timeout)).rejects.toThrow(
+                '任務執行超時'
+            );
         });
 
         test('應該處理任務執行錯誤', async () => {
@@ -402,27 +401,27 @@ describe('排程 API 端點測試', () => {
 
     test('驗證 cron 表達式端點', () => {
         const validExpressions = [
-            '* * * * *',        // 每分鐘
-            '0 * * * *',        // 每小時
-            '0 0 * * *',        // 每天
-            '0 0 * * 0',        // 每週
-            '0 0 1 * *',        // 每月
-            '0 0 1 1 *'         // 每年
+            '* * * * *', // 每分鐘
+            '0 * * * *', // 每小時
+            '0 0 * * *', // 每天
+            '0 0 * * 0', // 每週
+            '0 0 1 * *', // 每月
+            '0 0 1 1 *' // 每年
         ];
 
         const invalidExpressions = [
             'invalid',
-            '60 * * * *',       // 超出分鐘範圍
-            '* 24 * * *',       // 超出小時範圍
-            '* * 32 * *',       // 超出日期範圍
-            '* * * 13 *'        // 超出月份範圍
+            '60 * * * *', // 超出分鐘範圍
+            '* 24 * * *', // 超出小時範圍
+            '* * 32 * *', // 超出日期範圍
+            '* * * 13 *' // 超出月份範圍
         ];
 
-        validExpressions.forEach(expr => {
+        validExpressions.forEach((expr) => {
             expect(cron.validate(expr)).toBe(true);
         });
 
-        invalidExpressions.forEach(expr => {
+        invalidExpressions.forEach((expr) => {
             expect(cron.validate(expr)).toBe(false);
         });
     });

@@ -43,7 +43,6 @@ class CudaIntegrationTester {
 
             // 顯示測試結果
             this.showTestSummary();
-
         } catch (error) {
             console.error('❌ 測試運行失敗:', error.message);
         }
@@ -68,8 +67,8 @@ class CudaIntegrationTester {
                 'art_history_historical_periods'
             ];
 
-            const collectionNames = collections.map(c => c.name);
-            const missing = expectedCollections.filter(name => !collectionNames.includes(name));
+            const collectionNames = collections.map((c) => c.name);
+            const missing = expectedCollections.filter((name) => !collectionNames.includes(name));
 
             if (missing.length > 0) {
                 throw new Error(`缺少集合: ${missing.join(', ')}`);
@@ -100,11 +99,9 @@ class CudaIntegrationTester {
                 title: '春日花園'
             };
 
-            const response = await axios.post(
-                `${this.mlServiceUrl}/classify/artwork`,
-                testData,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
+            const response = await axios.post(`${this.mlServiceUrl}/classify/artwork`, testData, {
+                headers: { 'Content-Type': 'application/json' }
+            });
 
             const result = response.data;
             if (!result.success || !result.classification) {
@@ -121,11 +118,9 @@ class CudaIntegrationTester {
                 model: 'multilingual-bert'
             };
 
-            const response = await axios.post(
-                `${this.mlServiceUrl}/embeddings`,
-                testData,
-                { headers: { 'Content-Type': 'application/json' } }
-            );
+            const response = await axios.post(`${this.mlServiceUrl}/embeddings`, testData, {
+                headers: { 'Content-Type': 'application/json' }
+            });
 
             const result = response.data;
             if (!result.embeddings || result.embeddings.length !== 3) {
@@ -164,12 +159,14 @@ class CudaIntegrationTester {
             await collection.upsert({
                 ids: [testId],
                 embeddings: [embedding],
-                metadatas: [{
-                    title: '蒙娜麗莎',
-                    artist: '達文西',
-                    period: '文藝復興',
-                    test: true
-                }],
+                metadatas: [
+                    {
+                        title: '蒙娜麗莎',
+                        artist: '達文西',
+                        period: '文藝復興',
+                        test: true
+                    }
+                ],
                 documents: [artworkText]
             });
 
@@ -237,7 +234,7 @@ class CudaIntegrationTester {
             ];
 
             // 並行生成嵌入
-            const embeddingPromises = testTexts.map(text =>
+            const embeddingPromises = testTexts.map((text) =>
                 axios.post(
                     `${this.mlServiceUrl}/embeddings`,
                     { texts: [text], model: 'multilingual-bert' },
@@ -249,8 +246,8 @@ class CudaIntegrationTester {
             const processingTime = Date.now() - startTime;
 
             // 驗證所有結果
-            const successCount = embeddingResults.filter(r =>
-                r.data.embeddings && r.data.embeddings.length > 0
+            const successCount = embeddingResults.filter(
+                (r) => r.data.embeddings && r.data.embeddings.length > 0
             ).length;
 
             if (successCount !== testTexts.length) {
@@ -275,7 +272,6 @@ class CudaIntegrationTester {
                 status: 'passed',
                 message: result
             });
-
         } catch (error) {
             console.log(`     ❌ 失敗: ${error.message}`);
 
@@ -314,7 +310,8 @@ class CudaIntegrationTester {
 
         console.log('-'.repeat(40));
         const grandTotal = totalPassed + totalFailed;
-        const overallPassRate = grandTotal > 0 ? ((totalPassed / grandTotal) * 100).toFixed(1) : '0.0';
+        const overallPassRate =
+            grandTotal > 0 ? ((totalPassed / grandTotal) * 100).toFixed(1) : '0.0';
 
         console.log(`總計: ${totalPassed}/${grandTotal} 通過 (${overallPassRate}%)`);
 
@@ -333,7 +330,7 @@ async function main() {
 }
 
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('❌ 測試執行失敗:', error);
         process.exit(1);
     });

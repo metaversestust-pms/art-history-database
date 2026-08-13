@@ -40,7 +40,6 @@ async function testQueries() {
             console.timeEnd('Artist搜索時間');
             console.log(`搜索錯誤: ${error.message}\n`);
         }
-
     } catch (error) {
         console.error('❌ 測試失敗:', error.message);
         console.error('Stack:', error.stack);

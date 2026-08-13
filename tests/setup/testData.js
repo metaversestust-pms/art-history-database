@@ -52,7 +52,10 @@ class TestDataGenerator {
             provenance: 'Test provenance information',
             significance: 'This artwork is significant for testing purposes.',
             source_urls: ['https://test.example.com/artwork'],
-            image_urls: ['https://test.example.com/image1.jpg', 'https://test.example.com/image2.jpg'],
+            image_urls: [
+                'https://test.example.com/image1.jpg',
+                'https://test.example.com/image2.jpg'
+            ],
             metadata: {
                 test: true,
                 generated_at: new Date().toISOString()
@@ -105,7 +108,8 @@ class TestDataGenerator {
             content_id: uuidv4(),
             content_type: 'test',
             title: 'Test Document ' + Date.now(),
-            content: 'This is test content for vector search testing. It contains various keywords and phrases that can be used to test search functionality.',
+            content:
+                'This is test content for vector search testing. It contains various keywords and phrases that can be used to test search functionality.',
             content_summary: 'Test content summary for vector search.',
             chunk_index: 0,
             chunk_count: 1,
@@ -163,9 +167,7 @@ class TestDataGenerator {
 
     generateBulkArtworkData(artistIds = [], count = 5) {
         return Array.from({ length: count }, (_, index) => {
-            const artistId = artistIds.length > 0
-                ? artistIds[index % artistIds.length]
-                : null;
+            const artistId = artistIds.length > 0 ? artistIds[index % artistIds.length] : null;
             return this.generateArtworkData(artistId);
         });
     }
@@ -234,14 +236,38 @@ class TestDataGenerator {
     generateSearchTestData() {
         return {
             artists: [
-                this.generateArtistData({ name: 'Leonardo da Vinci', nationality: 'Italian', art_movement: 'Renaissance' }),
-                this.generateArtistData({ name: 'Pablo Picasso', nationality: 'Spanish', art_movement: 'Cubism' }),
-                this.generateArtistData({ name: 'Vincent van Gogh', nationality: 'Dutch', art_movement: 'Post-Impressionism' })
+                this.generateArtistData({
+                    name: 'Leonardo da Vinci',
+                    nationality: 'Italian',
+                    art_movement: 'Renaissance'
+                }),
+                this.generateArtistData({
+                    name: 'Pablo Picasso',
+                    nationality: 'Spanish',
+                    art_movement: 'Cubism'
+                }),
+                this.generateArtistData({
+                    name: 'Vincent van Gogh',
+                    nationality: 'Dutch',
+                    art_movement: 'Post-Impressionism'
+                })
             ],
             artworks: [
-                this.generateArtworkData(null, { title: 'Mona Lisa', style: 'Renaissance', subject_matter: 'Portrait' }),
-                this.generateArtworkData(null, { title: 'Guernica', style: 'Cubism', subject_matter: 'War' }),
-                this.generateArtworkData(null, { title: 'Starry Night', style: 'Post-Impressionism', subject_matter: 'Landscape' })
+                this.generateArtworkData(null, {
+                    title: 'Mona Lisa',
+                    style: 'Renaissance',
+                    subject_matter: 'Portrait'
+                }),
+                this.generateArtworkData(null, {
+                    title: 'Guernica',
+                    style: 'Cubism',
+                    subject_matter: 'War'
+                }),
+                this.generateArtworkData(null, {
+                    title: 'Starry Night',
+                    style: 'Post-Impressionism',
+                    subject_matter: 'Landscape'
+                })
             ],
             tags: [
                 this.generateTagData({ name: 'Portrait', category: 'subject' }),

@@ -21,7 +21,13 @@ class OllamaService {
         this.loadedModels = new Set();
 
         // 可用模型清單（由環境變數或建構參數提供）
-        this.availableModels = options.availableModels || (process.env.OLLAMA_AVAILABLE_MODELS ? process.env.OLLAMA_AVAILABLE_MODELS.split(',').map(s => s.trim()).filter(Boolean) : []);
+        this.availableModels =
+            options.availableModels ||
+            (process.env.OLLAMA_AVAILABLE_MODELS
+                ? process.env.OLLAMA_AVAILABLE_MODELS.split(',')
+                      .map((s) => s.trim())
+                      .filter(Boolean)
+                : []);
 
         logger.info(`🦙 Ollama 服務初始化 (${this.baseUrl})`);
     }
@@ -59,16 +65,20 @@ class OllamaService {
             logger.info(`🔄 正在載入模型: ${modelName}`);
 
             // 預載入模型
-            const response = await axios.post(`${this.baseUrl}/api/generate`, {
-                model: modelName,
-                prompt: "Hello",
-                stream: false,
-                options: {
-                    num_predict: 1
+            const response = await axios.post(
+                `${this.baseUrl}/api/generate`,
+                {
+                    model: modelName,
+                    prompt: 'Hello',
+                    stream: false,
+                    options: {
+                        num_predict: 1
+                    }
+                },
+                {
+                    timeout: 30000
                 }
-            }, {
-                timeout: 30000
-            });
+            );
 
             if (response.status === 200) {
                 this.loadedModels.add(modelName);
@@ -104,11 +114,9 @@ class OllamaService {
         };
 
         try {
-            const response = await axios.post(
-                `${this.baseUrl}/api/generate`,
-                requestData,
-                { timeout: this.timeout }
-            );
+            const response = await axios.post(`${this.baseUrl}/api/generate`, requestData, {
+                timeout: this.timeout
+            });
 
             return {
                 text: response.data.response,
@@ -140,7 +148,7 @@ class OllamaService {
      * 將對話格式轉換為 prompt
      */
     formatMessagesAsPrompt(messages) {
-        let prompt = "";
+        let prompt = '';
 
         for (const message of messages) {
             switch (message.role) {
@@ -156,7 +164,7 @@ class OllamaService {
             }
         }
 
-        prompt += "Assistant: ";
+        prompt += 'Assistant: ';
         return prompt;
     }
 
@@ -284,15 +292,15 @@ ${JSON.stringify(artworkData, null, 2)}
      */
     async translateArtText(text, sourceLang = 'en', targetLang = 'zh-TW') {
         const langNames = {
-            'en': '英文',
+            en: '英文',
             'zh-TW': '繁體中文',
             'zh-CN': '簡體中文',
-            'ja': '日文',
-            'ko': '韓文',
-            'fr': '法文',
-            'de': '德文',
-            'it': '義大利文',
-            'es': '西班牙文'
+            ja: '日文',
+            ko: '韓文',
+            fr: '法文',
+            de: '德文',
+            it: '義大利文',
+            es: '西班牙文'
         };
 
         const prompt = `請將以下${langNames[sourceLang] || sourceLang}藝術史文本翻譯成${langNames[targetLang] || targetLang}，保持專業術語的準確性：
@@ -371,7 +379,9 @@ ${JSON.stringify(artworkData, null, 2)}
                 service: 'ollama',
                 status: health.status,
                 loadedModels: Array.from(this.loadedModels),
-                availableModels: this.availableModels.length ? this.availableModels : (health.models?.map(m => m.name) || []),
+                availableModels: this.availableModels.length
+                    ? this.availableModels
+                    : health.models?.map((m) => m.name) || [],
                 defaultModel: this.defaultModel,
                 embeddingModel: this.embeddingModel
             };

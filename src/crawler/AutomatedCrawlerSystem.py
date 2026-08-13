@@ -8,23 +8,20 @@
 import json
 import logging
 import time
-import schedule
-import requests
-from pathlib import Path
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
-import threading
+from pathlib import Path
 from queue import Queue
+from typing import Dict, List
+
+import requests
+import schedule
 
 # 設置日誌
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - [%(name)s] %(message)s',
-    handlers=[
-        logging.FileHandler('automated_crawler.log'),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(levelname)s - [%(name)s] %(message)s",
+    handlers=[logging.FileHandler("automated_crawler.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -32,6 +29,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CrawlerConfig:
     """爬蟲配置"""
+
     # Harvard API
     harvard_api_key: str = "cfe24845-aa4f-4c93-9d86-f6880440af5f"
 
@@ -72,33 +70,50 @@ class ArtPeriodDefinitions:
             "display_name": "Renaissance",
             "date_range": (1400, 1600),
             "keywords": [
-                "Renaissance", "Early Renaissance", "High Renaissance",
-                "Italian Renaissance", "Northern Renaissance",
-                "文藝復興"
+                "Renaissance",
+                "Early Renaissance",
+                "High Renaissance",
+                "Italian Renaissance",
+                "Northern Renaissance",
+                "文藝復興",
             ],
             "artists": [
-                "Leonardo da Vinci", "Michelangelo", "Raphael",
-                "Botticelli", "Titian", "Donatello", "Brunelleschi",
-                "Masaccio", "Piero della Francesca", "Mantegna",
-                "Bellini", "Giotto", "Albrecht Dürer"
+                "Leonardo da Vinci",
+                "Michelangelo",
+                "Raphael",
+                "Botticelli",
+                "Titian",
+                "Donatello",
+                "Brunelleschi",
+                "Masaccio",
+                "Piero della Francesca",
+                "Mantegna",
+                "Bellini",
+                "Giotto",
+                "Albrecht Dürer",
             ],
-            "priority": 1
+            "priority": 1,
         },
         "baroque": {
             "name": "巴洛克",
             "display_name": "Baroque",
             "date_range": (1600, 1750),
-            "keywords": [
-                "Baroque", "Caravaggism", "Dutch Golden Age",
-                "巴洛克", "荷蘭黃金時代"
-            ],
+            "keywords": ["Baroque", "Caravaggism", "Dutch Golden Age", "巴洛克", "荷蘭黃金時代"],
             "artists": [
-                "Caravaggio", "Rembrandt", "Rubens", "Velázquez",
-                "Vermeer", "Bernini", "Artemisia Gentileschi",
-                "Poussin", "Claude Lorrain", "Frans Hals",
-                "Ribera", "Zurbarán"
+                "Caravaggio",
+                "Rembrandt",
+                "Rubens",
+                "Velázquez",
+                "Vermeer",
+                "Bernini",
+                "Artemisia Gentileschi",
+                "Poussin",
+                "Claude Lorrain",
+                "Frans Hals",
+                "Ribera",
+                "Zurbarán",
             ],
-            "priority": 1
+            "priority": 1,
         },
         "rococo": {
             "name": "洛可可",
@@ -106,8 +121,8 @@ class ArtPeriodDefinitions:
             "date_range": (1730, 1780),
             "keywords": ["Rococo", "洛可可"],
             "artists": ["Watteau", "Boucher", "Fragonard", "Tiepolo"],
-            "priority": 2
-        }
+            "priority": 2,
+        },
     }
 
 
@@ -125,23 +140,19 @@ class HarvardCrawler:
         objects = []
         page = 1
 
-        params['apikey'] = self.api_key
-        params['size'] = min(100, max_results)
+        params["apikey"] = self.api_key
+        params["size"] = min(100, max_results)
 
         while len(objects) < max_results:
-            params['page'] = page
+            params["page"] = page
 
             try:
-                response = self.session.get(
-                    f"{self.base_url}/object",
-                    params=params,
-                    timeout=30
-                )
+                response = self.session.get(f"{self.base_url}/object", params=params, timeout=30)
                 self.api_calls += 1
 
                 if response.status_code == 200:
                     data = response.json()
-                    records = data.get('records', [])
+                    records = data.get("records", [])
 
                     if not records:
                         break
@@ -149,8 +160,8 @@ class HarvardCrawler:
                     objects.extend(records)
 
                     # 檢查是否還有更多頁面
-                    info = data.get('info', {})
-                    if page >= info.get('pages', 1):
+                    info = data.get("info", {})
+                    if page >= info.get("pages", 1):
                         break
 
                     page += 1
@@ -167,17 +178,17 @@ class HarvardCrawler:
 
     def search_by_artist(self, artist_name: str, max_results: int = 50) -> List[Dict]:
         """根據藝術家搜索"""
-        params = {'person': artist_name}
+        params = {"person": artist_name}
         return self.search_objects(params, max_results)
 
     def search_by_keyword(self, keyword: str, max_results: int = 50) -> List[Dict]:
         """根據關鍵詞搜索"""
-        params = {'keyword': keyword}
+        params = {"keyword": keyword}
         return self.search_objects(params, max_results)
 
     def search_by_century(self, century: int, max_results: int = 50) -> List[Dict]:
         """根據世紀搜索"""
-        params = {'century': century}
+        params = {"century": century}
         return self.search_objects(params, max_results)
 
 
@@ -195,13 +206,13 @@ class MetMuseumCrawler:
         try:
             # 搜索作品ID
             search_url = f"{self.base_url}/search"
-            params = {'q': artist_name, 'hasImages': 'true'}
+            params = {"q": artist_name, "hasImages": "true"}
 
             response = self.session.get(search_url, params=params, timeout=30)
 
             if response.status_code == 200:
                 data = response.json()
-                object_ids = data.get('objectIDs', [])[:max_results]
+                object_ids = data.get("objectIDs", [])[:max_results]
 
                 # 獲取作品詳情
                 for obj_id in object_ids:
@@ -242,54 +253,54 @@ class DataProcessor:
     def _normalize_harvard(self, artwork: Dict) -> Dict:
         """標準化Harvard資料"""
         return {
-            'id': f"harvard_{artwork.get('id', '')}",
-            'source': 'harvard',
-            'title': artwork.get('title', 'Untitled'),
-            'artist': self._extract_artist(artwork.get('people', [])),
-            'date': artwork.get('dated', ''),
-            'period': artwork.get('period', ''),
-            'culture': artwork.get('culture', ''),
-            'medium': artwork.get('medium', ''),
-            'dimensions': artwork.get('dimensions', ''),
-            'description': artwork.get('description', ''),
-            'image_url': artwork.get('primaryimageurl', ''),
-            'url': artwork.get('url', ''),
-            'century': artwork.get('century', ''),
-            'classification': artwork.get('classification', ''),
-            'technique': artwork.get('technique', ''),
-            'raw_data': artwork
+            "id": f"harvard_{artwork.get('id', '')}",
+            "source": "harvard",
+            "title": artwork.get("title", "Untitled"),
+            "artist": self._extract_artist(artwork.get("people", [])),
+            "date": artwork.get("dated", ""),
+            "period": artwork.get("period", ""),
+            "culture": artwork.get("culture", ""),
+            "medium": artwork.get("medium", ""),
+            "dimensions": artwork.get("dimensions", ""),
+            "description": artwork.get("description", ""),
+            "image_url": artwork.get("primaryimageurl", ""),
+            "url": artwork.get("url", ""),
+            "century": artwork.get("century", ""),
+            "classification": artwork.get("classification", ""),
+            "technique": artwork.get("technique", ""),
+            "raw_data": artwork,
         }
 
     def _normalize_met(self, artwork: Dict) -> Dict:
         """標準化Met資料"""
         return {
-            'id': f"met_{artwork.get('objectID', '')}",
-            'source': 'met',
-            'title': artwork.get('title', 'Untitled'),
-            'artist': artwork.get('artistDisplayName', ''),
-            'date': artwork.get('objectDate', ''),
-            'period': artwork.get('period', ''),
-            'culture': artwork.get('culture', ''),
-            'medium': artwork.get('medium', ''),
-            'dimensions': artwork.get('dimensions', ''),
-            'description': artwork.get('objectName', ''),
-            'image_url': artwork.get('primaryImage', ''),
-            'url': artwork.get('objectURL', ''),
-            'classification': artwork.get('classification', ''),
-            'department': artwork.get('department', ''),
-            'raw_data': artwork
+            "id": f"met_{artwork.get('objectID', '')}",
+            "source": "met",
+            "title": artwork.get("title", "Untitled"),
+            "artist": artwork.get("artistDisplayName", ""),
+            "date": artwork.get("objectDate", ""),
+            "period": artwork.get("period", ""),
+            "culture": artwork.get("culture", ""),
+            "medium": artwork.get("medium", ""),
+            "dimensions": artwork.get("dimensions", ""),
+            "description": artwork.get("objectName", ""),
+            "image_url": artwork.get("primaryImage", ""),
+            "url": artwork.get("objectURL", ""),
+            "classification": artwork.get("classification", ""),
+            "department": artwork.get("department", ""),
+            "raw_data": artwork,
         }
 
     def _extract_artist(self, people: List[Dict]) -> str:
         """從Harvard people欄位提取藝術家名稱"""
         if not people:
-            return ''
+            return ""
 
         for person in people:
-            if person.get('role') in ['Artist', 'Painter', 'Sculptor']:
-                return person.get('name', '')
+            if person.get("role") in ["Artist", "Painter", "Sculptor"]:
+                return person.get("name", "")
 
-        return people[0].get('name', '') if people else ''
+        return people[0].get("name", "") if people else ""
 
     def deduplicate(self, artworks: List[Dict]) -> List[Dict]:
         """去除重複資料"""
@@ -297,7 +308,7 @@ class DataProcessor:
         unique_artworks = []
 
         for artwork in artworks:
-            artwork_id = artwork.get('id')
+            artwork_id = artwork.get("id")
             if artwork_id and artwork_id not in seen_ids:
                 seen_ids.add(artwork_id)
                 unique_artworks.append(artwork)
@@ -320,13 +331,13 @@ class RAGSystemIntegration:
             from neo4j import GraphDatabase
 
             driver = GraphDatabase.driver(
-                self.config.neo4j_url,
-                auth=(self.config.neo4j_user, self.config.neo4j_password)
+                self.config.neo4j_url, auth=(self.config.neo4j_user, self.config.neo4j_password)
             )
 
             with driver.session() as session:
                 for artwork in artworks:
-                    session.run("""
+                    session.run(
+                        """
                         MERGE (a:Artwork {id: $id})
                         SET a.title = $title,
                             a.artist = $artist,
@@ -335,7 +346,9 @@ class RAGSystemIntegration:
                             a.source = $source,
                             a.image_url = $image_url,
                             a.description = $description
-                    """, artwork)
+                    """,
+                        artwork,
+                    )
 
             driver.close()
             logger.info(f"✅ 成功傳送 {len(artworks)} 件作品到 Neo4j")
@@ -352,36 +365,31 @@ class RAGSystemIntegration:
 
         try:
             import chromadb
-            from chromadb.config import Settings
 
             client = chromadb.HttpClient(
-                host=self.config.chromadb_url.replace('http://', '').split(':')[0],
-                port=int(self.config.chromadb_url.split(':')[-1])
+                host=self.config.chromadb_url.replace("http://", "").split(":")[0],
+                port=int(self.config.chromadb_url.split(":")[-1]),
             )
 
             collection = client.get_or_create_collection(name="art_history")
 
             # 準備資料
-            ids = [artwork['id'] for artwork in artworks]
+            ids = [artwork["id"] for artwork in artworks]
             documents = [
                 f"{artwork['title']} by {artwork['artist']}. {artwork['description']}"
                 for artwork in artworks
             ]
             metadatas = [
                 {
-                    'title': artwork['title'],
-                    'artist': artwork['artist'],
-                    'period': artwork['period'],
-                    'source': artwork['source']
+                    "title": artwork["title"],
+                    "artist": artwork["artist"],
+                    "period": artwork["period"],
+                    "source": artwork["source"],
                 }
                 for artwork in artworks
             ]
 
-            collection.add(
-                ids=ids,
-                documents=documents,
-                metadatas=metadatas
-            )
+            collection.add(ids=ids, documents=documents, metadatas=metadatas)
 
             logger.info(f"✅ 成功傳送 {len(artworks)} 件作品到 ChromaDB")
             return True
@@ -400,7 +408,9 @@ class AutomatedCrawlerSystem:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # 初始化爬蟲
-        self.harvard_crawler = HarvardCrawler(config.harvard_api_key) if config.enable_harvard else None
+        self.harvard_crawler = (
+            HarvardCrawler(config.harvard_api_key) if config.enable_harvard else None
+        )
         self.met_crawler = MetMuseumCrawler() if config.enable_met else None
 
         # 初始化處理器
@@ -412,10 +422,10 @@ class AutomatedCrawlerSystem:
 
         # 統計
         self.stats = {
-            'total_crawled': 0,
-            'total_processed': 0,
-            'total_sent_to_rag': 0,
-            'last_crawl_time': None
+            "total_crawled": 0,
+            "total_processed": 0,
+            "total_sent_to_rag": 0,
+            "last_crawl_time": None,
         }
 
     def crawl_period(self, period_id: str) -> List[Dict]:
@@ -425,9 +435,9 @@ class AutomatedCrawlerSystem:
             return []
 
         period = ArtPeriodDefinitions.PERIODS[period_id]
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info(f"🎨 開始爬取: {period['name']} ({period['display_name']})")
-        logger.info(f"{'='*60}")
+        logger.info(f"{'=' * 60}")
 
         all_artworks = []
 
@@ -436,27 +446,21 @@ class AutomatedCrawlerSystem:
             logger.info(f"\n📚 Harvard Art Museums - {period['name']}")
 
             # 依藝術家爬取
-            for artist in period['artists'][:10]:
+            for artist in period["artists"][:10]:
                 logger.info(f"  搜索藝術家: {artist}")
                 artworks = self.harvard_crawler.search_by_artist(artist, max_results=30)
 
                 # 標準化資料
-                normalized = [
-                    self.processor.normalize_artwork(a, 'harvard')
-                    for a in artworks
-                ]
+                normalized = [self.processor.normalize_artwork(a, "harvard") for a in artworks]
                 all_artworks.extend(normalized)
                 logger.info(f"  ✅ 找到 {len(artworks)} 件作品")
 
             # 依關鍵詞爬取
-            for keyword in period['keywords'][:3]:
+            for keyword in period["keywords"][:3]:
                 logger.info(f"  搜索關鍵詞: {keyword}")
                 artworks = self.harvard_crawler.search_by_keyword(keyword, max_results=20)
 
-                normalized = [
-                    self.processor.normalize_artwork(a, 'harvard')
-                    for a in artworks
-                ]
+                normalized = [self.processor.normalize_artwork(a, "harvard") for a in artworks]
                 all_artworks.extend(normalized)
                 logger.info(f"  ✅ 找到 {len(artworks)} 件作品")
 
@@ -464,14 +468,11 @@ class AutomatedCrawlerSystem:
         if self.met_crawler:
             logger.info(f"\n🏛️ Met Museum - {period['name']}")
 
-            for artist in period['artists'][:5]:
+            for artist in period["artists"][:5]:
                 logger.info(f"  搜索藝術家: {artist}")
                 artworks = self.met_crawler.search_by_artist(artist, max_results=20)
 
-                normalized = [
-                    self.processor.normalize_artwork(a, 'met')
-                    for a in artworks
-                ]
+                normalized = [self.processor.normalize_artwork(a, "met") for a in artworks]
                 all_artworks.extend(normalized)
                 logger.info(f"  ✅ 找到 {len(artworks)} 件作品")
 
@@ -495,10 +496,10 @@ class AutomatedCrawlerSystem:
         chromadb_success = self.rag_integration.send_to_chromadb(artworks)
 
         if neo4j_success and chromadb_success:
-            self.stats['total_sent_to_rag'] += len(artworks)
-            logger.info(f"✅ 成功傳送所有資料到RAG系統")
+            self.stats["total_sent_to_rag"] += len(artworks)
+            logger.info("✅ 成功傳送所有資料到RAG系統")
         else:
-            logger.warning(f"⚠️ 部分資料傳送失敗")
+            logger.warning("⚠️ 部分資料傳送失敗")
 
     def save_artworks(self, artworks: List[Dict], period_id: str):
         """保存藝術品資料"""
@@ -506,16 +507,16 @@ class AutomatedCrawlerSystem:
         filename = f"{period_id}_{timestamp}.json"
         filepath = self.output_dir / filename
 
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(artworks, f, ensure_ascii=False, indent=2)
 
         logger.info(f"💾 資料已保存: {filepath}")
 
     def run_single_crawl(self):
         """執行單次爬取"""
-        logger.info("\n" + "="*60)
+        logger.info("\n" + "=" * 60)
         logger.info("🚀 開始執行自動化爬蟲任務")
-        logger.info("="*60)
+        logger.info("=" * 60)
 
         start_time = datetime.now()
         all_artworks = []
@@ -531,19 +532,19 @@ class AutomatedCrawlerSystem:
             # 立即傳送到RAG系統
             self.process_and_send(artworks)
 
-            self.stats['total_crawled'] += len(artworks)
+            self.stats["total_crawled"] += len(artworks)
 
         # 更新統計
-        self.stats['last_crawl_time'] = start_time.isoformat()
-        self.stats['total_processed'] += len(all_artworks)
+        self.stats["last_crawl_time"] = start_time.isoformat()
+        self.stats["total_processed"] += len(all_artworks)
 
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
 
         # 輸出摘要
-        logger.info(f"\n" + "="*60)
+        logger.info("\n" + "=" * 60)
         logger.info("📊 爬取任務完成")
-        logger.info("="*60)
+        logger.info("=" * 60)
         logger.info(f"總計爬取: {len(all_artworks)} 件作品")
         logger.info(f"傳送到RAG: {self.stats['total_sent_to_rag']} 件")
         logger.info(f"耗時: {duration:.2f} 秒")
@@ -554,12 +555,12 @@ class AutomatedCrawlerSystem:
     def _save_stats(self):
         """保存統計資料"""
         stats_file = self.output_dir / "crawler_stats.json"
-        with open(stats_file, 'w', encoding='utf-8') as f:
+        with open(stats_file, "w", encoding="utf-8") as f:
             json.dump(self.stats, f, ensure_ascii=False, indent=2)
 
     def start_scheduled_crawl(self):
         """啟動排程爬取"""
-        logger.info(f"\n⏰ 啟動自動排程爬蟲")
+        logger.info("\n⏰ 啟動自動排程爬蟲")
         logger.info(f"爬取間隔: 每 {self.config.auto_crawl_interval_hours} 小時")
         logger.info(f"重點時期: {', '.join(self.config.focus_periods)}")
 
@@ -583,27 +584,26 @@ class AutomatedCrawlerSystem:
 def main():
     """主函數"""
     print("\n🤖 自動化藝術史資料爬蟲系統")
-    print("="*60)
+    print("=" * 60)
     print("功能：")
     print("  ✅ 自動從網路收集藝術史資料")
     print("  ✅ 重點收集：文藝復興 & 巴洛克時期")
     print("  ✅ 自動處理並傳送到RAG系統")
     print("  ✅ 支援排程自動執行")
-    print("="*60)
+    print("=" * 60)
 
     # 配置
     config = CrawlerConfig(
         focus_periods=["renaissance", "baroque"],
         auto_crawl_interval_hours=24,
         output_dir="./automated_crawler_data",
-
         # RAG系統配置
         neo4j_enabled=True,
         chromadb_enabled=True,
         neo4j_url="bolt://localhost:7687",
         neo4j_user="neo4j",
         neo4j_password="your_neo4j_password",
-        chromadb_url="http://localhost:8000"
+        chromadb_url="http://localhost:8000",
     )
 
     # 詢問用戶

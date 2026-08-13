@@ -7,13 +7,13 @@ const { logger } = require('./logger');
 
 class ObjectPool {
     constructor(factory, reset, initialSize = 10, maxSize = 100) {
-        this.factory = factory;        // 物件建立函數
-        this.reset = reset;            // 物件重置函數
-        this.pool = [];               // 物件池
-        this.maxSize = maxSize;       // 最大池大小
-        this.created = 0;             // 已創建物件數
-        this.acquired = 0;            // 已取得物件數
-        this.released = 0;            // 已釋放物件數
+        this.factory = factory; // 物件建立函數
+        this.reset = reset; // 物件重置函數
+        this.pool = []; // 物件池
+        this.maxSize = maxSize; // 最大池大小
+        this.created = 0; // 已創建物件數
+        this.acquired = 0; // 已取得物件數
+        this.released = 0; // 已釋放物件數
 
         // 預創建物件
         for (let i = 0; i < initialSize; i++) {
@@ -85,8 +85,10 @@ class ObjectPool {
             created: this.created,
             acquired: this.acquired,
             released: this.released,
-            utilization: this.acquired > 0 ?
-                ((this.acquired - this.pool.length) / this.acquired * 100).toFixed(2) + '%' : '0%'
+            utilization:
+                this.acquired > 0
+                    ? (((this.acquired - this.pool.length) / this.acquired) * 100).toFixed(2) + '%'
+                    : '0%'
         };
     }
 }
@@ -122,7 +124,8 @@ class ObjectPoolManager {
      */
     initializeCommonPools() {
         // HTTP 響應物件池
-        this.createPool('httpResponse',
+        this.createPool(
+            'httpResponse',
             () => ({
                 success: true,
                 data: null,
@@ -137,11 +140,13 @@ class ObjectPoolManager {
                 obj.error = null;
                 obj.pagination = null;
             },
-            20, 100
+            20,
+            100
         );
 
         // 查詢結果物件池
-        this.createPool('queryResult',
+        this.createPool(
+            'queryResult',
             () => ({
                 rows: [],
                 count: 0,
@@ -154,11 +159,13 @@ class ObjectPoolManager {
                 obj.metadata = {};
                 obj.executionTime = 0;
             },
-            15, 50
+            15,
+            50
         );
 
         // 日誌物件池
-        this.createPool('logEntry',
+        this.createPool(
+            'logEntry',
             () => ({
                 level: '',
                 message: '',
@@ -173,11 +180,13 @@ class ObjectPoolManager {
                 obj.metadata = {};
                 obj.stack = null;
             },
-            30, 150
+            30,
+            150
         );
 
         // 快取項目物件池
-        this.createPool('cacheEntry',
+        this.createPool(
+            'cacheEntry',
             () => ({
                 key: '',
                 value: null,
@@ -192,7 +201,8 @@ class ObjectPoolManager {
                 obj.hits = 0;
                 obj.created = 0;
             },
-            25, 200
+            25,
+            200
         );
 
         logger.info('✅ 常用物件池初始化完成');
@@ -214,7 +224,9 @@ class ObjectPoolManager {
         );
 
         this.bufferPools.set(name, pool);
-        logger.info(`💾 創建緩衝區池 '${name}' (大小: ${bufferSize}bytes, 數量: ${initialCount}-${maxCount})`);
+        logger.info(
+            `💾 創建緩衝區池 '${name}' (大小: ${bufferSize}bytes, 數量: ${initialCount}-${maxCount})`
+        );
         return pool;
     }
 
@@ -348,8 +360,7 @@ class ObjectPoolManager {
             estimatedMemory += pool.pool.length * 1024; // 假設每個物件平均1KB
         }
         for (const [name, pool] of this.bufferPools) {
-            const bufferSize = name === 'small' ? 1024 :
-                             name === 'medium' ? 16384 : 65536;
+            const bufferSize = name === 'small' ? 1024 : name === 'medium' ? 16384 : 65536;
             estimatedMemory += pool.pool.length * bufferSize;
         }
 
@@ -363,8 +374,10 @@ class ObjectPoolManager {
             objectPools: poolStats,
             bufferPools: bufferStats,
             efficiency: {
-                reuseRate: this.stats.totalAcquisitions > 0 ?
-                    `${((this.stats.totalReleases / this.stats.totalAcquisitions) * 100).toFixed(2)}%` : '0%',
+                reuseRate:
+                    this.stats.totalAcquisitions > 0
+                        ? `${((this.stats.totalReleases / this.stats.totalAcquisitions) * 100).toFixed(2)}%`
+                        : '0%',
                 avgPoolUtilization: this.calculateAvgUtilization()
             }
         };

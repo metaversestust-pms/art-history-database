@@ -6,9 +6,7 @@
   2. 標題+創作者 完全相同（不同 ID 但實質是同一筆資料的近似重複）
 """
 
-import glob
 import json
-import os
 from collections import Counter
 from pathlib import Path
 
@@ -97,13 +95,17 @@ def main():
         print(f"\n📂 {source} ({f.name})")
         print(f"   總筆數: {n}")
         print(f"   ID 重複: {sum(v - 1 for v in dup_ids.values())} 筆多餘（{len(dup_ids)} 組重複)")
-        print(f"   標題+創作者 重複: {sum(v - 1 for v in dup_titles.values())} 筆多餘（{len(dup_titles)} 組重複)")
+        print(
+            f"   標題+創作者 重複: {sum(v - 1 for v in dup_titles.values())} 筆多餘（{len(dup_titles)} 組重複)"
+        )
         if dup_ids:
             sample = list(dup_ids.items())[:3]
             print(f"   範例重複ID: {sample}")
 
     print("\n" + "=" * 60)
-    print(f"📊 總計: {total_items} 筆資料，ID重複 {total_dup_ids} 筆，標題重複 {total_dup_titles} 筆")
+    print(
+        f"📊 總計: {total_items} 筆資料，ID重複 {total_dup_ids} 筆，標題重複 {total_dup_titles} 筆"
+    )
     print("=" * 60)
 
 

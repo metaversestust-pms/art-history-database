@@ -9,10 +9,26 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const SEARCH_QUERIES = [
-    'Renaissance', 'Baroque', 'Victorian', 'Art Nouveau', 'Art Deco',
-    'ceramics', 'textiles', 'furniture', 'jewellery', 'fashion',
-    'sculpture', 'painting', 'photography', 'prints', 'metalwork',
-    'Islamic art', 'Asian art', 'medieval', 'glass', 'silver'
+    'Renaissance',
+    'Baroque',
+    'Victorian',
+    'Art Nouveau',
+    'Art Deco',
+    'ceramics',
+    'textiles',
+    'furniture',
+    'jewellery',
+    'fashion',
+    'sculpture',
+    'painting',
+    'photography',
+    'prints',
+    'metalwork',
+    'Islamic art',
+    'Asian art',
+    'medieval',
+    'glass',
+    'silver'
 ];
 
 class VAMuseumCrawler {
@@ -79,10 +95,12 @@ class VAMuseumCrawler {
             department: item._objectType || item.objectType || null,
             culture: item._primaryPlace || null,
             description: item.briefDescription || null,
-            imageUrl: item._images?.["_iiif_image_base_url"]
-                ? `${item._images["_iiif_image_base_url"]}/full/843,/0/default.jpg`
+            imageUrl: item._images?.['_iiif_image_base_url']
+                ? `${item._images['_iiif_image_base_url']}/full/843,/0/default.jpg`
                 : null,
-            objectURL: item.systemNumber ? `https://collections.vam.ac.uk/item/${item.systemNumber}` : null,
+            objectURL: item.systemNumber
+                ? `https://collections.vam.ac.uk/item/${item.systemNumber}`
+                : null,
             source: 'Victoria and Albert Museum',
             crawledAt: new Date().toISOString()
         };
@@ -99,7 +117,7 @@ class VAMuseumCrawler {
             for (const item of items) {
                 this.collectedData.push(this.normalizeItem(item));
             }
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise((resolve) => setTimeout(resolve, 800));
         }
 
         console.log(`\n🎉 收集完成！總共收集了 ${this.collectedData.length} 件藝術品`);
@@ -116,10 +134,12 @@ class VAMuseumCrawler {
         const filePath = path.join(this.outputDir, filename);
 
         await fs.writeFile(filePath, JSON.stringify(this.collectedData, null, 2), 'utf8');
-        const avgScore = this.collectedData.reduce((sum, a) => sum + a.qualityScore, 0) / this.collectedData.length;
+        const avgScore =
+            this.collectedData.reduce((sum, a) => sum + a.qualityScore, 0) /
+            this.collectedData.length;
         console.log(`💾 資料已保存到: ${filePath}`);
         console.log(`📊 總作品數: ${this.collectedData.length}`);
-        console.log(`📊 有圖片的作品: ${this.collectedData.filter(a => a.imageUrl).length}`);
+        console.log(`📊 有圖片的作品: ${this.collectedData.filter((a) => a.imageUrl).length}`);
         console.log(`⭐ 平均品質分數: ${avgScore.toFixed(2)}/100`);
 
         return filePath;

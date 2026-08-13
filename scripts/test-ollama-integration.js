@@ -40,7 +40,6 @@ class OllamaIntegrationTester {
 
             // 輸出測試報告
             this.generateTestReport();
-
         } catch (error) {
             console.error('❌ 測試套件執行失敗:', error);
             process.exit(1);
@@ -84,12 +83,16 @@ class OllamaIntegrationTester {
                 temperature: 0.7
             });
             testResult.textGeneration = textResult && textResult.text && textResult.text.length > 0;
-            console.log(`  ✅ 文本生成成功 (${textResult.tokens} tokens, ${Math.round(textResult.duration / 1000000)}ms)`);
+            console.log(
+                `  ✅ 文本生成成功 (${textResult.tokens} tokens, ${Math.round(textResult.duration / 1000000)}ms)`
+            );
 
             // 3. 嵌入向量測試
             console.log('  🔢 測試嵌入向量生成...');
-            const embeddingResult = await ollamaService.generateEmbedding('藝術史是研究藝術發展的學科');
-            testResult.embedding = embeddingResult && embeddingResult.embedding && embeddingResult.dimensions > 0;
+            const embeddingResult =
+                await ollamaService.generateEmbedding('藝術史是研究藝術發展的學科');
+            testResult.embedding =
+                embeddingResult && embeddingResult.embedding && embeddingResult.dimensions > 0;
             console.log(`  ✅ 嵌入向量生成成功 (維度: ${embeddingResult.dimensions})`);
 
             // 4. 藝術史摘要測試
@@ -103,7 +106,8 @@ class OllamaIntegrationTester {
             };
 
             const summaryResult = await ollamaService.generateArtSummary(testArtwork, 'artwork');
-            testResult.artSummary = summaryResult && summaryResult.summary && summaryResult.summary.length > 0;
+            testResult.artSummary =
+                summaryResult && summaryResult.summary && summaryResult.summary.length > 0;
             console.log('  ✅ 藝術史摘要生成成功');
 
             // 5. 翻譯測試
@@ -113,7 +117,10 @@ class OllamaIntegrationTester {
                 'en',
                 'zh-TW'
             );
-            testResult.translation = translationResult && translationResult.translation && translationResult.translation.length > 0;
+            testResult.translation =
+                translationResult &&
+                translationResult.translation &&
+                translationResult.translation.length > 0;
             console.log('  ✅ 翻譯功能測試成功');
 
             // 6. 分類測試
@@ -121,7 +128,6 @@ class OllamaIntegrationTester {
             const classificationResult = await ollamaService.classifyArtwork(testArtwork);
             testResult.classification = classificationResult && classificationResult.classification;
             console.log('  ✅ 分類功能測試成功');
-
         } catch (error) {
             console.error(`  ❌ 服務測試失敗: ${error.message}`);
             testResult.errors.push(error.message);
@@ -194,13 +200,13 @@ class OllamaIntegrationTester {
                 translations.push(translation);
             }
 
-            testResult.multiLanguage = translations.length === processingOptions.targetLanguages.length;
+            testResult.multiLanguage =
+                translations.length === processingOptions.targetLanguages.length;
             console.log('  ✅ 多語言處理測試成功');
 
             // 獲取統計
             const stats = agent.getStats();
             console.log(`  📊 代理統計: 處理率 ${stats.errorRate}`);
-
         } catch (error) {
             console.error(`  ❌ 摘要翻譯代理測試失敗: ${error.message}`);
             testResult.errors.push(error.message);
@@ -209,7 +215,9 @@ class OllamaIntegrationTester {
         testResult.duration = Date.now() - startTime;
         this.results.summarizationTest = testResult;
 
-        console.log(`📝 摘要翻譯代理測試完成 (耗時: ${Math.round(testResult.duration / 1000)}秒)\n`);
+        console.log(
+            `📝 摘要翻譯代理測試完成 (耗時: ${Math.round(testResult.duration / 1000)}秒)\n`
+        );
     }
 
     /**
@@ -266,11 +274,11 @@ class OllamaIntegrationTester {
                     successfulClassifications++;
 
                     // 檢查多維度分類
-                    const hasMultipleDimensions = Object.keys(classification.classification).length > 2;
+                    const hasMultipleDimensions =
+                        Object.keys(classification.classification).length > 2;
                     if (hasMultipleDimensions) {
                         testResult.multiDimensional = true;
                     }
-
                 } catch (error) {
                     console.warn(`    ⚠️ 分類失敗，測試規則式降級...`);
 
@@ -291,7 +299,6 @@ class OllamaIntegrationTester {
             // 獲取統計
             const stats = agent.getStats();
             console.log(`  📊 分類統計: 錯誤率 ${stats.errorRate}`);
-
         } catch (error) {
             console.error(`  ❌ 分類代理測試失敗: ${error.message}`);
             testResult.errors.push(error.message);
@@ -323,7 +330,8 @@ class OllamaIntegrationTester {
             // 1. 文本生成速度測試
             console.log('  📊 測試文本生成速度...');
             const textGenStart = Date.now();
-            const longPrompt = '請詳細介紹文藝復興時期的藝術特徵，包括代表藝術家、主要作品和歷史背景。';
+            const longPrompt =
+                '請詳細介紹文藝復興時期的藝術特徵，包括代表藝術家、主要作品和歷史背景。';
 
             const textGenResult = await ollamaService.generateText(longPrompt, {
                 maxTokens: 500
@@ -332,11 +340,15 @@ class OllamaIntegrationTester {
             const textGenDuration = Date.now() - textGenStart;
             testResult.textGenerationSpeed = {
                 duration: textGenDuration,
-                tokensPerSecond: textGenResult.tokens ? (textGenResult.tokens / (textGenDuration / 1000)).toFixed(2) : 'N/A',
+                tokensPerSecond: textGenResult.tokens
+                    ? (textGenResult.tokens / (textGenDuration / 1000)).toFixed(2)
+                    : 'N/A',
                 totalTokens: textGenResult.tokens || 0
             };
 
-            console.log(`  ✅ 文本生成速度: ${testResult.textGenerationSpeed.tokensPerSecond} tokens/秒`);
+            console.log(
+                `  ✅ 文本生成速度: ${testResult.textGenerationSpeed.tokensPerSecond} tokens/秒`
+            );
 
             // 2. 嵌入向量生成速度測試
             console.log('  🔢 測試嵌入向量生成速度...');
@@ -357,10 +369,14 @@ class OllamaIntegrationTester {
                 duration: embeddingDuration,
                 textsPerSecond: (testTexts.length / (embeddingDuration / 1000)).toFixed(2),
                 totalTexts: testTexts.length,
-                avgDimensions: embeddingResults.reduce((sum, r) => sum + (r.dimensions || 0), 0) / embeddingResults.length
+                avgDimensions:
+                    embeddingResults.reduce((sum, r) => sum + (r.dimensions || 0), 0) /
+                    embeddingResults.length
             };
 
-            console.log(`  ✅ 嵌入向量生成速度: ${testResult.embeddingSpeed.textsPerSecond} 文本/秒`);
+            console.log(
+                `  ✅ 嵌入向量生成速度: ${testResult.embeddingSpeed.textsPerSecond} 文本/秒`
+            );
 
             // 3. 記憶體使用測試
             const memoryUsage = process.memoryUsage();
@@ -370,7 +386,9 @@ class OllamaIntegrationTester {
                 external: Math.round(memoryUsage.external / 1024 / 1024) + 'MB'
             };
 
-            console.log(`  💾 記憶體使用: ${testResult.memoryUsage.heapUsed} (總共 ${testResult.memoryUsage.heapTotal})`);
+            console.log(
+                `  💾 記憶體使用: ${testResult.memoryUsage.heapUsed} (總共 ${testResult.memoryUsage.heapTotal})`
+            );
 
             // 4. 併發請求測試
             console.log('  🔀 測試併發請求處理...');
@@ -381,13 +399,16 @@ class OllamaIntegrationTester {
             );
 
             const concurrentResults = await Promise.allSettled(concurrentPromises);
-            const successfulConcurrent = concurrentResults.filter(r => r.status === 'fulfilled').length;
+            const successfulConcurrent = concurrentResults.filter(
+                (r) => r.status === 'fulfilled'
+            ).length;
 
             testResult.concurrentRequests = successfulConcurrent === concurrentPromises.length;
             const concurrentDuration = Date.now() - concurrentStart;
 
-            console.log(`  ✅ 併發處理: ${successfulConcurrent}/${concurrentPromises.length} 成功 (${concurrentDuration}ms)`);
-
+            console.log(
+                `  ✅ 併發處理: ${successfulConcurrent}/${concurrentPromises.length} 成功 (${concurrentDuration}ms)`
+            );
         } catch (error) {
             console.error(`  ❌ 效能測試失敗: ${error.message}`);
             testResult.errors.push(error.message);
@@ -404,7 +425,7 @@ class OllamaIntegrationTester {
      */
     generateTestReport() {
         console.log('📋 Ollama 整合測試報告');
-        console.log('=' .repeat(50));
+        console.log('='.repeat(50));
 
         // 整體狀態
         const overallSuccess = this.calculateOverallSuccess();
@@ -462,10 +483,14 @@ class OllamaIntegrationTester {
             const performance = this.results.performanceTest;
 
             if (performance.textGenerationSpeed) {
-                console.log(`   文本生成速度: ${performance.textGenerationSpeed.tokensPerSecond} tokens/秒`);
+                console.log(
+                    `   文本生成速度: ${performance.textGenerationSpeed.tokensPerSecond} tokens/秒`
+                );
             }
             if (performance.embeddingSpeed) {
-                console.log(`   嵌入生成速度: ${performance.embeddingSpeed.textsPerSecond} 文本/秒`);
+                console.log(
+                    `   嵌入生成速度: ${performance.embeddingSpeed.textsPerSecond} 文本/秒`
+                );
             }
             if (performance.memoryUsage) {
                 console.log(`   記憶體使用: ${performance.memoryUsage.heapUsed}`);
@@ -536,7 +561,7 @@ class OllamaIntegrationTester {
             recommendations.push('✅ 建議將環境變數 USE_OLLAMA 設為 true 啟用本地模型');
         }
 
-        recommendations.forEach(rec => console.log(rec));
+        recommendations.forEach((rec) => console.log(rec));
     }
 }
 

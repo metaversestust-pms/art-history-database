@@ -98,7 +98,7 @@ const createValidationMiddleware = (dataType, isUpdate = false, options = {}) =>
                         return res.status(400).json({
                             success: false,
                             message: '資料驗證失敗',
-                            errors: validationResult.error.details.map(detail => ({
+                            errors: validationResult.error.details.map((detail) => ({
                                 field: detail.path.join('.'),
                                 message: detail.message,
                                 value: detail.context?.value
@@ -108,7 +108,6 @@ const createValidationMiddleware = (dataType, isUpdate = false, options = {}) =>
                     }
 
                     processedData = validationResult.value;
-
                 } catch (validationError) {
                     logger.error('資料驗證過程出錯', {
                         dataType,
@@ -143,8 +142,8 @@ const createValidationMiddleware = (dataType, isUpdate = false, options = {}) =>
 
                     // 如果有嚴重的一致性問題，阻止請求
                     if (!consistencyCheck.isConsistent && consistencyCheck.issues.length > 0) {
-                        const criticalIssues = consistencyCheck.issues.filter(issue =>
-                            issue.includes('早於') || issue.includes('無效')
+                        const criticalIssues = consistencyCheck.issues.filter(
+                            (issue) => issue.includes('早於') || issue.includes('無效')
                         );
 
                         if (criticalIssues.length > 0) {
@@ -162,7 +161,6 @@ const createValidationMiddleware = (dataType, isUpdate = false, options = {}) =>
                         completeness: completenessCheck,
                         consistency: consistencyCheck
                     };
-
                 } catch (qualityCheckError) {
                     logger.error('資料品質檢查失敗', {
                         dataType,
@@ -197,7 +195,6 @@ const createValidationMiddleware = (dataType, isUpdate = false, options = {}) =>
             };
 
             next();
-
         } catch (error) {
             logger.error('驗證中間件執行失敗', {
                 dataType,
@@ -222,11 +219,7 @@ const createValidationMiddleware = (dataType, isUpdate = false, options = {}) =>
  * @returns {Function} - Express中間件函數
  */
 const createBulkValidationMiddleware = (dataType, options = {}) => {
-    const {
-        maxBatchSize = 100,
-        enableCleaning = true,
-        enableQualityCheck = true
-    } = options;
+    const { maxBatchSize = 100, enableCleaning = true, enableQualityCheck = true } = options;
 
     return async (req, res, next) => {
         try {
@@ -273,7 +266,6 @@ const createBulkValidationMiddleware = (dataType, options = {}) => {
             });
 
             next();
-
         } catch (error) {
             logger.error('批量驗證中間件執行失敗', {
                 dataType,
@@ -303,11 +295,9 @@ const artistValidationMiddleware = (isUpdate = false) =>
         requiredFields: ['name']
     });
 
-const bulkArtworkValidationMiddleware = () =>
-    createBulkValidationMiddleware('artwork');
+const bulkArtworkValidationMiddleware = () => createBulkValidationMiddleware('artwork');
 
-const bulkArtistValidationMiddleware = () =>
-    createBulkValidationMiddleware('artist');
+const bulkArtistValidationMiddleware = () => createBulkValidationMiddleware('artist');
 
 module.exports = {
     createValidationMiddleware,

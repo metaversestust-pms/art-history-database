@@ -6,8 +6,8 @@ description: LLM 規劃檢索策略、多輪自我評估、動態調整檢索方
 """
 
 import requests
-from pydantic import BaseModel, Field
 from opencc import OpenCC
+from pydantic import BaseModel, Field
 
 _opencc = OpenCC("s2twp")
 
@@ -23,7 +23,9 @@ class Pipe:
             description="格式為 '{ollama模型}@agentic_graph_rag'",
         )
         MAX_RESULTS: int = Field(default=5, description="檢索文件數上限")
-        TIMEOUT: int = Field(default=180, description="請求逾時秒數（Agent 多輪推理較慢，預設拉長）")
+        TIMEOUT: int = Field(
+            default=180, description="請求逾時秒數（Agent 多輪推理較慢，預設拉長）"
+        )
         SHOW_SOURCES: bool = Field(default=True, description="是否在回答後附上參考來源")
         SHOW_REASONING: bool = Field(default=True, description="是否顯示 Agent 的推理路徑")
 
@@ -45,7 +47,8 @@ class Pipe:
 
         if isinstance(user_message, list):
             user_message = " ".join(
-                part.get("text", "") for part in user_message
+                part.get("text", "")
+                for part in user_message
                 if isinstance(part, dict) and part.get("type") == "text"
             )
 

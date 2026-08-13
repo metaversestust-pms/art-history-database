@@ -6,10 +6,10 @@
 const axios = require('axios');
 
 const testQueries = [
-    { query: "達文西的作品", name: "達文西作品" },
-    { query: "蒙娜麗莎", name: "蒙娜麗莎" },
-    { query: "文藝復興時期的繪畫", name: "文藝復興繪畫" },
-    { query: "巴洛克風格", name: "巴洛克風格" }
+    { query: '達文西的作品', name: '達文西作品' },
+    { query: '蒙娜麗莎', name: '蒙娜麗莎' },
+    { query: '文藝復興時期的繪畫', name: '文藝復興繪畫' },
+    { query: '巴洛克風格', name: '巴洛克風格' }
 ];
 
 const strategies = ['graph_only', 'vector_only', 'hybrid_balanced'];
@@ -32,7 +32,6 @@ async function testStrategy(query, strategy) {
             firstResult: data.sources[0] ? data.sources[0].title : 'N/A',
             sources: data.sources
         };
-
     } catch (error) {
         return {
             strategy: strategy,
@@ -45,7 +44,7 @@ async function runTests() {
     console.log('🎨 RAG 策略綜合測試');
     console.log('═══════════════════════════════════════\n');
 
-    for (const {query, name} of testQueries) {
+    for (const { query, name } of testQueries) {
         console.log(`\n📝 測試查詢: "${name}"`);
         console.log('─────────────────────────────────────');
 
@@ -59,22 +58,26 @@ async function runTests() {
                 console.log(`  結果數: ${result.sourceCount}`);
                 console.log(`  處理時間: ${result.processingTime.toFixed(3)}秒`);
                 console.log(`  信心分數: ${result.confidence.toFixed(2)}`);
-                console.log(`  第一項: ${result.firstResult.substring(0, 60)}${result.firstResult.length > 60 ? '...' : ''}`);
+                console.log(
+                    `  第一項: ${result.firstResult.substring(0, 60)}${result.firstResult.length > 60 ? '...' : ''}`
+                );
 
                 // 顯示來源統計（僅 hybrid）
                 if (strategy === 'hybrid_balanced' && result.sources) {
-                    const graphCount = result.sources.filter(s => s.source === 'graph').length;
-                    const vectorCount = result.sources.filter(s => s.source === 'vector').length;
-                    const hybridCount = result.sources.filter(s => s.source === 'hybrid').length;
+                    const graphCount = result.sources.filter((s) => s.source === 'graph').length;
+                    const vectorCount = result.sources.filter((s) => s.source === 'vector').length;
+                    const hybridCount = result.sources.filter((s) => s.source === 'hybrid').length;
 
                     if (graphCount + vectorCount + hybridCount > 0) {
-                        console.log(`  來源分布: 圖譜=${graphCount}, 向量=${vectorCount}, 混合=${hybridCount}`);
+                        console.log(
+                            `  來源分布: 圖譜=${graphCount}, 向量=${vectorCount}, 混合=${hybridCount}`
+                        );
                     }
                 }
             }
 
             // 避免過快請求
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
 
         console.log('');

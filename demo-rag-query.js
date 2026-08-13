@@ -12,10 +12,7 @@ const NEO4J_PASSWORD = 'arthistory123';
 
 class ArtHistoryRAG {
     constructor() {
-        this.driver = neo4j.driver(
-            NEO4J_URI,
-            neo4j.auth.basic(NEO4J_USER, NEO4J_PASSWORD)
-        );
+        this.driver = neo4j.driver(NEO4J_URI, neo4j.auth.basic(NEO4J_USER, NEO4J_PASSWORD));
     }
 
     async queryByArtist(artistName) {
@@ -24,7 +21,8 @@ class ArtHistoryRAG {
             console.log(`\n🔍 查詢藝術家: ${artistName}`);
             console.log('━'.repeat(60));
 
-            const result = await session.run(`
+            const result = await session.run(
+                `
                 MATCH (artist:Artist)-[:CREATED]->(artwork:Artwork)
                 WHERE artist.name CONTAINS $artistName
                   AND artwork.period IN ['Renaissance', 'Baroque']
@@ -39,14 +37,16 @@ class ArtHistoryRAG {
                        artwork.primary_image as image,
                        artwork.object_url as url
                 ORDER BY artwork.date
-            `, { artistName });
+            `,
+                { artistName }
+            );
 
             if (result.records.length === 0) {
                 console.log(`❌ 找不到藝術家 "${artistName}" 的作品`);
                 return [];
             }
 
-            const artworks = result.records.map(record => ({
+            const artworks = result.records.map((record) => ({
                 artist: record.get('artist_name'),
                 nationality: record.get('nationality'),
                 birth: record.get('birth_year'),
@@ -81,7 +81,6 @@ class ArtHistoryRAG {
             });
 
             return artworks;
-
         } finally {
             await session.close();
         }
@@ -93,7 +92,8 @@ class ArtHistoryRAG {
             console.log(`\n🔍 查詢時期: ${period}`);
             console.log('━'.repeat(60));
 
-            const result = await session.run(`
+            const result = await session.run(
+                `
                 MATCH (artist:Artist)-[:CREATED]->(artwork:Artwork)
                 WHERE artwork.period = $period
                   AND artwork.primary_image <> ''
@@ -105,7 +105,9 @@ class ArtHistoryRAG {
                        artwork.is_highlight as is_highlight
                 ORDER BY artwork.is_highlight DESC, artwork.accession_year DESC
                 LIMIT $limit
-            `, { period, limit: neo4j.int(limit) });
+            `,
+                { period, limit: neo4j.int(limit) }
+            );
 
             if (result.records.length === 0) {
                 console.log(`❌ 找不到 ${period} 時期的作品`);
@@ -135,7 +137,6 @@ class ArtHistoryRAG {
             });
 
             return artworks;
-
         } finally {
             await session.close();
         }
@@ -147,7 +148,8 @@ class ArtHistoryRAG {
             console.log(`\n🔍 比較藝術家: ${artist1} vs ${artist2}`);
             console.log('━'.repeat(60));
 
-            const result = await session.run(`
+            const result = await session.run(
+                `
                 MATCH (a1:Artist)-[:CREATED]->(art1:Artwork)
                 WHERE a1.name CONTAINS $artist1
                   AND art1.period IN ['Renaissance', 'Baroque']
@@ -166,14 +168,16 @@ class ArtHistoryRAG {
                        count2,
                        a1.nationality as nat1,
                        a2.nationality as nat2
-            `, { artist1, artist2 });
+            `,
+                { artist1, artist2 }
+            );
 
             if (result.records.length === 0) {
                 console.log(`❌ 找不到可比較的資料`);
                 return;
             }
 
-            result.records.forEach(record => {
+            result.records.forEach((record) => {
                 const period = record.get('period');
                 const a1_name = record.get('artist1_name');
                 const a2_name = record.get('artist2_name');
@@ -188,7 +192,6 @@ class ArtHistoryRAG {
                 console.log(`  ${a2_name} (${nat2 || '未知'}):`);
                 console.log(`    作品數: ${count2}`);
             });
-
         } finally {
             await session.close();
         }
@@ -200,7 +203,8 @@ class ArtHistoryRAG {
             console.log(`\n🔍 關鍵字搜尋: "${keyword}"`);
             console.log('━'.repeat(60));
 
-            const result = await session.run(`
+            const result = await session.run(
+                `
                 MATCH (artist:Artist)-[:CREATED]->(artwork:Artwork)
                 WHERE (toLower(artwork.title) CONTAINS toLower($keyword)
                    OR toLower(artwork.medium) CONTAINS toLower($keyword)
@@ -212,7 +216,9 @@ class ArtHistoryRAG {
                        artwork.date as date,
                        artwork.medium as medium
                 LIMIT 15
-            `, { keyword });
+            `,
+                { keyword }
+            );
 
             if (result.records.length === 0) {
                 console.log(`❌ 找不到包含 "${keyword}" 的作品`);
@@ -240,7 +246,6 @@ class ArtHistoryRAG {
             });
 
             return artworks;
-
         } finally {
             await session.close();
         }
@@ -279,7 +284,6 @@ async function main() {
         console.log('   - 支援作品比較');
         console.log('   - 支援關鍵字搜尋');
         console.log('   - 支援圖關係查詢\n');
-
     } finally {
         await rag.close();
     }

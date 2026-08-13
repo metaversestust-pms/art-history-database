@@ -59,9 +59,7 @@ describe('Artwork Controller', () => {
 
     describe('GET /api/v1/artworks', () => {
         test('應該返回藝術作品列表', async () => {
-            const response = await request(app)
-                .get('/api/v1/artworks')
-                .expect(200);
+            const response = await request(app).get('/api/v1/artworks').expect(200);
 
             expect(response.body).toHaveProperty('success', true);
             expect(response.body).toHaveProperty('data');
@@ -69,9 +67,7 @@ describe('Artwork Controller', () => {
         });
 
         test('應該支持分頁參數', async () => {
-            const response = await request(app)
-                .get('/api/v1/artworks?page=1&limit=5')
-                .expect(200);
+            const response = await request(app).get('/api/v1/artworks?page=1&limit=5').expect(200);
 
             expect(response.body.success).toBe(true);
             expect(response.body).toHaveProperty('meta');
@@ -93,9 +89,7 @@ describe('Artwork Controller', () => {
 
         test('當作品不存在時應該返回404', async () => {
             const fakeId = '00000000-0000-0000-0000-000000000000';
-            const response = await request(app)
-                .get(`/api/v1/artworks/${fakeId}`)
-                .expect(404);
+            const response = await request(app).get(`/api/v1/artworks/${fakeId}`).expect(404);
 
             expect(response.body.success).toBe(false);
             expect(response.body.error.message).toContain('not found');
@@ -198,9 +192,7 @@ describe('Artwork Controller', () => {
 
     describe('GET /api/v1/artworks/search', () => {
         test('應該能夠搜索藝術作品', async () => {
-            const response = await request(app)
-                .get('/api/v1/artworks/search?q=test')
-                .expect(200);
+            const response = await request(app).get('/api/v1/artworks/search?q=test').expect(200);
 
             expect(response.body.success).toBe(true);
             expect(response.body.data).toHaveProperty('query', 'test');
@@ -208,9 +200,7 @@ describe('Artwork Controller', () => {
         });
 
         test('當搜索查詢為空時應該返回400', async () => {
-            const response = await request(app)
-                .get('/api/v1/artworks/search')
-                .expect(400);
+            const response = await request(app).get('/api/v1/artworks/search').expect(400);
 
             expect(response.body.success).toBe(false);
         });
@@ -262,9 +252,7 @@ describe('Artwork Controller', () => {
 
     describe('GET /api/v1/artworks/stats', () => {
         test('應該返回藝術作品統計信息', async () => {
-            const response = await request(app)
-                .get('/api/v1/artworks/stats')
-                .expect(200);
+            const response = await request(app).get('/api/v1/artworks/stats').expect(200);
 
             expect(response.body.success).toBe(true);
             expect(response.body.data).toHaveProperty('general');

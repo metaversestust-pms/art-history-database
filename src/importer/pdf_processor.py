@@ -4,25 +4,27 @@ PDF文件處理器
 支援從PDF提取藝術史資料
 """
 
-from pathlib import Path
-from typing import List, Dict, Any
 import logging
 import re
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 from .base_processor import BaseProcessor
 
 logger = logging.getLogger(__name__)
 
 try:
-    import PyPDF2
+    import PyPDF2  # noqa: F401  (可選相依探測，供 HAS_* 旗標使用)
+
     HAS_PYPDF2 = True
 except ImportError:
     HAS_PYPDF2 = False
     logger.warning("PyPDF2 未安裝，PDF處理功能受限")
 
 try:
-    import pdfplumber
+    import pdfplumber  # noqa: F401  (可選相依探測，供 HAS_* 旗標使用)
+
     HAS_PDFPLUMBER = True
 except ImportError:
     HAS_PDFPLUMBER = False
@@ -34,7 +36,7 @@ class PDFProcessor(BaseProcessor):
 
     def __init__(self):
         super().__init__()
-        self.supported_extensions = ['.pdf']
+        self.supported_extensions = [".pdf"]
 
     def can_process(self, file_path: Path) -> bool:
         """檢查是否可以處理PDF檔案"""
@@ -76,6 +78,7 @@ class PDFProcessor(BaseProcessor):
         """使用pdfplumber提取文本"""
         try:
             import pdfplumber
+
             text = ""
             with pdfplumber.open(file_path) as pdf:
                 for page in pdf.pages:
@@ -91,8 +94,9 @@ class PDFProcessor(BaseProcessor):
         """使用PyPDF2提取文本"""
         try:
             import PyPDF2
+
             text = ""
-            with open(file_path, 'rb') as file:
+            with open(file_path, "rb") as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 for page in pdf_reader.pages:
                     page_text = page.extract_text()
@@ -126,12 +130,12 @@ class PDFProcessor(BaseProcessor):
         """檢測是否為結構化格式 (如: 標題: 值)"""
         # 檢查是否有常見的欄位標籤
         field_patterns = [
-            r'標題[:：]',
-            r'Title[:：]',
-            r'藝術家[:：]',
-            r'Artist[:：]',
-            r'作品名稱[:：]',
-            r'Artwork[:：]'
+            r"標題[:：]",
+            r"Title[:：]",
+            r"藝術家[:：]",
+            r"Artist[:：]",
+            r"作品名稱[:：]",
+            r"Artwork[:：]",
         ]
 
         for pattern in field_patterns:
@@ -144,7 +148,7 @@ class PDFProcessor(BaseProcessor):
         artworks = []
 
         # 分割成多個作品 (以空行或分隔符區分)
-        sections = re.split(r'\n\s*\n|={3,}|-{3,}', text)
+        sections = re.split(r"\n\s*\n|={3,}|-{3,}", text)
 
         for section in sections:
             section = section.strip()
@@ -155,20 +159,20 @@ class PDFProcessor(BaseProcessor):
 
             if artwork and self.validate_data(artwork):
                 # 添加元資料
-                artwork['source'] = 'local_pdf_import'
-                artwork['metadata'] = {
-                    'imported_at': datetime.now().isoformat(),
-                    'original_format': 'pdf',
-                    'file_path': str(file_path),
-                    'file_name': file_path.name
+                artwork["source"] = "local_pdf_import"
+                artwork["metadata"] = {
+                    "imported_at": datetime.now().isoformat(),
+                    "original_format": "pdf",
+                    "file_path": str(file_path),
+                    "file_name": file_path.name,
                 }
 
                 # 偵測時期和關鍵詞
-                full_text = ' '.join(str(v) for v in artwork.values())
-                if not artwork.get('period'):
-                    artwork['period'] = self.detect_period(full_text, artwork.get('date', ''))
-                if not artwork.get('keywords'):
-                    artwork['keywords'] = self.extract_keywords(full_text)
+                full_text = " ".join(str(v) for v in artwork.values())
+                if not artwork.get("period"):
+                    artwork["period"] = self.detect_period(full_text, artwork.get("date", ""))
+                if not artwork.get("keywords"):
+                    artwork["keywords"] = self.extract_keywords(full_text)
 
                 artworks.append(self.standardize_data(artwork))
 
@@ -180,23 +184,23 @@ class PDFProcessor(BaseProcessor):
         # 嘗試從內容提取資訊
 
         artwork = {
-            'title': self._extract_title_from_text(text),
-            'artist': self._extract_artist_from_text(text),
-            'date': self._extract_date_from_text(text),
-            'description': text[:1000] if len(text) > 1000 else text,  # 取前1000字作為描述
-            'source': 'local_pdf_import',
-            'metadata': {
-                'imported_at': datetime.now().isoformat(),
-                'original_format': 'pdf',
-                'file_path': str(file_path),
-                'file_name': file_path.name,
-                'note': '從非結構化PDF提取'
-            }
+            "title": self._extract_title_from_text(text),
+            "artist": self._extract_artist_from_text(text),
+            "date": self._extract_date_from_text(text),
+            "description": text[:1000] if len(text) > 1000 else text,  # 取前1000字作為描述
+            "source": "local_pdf_import",
+            "metadata": {
+                "imported_at": datetime.now().isoformat(),
+                "original_format": "pdf",
+                "file_path": str(file_path),
+                "file_name": file_path.name,
+                "note": "從非結構化PDF提取",
+            },
         }
 
         # 偵測時期和關鍵詞
-        artwork['period'] = self.detect_period(text, artwork.get('date', ''))
-        artwork['keywords'] = self.extract_keywords(text)
+        artwork["period"] = self.detect_period(text, artwork.get("date", ""))
+        artwork["keywords"] = self.extract_keywords(text)
 
         if self.validate_data(artwork):
             return [self.standardize_data(artwork)]
@@ -208,70 +212,70 @@ class PDFProcessor(BaseProcessor):
 
         # 定義欄位模式
         field_patterns = {
-            'title': [
-                r'標題[:：]\s*(.+)',
-                r'Title[:：]\s*(.+)',
-                r'作品名稱[:：]\s*(.+)',
-                r'Artwork[:：]\s*(.+)',
-                r'Name[:：]\s*(.+)'
+            "title": [
+                r"標題[:：]\s*(.+)",
+                r"Title[:：]\s*(.+)",
+                r"作品名稱[:：]\s*(.+)",
+                r"Artwork[:：]\s*(.+)",
+                r"Name[:：]\s*(.+)",
             ],
-            'artist': [
-                r'藝術家[:：]\s*(.+)',
-                r'Artist[:：]\s*(.+)',
-                r'創作者[:：]\s*(.+)',
-                r'Creator[:：]\s*(.+)',
-                r'作者[:：]\s*(.+)',
-                r'Author[:：]\s*(.+)'
+            "artist": [
+                r"藝術家[:：]\s*(.+)",
+                r"Artist[:：]\s*(.+)",
+                r"創作者[:：]\s*(.+)",
+                r"Creator[:：]\s*(.+)",
+                r"作者[:：]\s*(.+)",
+                r"Author[:：]\s*(.+)",
             ],
-            'date': [
-                r'日期[:：]\s*(.+)',
-                r'Date[:：]\s*(.+)',
-                r'年代[:：]\s*(.+)',
-                r'Year[:：]\s*(.+)',
-                r'創作時間[:：]\s*(.+)',
-                r'時期[:：]\s*(.+)'
+            "date": [
+                r"日期[:：]\s*(.+)",
+                r"Date[:：]\s*(.+)",
+                r"年代[:：]\s*(.+)",
+                r"Year[:：]\s*(.+)",
+                r"創作時間[:：]\s*(.+)",
+                r"時期[:：]\s*(.+)",
             ],
-            'period': [
-                r'時期[:：]\s*(.+)',
-                r'Period[:：]\s*(.+)',
-                r'年代[:：]\s*(.+)',
-                r'Era[:：]\s*(.+)'
+            "period": [
+                r"時期[:：]\s*(.+)",
+                r"Period[:：]\s*(.+)",
+                r"年代[:：]\s*(.+)",
+                r"Era[:：]\s*(.+)",
             ],
-            'style': [
-                r'風格[:：]\s*(.+)',
-                r'Style[:：]\s*(.+)',
-                r'流派[:：]\s*(.+)',
-                r'School[:：]\s*(.+)'
+            "style": [
+                r"風格[:：]\s*(.+)",
+                r"Style[:：]\s*(.+)",
+                r"流派[:：]\s*(.+)",
+                r"School[:：]\s*(.+)",
             ],
-            'medium': [
-                r'媒材[:：]\s*(.+)',
-                r'Medium[:：]\s*(.+)',
-                r'材質[:：]\s*(.+)',
-                r'Material[:：]\s*(.+)',
-                r'技法[:：]\s*(.+)',
-                r'Technique[:：]\s*(.+)'
+            "medium": [
+                r"媒材[:：]\s*(.+)",
+                r"Medium[:：]\s*(.+)",
+                r"材質[:：]\s*(.+)",
+                r"Material[:：]\s*(.+)",
+                r"技法[:：]\s*(.+)",
+                r"Technique[:：]\s*(.+)",
             ],
-            'dimensions': [
-                r'尺寸[:：]\s*(.+)',
-                r'Dimensions[:：]\s*(.+)',
-                r'大小[:：]\s*(.+)',
-                r'Size[:：]\s*(.+)'
+            "dimensions": [
+                r"尺寸[:：]\s*(.+)",
+                r"Dimensions[:：]\s*(.+)",
+                r"大小[:：]\s*(.+)",
+                r"Size[:：]\s*(.+)",
             ],
-            'location': [
-                r'地點[:：]\s*(.+)',
-                r'Location[:：]\s*(.+)',
-                r'館藏[:：]\s*(.+)',
-                r'Museum[:：]\s*(.+)',
-                r'收藏[:：]\s*(.+)',
-                r'Collection[:：]\s*(.+)'
+            "location": [
+                r"地點[:：]\s*(.+)",
+                r"Location[:：]\s*(.+)",
+                r"館藏[:：]\s*(.+)",
+                r"Museum[:：]\s*(.+)",
+                r"收藏[:：]\s*(.+)",
+                r"Collection[:：]\s*(.+)",
             ],
-            'description': [
-                r'描述[:：]\s*(.+)',
-                r'Description[:：]\s*(.+)',
-                r'說明[:：]\s*(.+)',
-                r'內容[:：]\s*(.+)',
-                r'Content[:：]\s*(.+)'
-            ]
+            "description": [
+                r"描述[:：]\s*(.+)",
+                r"Description[:：]\s*(.+)",
+                r"說明[:：]\s*(.+)",
+                r"內容[:：]\s*(.+)",
+                r"Content[:：]\s*(.+)",
+            ],
         }
 
         # 提取各欄位
@@ -281,7 +285,7 @@ class PDFProcessor(BaseProcessor):
                 if match:
                     value = match.group(1).strip()
                     # 移除後續的標籤
-                    value = re.split(r'\n[A-Za-z\u4e00-\u9fff]+[:：]', value)[0].strip()
+                    value = re.split(r"\n[A-Za-z\u4e00-\u9fff]+[:：]", value)[0].strip()
                     if value:
                         artwork[field] = value
                         break
@@ -290,7 +294,7 @@ class PDFProcessor(BaseProcessor):
 
     def _extract_title_from_text(self, text: str) -> str:
         """從文本提取標題 (使用檔名或第一行)"""
-        lines = text.split('\n')
+        lines = text.split("\n")
         for line in lines:
             line = line.strip()
             if len(line) > 5 and len(line) < 200:
@@ -301,8 +305,8 @@ class PDFProcessor(BaseProcessor):
         """從文本提取藝術家名稱"""
         # 常見藝術家名稱模式
         artist_patterns = [
-            r'(?:by|作者|藝術家|artist)[:：]?\s*([A-Za-z\s\.]+)',
-            r'([A-Z][a-z]+\s+(?:van\s+|de\s+|da\s+)?[A-Z][a-z]+)',  # 西方人名
+            r"(?:by|作者|藝術家|artist)[:：]?\s*([A-Za-z\s\.]+)",
+            r"([A-Z][a-z]+\s+(?:van\s+|de\s+|da\s+)?[A-Z][a-z]+)",  # 西方人名
         ]
 
         for pattern in artist_patterns:
@@ -316,9 +320,9 @@ class PDFProcessor(BaseProcessor):
         """從文本提取日期"""
         # 日期模式
         date_patterns = [
-            r'(\d{4}[-–]\d{4})',  # 1503-1519
-            r'(\d{4})',            # 1503
-            r'((?:14|15|16|17|18|19|20)\d{2})',  # 世紀年份
+            r"(\d{4}[-–]\d{4})",  # 1503-1519
+            r"(\d{4})",  # 1503
+            r"((?:14|15|16|17|18|19|20)\d{2})",  # 世紀年份
         ]
 
         for pattern in date_patterns:

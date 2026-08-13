@@ -38,7 +38,6 @@ module.exports = async () => {
         await cleanupTestData();
 
         console.log('✅ 全局測試設置完成');
-
     } catch (error) {
         console.error('❌ 全局測試設置失敗:', error);
         process.exit(1);
@@ -82,7 +81,6 @@ async function cleanupTestData() {
 
         client.release();
         console.log('✅ 測試資料清理完成');
-
     } catch (error) {
         console.warn('⚠️ 測試資料清理失敗:', error.message);
     }

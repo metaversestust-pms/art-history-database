@@ -11,16 +11,20 @@ class MultiDatabaseTester {
         this.chromaBaseUrl = 'http://localhost:8001';
         this.neo4jUrl = 'http://localhost:7474';
         this.ollamaUrl = 'http://localhost:11434';
-        this.collectionId = 'aa7a55a2-924e-41b0-a0f7-9b5c031477a4';  // From integration log
+        this.collectionId = 'aa7a55a2-924e-41b0-a0f7-9b5c031477a4'; // From integration log
         this.embeddingModel = 'nomic-embed-text';
     }
 
     async generateEmbedding(text) {
         try {
-            const response = await axios.post(`${this.ollamaUrl}/api/embeddings`, {
-                model: this.embeddingModel,
-                prompt: text
-            }, { timeout: 30000 });
+            const response = await axios.post(
+                `${this.ollamaUrl}/api/embeddings`,
+                {
+                    model: this.embeddingModel,
+                    prompt: text
+                },
+                { timeout: 30000 }
+            );
 
             return response.data.embedding;
         } catch (error) {
@@ -63,7 +67,6 @@ class MultiDatabaseTester {
 
             console.log(`✅ 找到 ${results.length} 個結果`);
             return results;
-
         } catch (error) {
             console.error(`❌ ChromaDB查詢失敗: ${error.message}`);
             return [];
@@ -80,7 +83,6 @@ class MultiDatabaseTester {
 
             // 暫時返回空結果
             return [];
-
         } catch (error) {
             console.error(`❌ Neo4j查詢失敗: ${error.message}`);
             return [];
@@ -136,7 +138,9 @@ class MultiDatabaseTester {
             // 混合結果
             console.log(`\n📊 檢索統計:`);
             console.log(`- ChromaDB: ${chromaResults.length} 個結果`);
-            console.log(`- 平均相似度: ${(chromaResults.reduce((sum, r) => sum + parseFloat(r.score), 0) / chromaResults.length).toFixed(3)}`);
+            console.log(
+                `- 平均相似度: ${(chromaResults.reduce((sum, r) => sum + parseFloat(r.score), 0) / chromaResults.length).toFixed(3)}`
+            );
         }
 
         console.log(`\n\n${'═'.repeat(60)}`);

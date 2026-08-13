@@ -38,7 +38,6 @@ beforeAll(async () => {
         } catch (error) {
             console.warn('⚠️ Elasticsearch連接失敗，搜索功能測試將被跳過');
         }
-
     } catch (error) {
         console.error('❌ 測試環境設置失敗:', error);
         process.exit(1);
@@ -57,7 +56,6 @@ afterAll(async () => {
         // 關閉資料庫連接
         await dbManager.closeAll();
         console.log('✅ 資料庫連接已關閉');
-
     } catch (error) {
         console.error('❌ 測試環境清理失敗:', error);
     }
@@ -67,7 +65,14 @@ afterAll(async () => {
 afterEach(async () => {
     // 清理可能洩漏的測試資料
     try {
-        const { Artist, Artwork, Institution, Tag, DocumentVector, CrawlTask } = require('../../src/database/models');
+        const {
+            Artist,
+            Artwork,
+            Institution,
+            Tag,
+            DocumentVector,
+            CrawlTask
+        } = require('../../src/database/models');
 
         const models = [
             new CrawlTask(),
@@ -99,7 +104,7 @@ process.on('uncaughtException', (error) => {
 // 全局測試工具
 global.testUtils = {
     // 等待指定時間
-    wait: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+    wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 
     // 生成隨機測試ID
     generateTestId: () => `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -143,7 +148,8 @@ global.testUtils = {
 expect.extend({
     // 檢查UUID格式
     toBeValidUUID(received) {
-        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         const pass = uuidRegex.test(received);
 
         return {
@@ -158,31 +164,35 @@ expect.extend({
         const pass = date instanceof Date && !isNaN(date) && received === date.toISOString();
 
         return {
-            message: () => `expected ${received} ${pass ? 'not ' : ''}to be a valid ISO date string`,
+            message: () =>
+                `expected ${received} ${pass ? 'not ' : ''}to be a valid ISO date string`,
             pass: pass
         };
     },
 
     // 檢查數組包含指定屬性的對象
     toContainObjectWithProperty(received, property, value) {
-        const pass = Array.isArray(received) &&
-                    received.some(item => item && item[property] === value);
+        const pass =
+            Array.isArray(received) && received.some((item) => item && item[property] === value);
 
         return {
-            message: () => `expected array ${pass ? 'not ' : ''}to contain object with ${property}: ${value}`,
+            message: () =>
+                `expected array ${pass ? 'not ' : ''}to contain object with ${property}: ${value}`,
             pass: pass
         };
     },
 
     // 檢查對象是否包含測試元數據
     toBeTestData(received) {
-        const pass = received &&
-                    received.metadata &&
-                    typeof received.metadata === 'object' &&
-                    received.metadata.test === true;
+        const pass =
+            received &&
+            received.metadata &&
+            typeof received.metadata === 'object' &&
+            received.metadata.test === true;
 
         return {
-            message: () => `expected object ${pass ? 'not ' : ''}to be test data (metadata.test should be true)`,
+            message: () =>
+                `expected object ${pass ? 'not ' : ''}to be test data (metadata.test should be true)`,
             pass: pass
         };
     }

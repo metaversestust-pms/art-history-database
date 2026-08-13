@@ -34,18 +34,24 @@ class SummarizationTranslationAgent extends EventEmitter {
                 baseUrl: 'https://api.openai.com/v1',
                 apiKey: process.env.OPENAI_API_KEY,
                 model: 'gpt-3.5-turbo',
-                available: !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-test-placeholder-please-replace'
+                available:
+                    !!process.env.OPENAI_API_KEY &&
+                    process.env.OPENAI_API_KEY !== 'sk-test-placeholder-please-replace'
             },
             deepl: {
                 baseUrl: 'https://api-free.deepl.com/v2',
                 apiKey: process.env.DEEPL_API_KEY,
-                available: !!process.env.DEEPL_API_KEY && process.env.DEEPL_API_KEY !== 'test-placeholder-please-replace'
+                available:
+                    !!process.env.DEEPL_API_KEY &&
+                    process.env.DEEPL_API_KEY !== 'test-placeholder-please-replace'
             },
             anthropic: {
                 baseUrl: 'https://api.anthropic.com/v1',
                 apiKey: process.env.ANTHROPIC_API_KEY,
                 model: 'claude-3-sonnet-20240229',
-                available: !!process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'sk-ant-test-placeholder-please-replace'
+                available:
+                    !!process.env.ANTHROPIC_API_KEY &&
+                    process.env.ANTHROPIC_API_KEY !== 'sk-ant-test-placeholder-please-replace'
             }
         };
 
@@ -53,31 +59,31 @@ class SummarizationTranslationAgent extends EventEmitter {
         this.languageMappings = {
             'zh-TW': { name: '繁體中文', code: 'zh-TW', deepl: 'ZH-HANT' },
             'zh-CN': { name: '簡體中文', code: 'zh-CN', deepl: 'ZH-HANS' },
-            'en': { name: 'English', code: 'en', deepl: 'EN-US' },
-            'fr': { name: 'Français', code: 'fr', deepl: 'FR' },
-            'de': { name: 'Deutsch', code: 'de', deepl: 'DE' },
-            'es': { name: 'Español', code: 'es', deepl: 'ES' },
-            'ja': { name: '日本語', code: 'ja', deepl: 'JA' },
-            'ko': { name: '한국어', code: 'ko', deepl: 'KO' }
+            en: { name: 'English', code: 'en', deepl: 'EN-US' },
+            fr: { name: 'Français', code: 'fr', deepl: 'FR' },
+            de: { name: 'Deutsch', code: 'de', deepl: 'DE' },
+            es: { name: 'Español', code: 'es', deepl: 'ES' },
+            ja: { name: '日本語', code: 'ja', deepl: 'JA' },
+            ko: { name: '한국어', code: 'ko', deepl: 'KO' }
         };
 
         // 文化適應規則
         this.culturalAdaptations = {
             'zh-TW': {
                 artTerms: {
-                    'Renaissance': '文藝復興',
-                    'Baroque': '巴洛克',
-                    'Impressionism': '印象派',
+                    Renaissance: '文藝復興',
+                    Baroque: '巴洛克',
+                    Impressionism: '印象派',
                     'Modern Art': '現代藝術'
                 },
                 dateFormats: 'Chinese traditional',
                 measurements: 'metric'
             },
-            'ja': {
+            ja: {
                 artTerms: {
-                    'Renaissance': 'ルネサンス',
-                    'Baroque': 'バロック',
-                    'Impressionism': '印象派',
+                    Renaissance: 'ルネサンス',
+                    Baroque: 'バロック',
+                    Impressionism: '印象派',
                     'Modern Art': '現代美術'
                 },
                 dateFormats: 'Japanese era',
@@ -107,7 +113,10 @@ class SummarizationTranslationAgent extends EventEmitter {
         this.errors = [];
 
         // 輸入和輸出路徑
-        this.inputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'classified');
+        this.inputDir = path.join(
+            process.env.DATA_PROCESSED_DIR || './data/processed',
+            'classified'
+        );
         this.outputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'final');
 
         console.log(`🌍 ${this.name} 初始化完成`);
@@ -136,7 +145,6 @@ class SummarizationTranslationAgent extends EventEmitter {
             this.status = 'ready';
             console.log('✅ Summarization Translation Agent 初始化完成');
             this.emit('initialized');
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ Summarization Translation Agent 初始化失敗:', error.message);
@@ -193,7 +201,7 @@ class SummarizationTranslationAgent extends EventEmitter {
         }
 
         // 檢查至少一個API可用
-        const availableAPIs = Object.values(this.apiConfigs).filter(config => config.available);
+        const availableAPIs = Object.values(this.apiConfigs).filter((config) => config.available);
         if (availableAPIs.length === 0) {
             console.warn('⚠️ 沒有可用的API，將使用模擬模式');
         }
@@ -212,7 +220,7 @@ class SummarizationTranslationAgent extends EventEmitter {
             },
             {
                 headers: {
-                    'Authorization': `Bearer ${this.apiConfigs.openai.apiKey}`,
+                    Authorization: `Bearer ${this.apiConfigs.openai.apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 timeout: 5000
@@ -230,7 +238,7 @@ class SummarizationTranslationAgent extends EventEmitter {
             'text=Hello&target_lang=FR',
             {
                 headers: {
-                    'Authorization': `DeepL-Auth-Key ${this.apiConfigs.deepl.apiKey}`,
+                    Authorization: `DeepL-Auth-Key ${this.apiConfigs.deepl.apiKey}`,
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
                 timeout: 5000
@@ -256,7 +264,7 @@ class SummarizationTranslationAgent extends EventEmitter {
             'dc:creator': 'Leonardo da Vinci',
             'dc:description': 'Famous Renaissance portrait painting known for its enigmatic smile.',
             'dc:date': '1503-1519',
-            '_source': 'test'
+            _source: 'test'
         };
 
         // 測試摘要功能
@@ -313,7 +321,6 @@ class SummarizationTranslationAgent extends EventEmitter {
             });
 
             return results;
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ 摘要翻譯任務失敗:', error.message);
@@ -332,16 +339,22 @@ class SummarizationTranslationAgent extends EventEmitter {
             const sourceDir = path.join(this.inputDir, source);
 
             try {
-                const dirExists = await fs.access(sourceDir).then(() => true).catch(() => false);
+                const dirExists = await fs
+                    .access(sourceDir)
+                    .then(() => true)
+                    .catch(() => false);
                 if (!dirExists) {
                     // 如果classified資料夾不存在，嘗試使用metadata資料夾
                     const alternativeDir = this.inputDir.replace('classified', 'metadata');
-                    const altExists = await fs.access(alternativeDir).then(() => true).catch(() => false);
+                    const altExists = await fs
+                        .access(alternativeDir)
+                        .then(() => true)
+                        .catch(() => false);
 
                     if (altExists) {
                         console.log(`📁 使用替代資料夾: ${alternativeDir}`);
                         const dirFiles = await fs.readdir(alternativeDir);
-                        const jsonFiles = dirFiles.filter(f => f.endsWith('.json'));
+                        const jsonFiles = dirFiles.filter((f) => f.endsWith('.json'));
 
                         for (const file of jsonFiles) {
                             const filePath = path.join(alternativeDir, file);
@@ -358,7 +371,7 @@ class SummarizationTranslationAgent extends EventEmitter {
                 }
 
                 const dirFiles = await fs.readdir(sourceDir);
-                const jsonFiles = dirFiles.filter(f => f.endsWith('.json'));
+                const jsonFiles = dirFiles.filter((f) => f.endsWith('.json'));
 
                 for (const file of jsonFiles) {
                     const filePath = path.join(sourceDir, file);
@@ -379,7 +392,13 @@ class SummarizationTranslationAgent extends EventEmitter {
     /**
      * 批量處理文件
      */
-    async processFiles(files, targetLanguages, generateSummaries, generateTranslations, culturalAdaptation) {
+    async processFiles(
+        files,
+        targetLanguages,
+        generateSummaries,
+        generateTranslations,
+        culturalAdaptation
+    ) {
         const results = [];
 
         for (const file of files) {
@@ -418,7 +437,6 @@ class SummarizationTranslationAgent extends EventEmitter {
                 });
 
                 console.log(`✅ 處理完成: ${file.filename} (${processedRecords.length} 記錄)`);
-
             } catch (error) {
                 console.error(`❌ 處理文件失敗 ${file.filename}:`, error.message);
                 this.errors.push({
@@ -435,7 +453,13 @@ class SummarizationTranslationAgent extends EventEmitter {
     /**
      * 處理單個記錄
      */
-    async processRecord(record, targetLanguages, generateSummaries, generateTranslations, culturalAdaptation) {
+    async processRecord(
+        record,
+        targetLanguages,
+        generateSummaries,
+        generateTranslations,
+        culturalAdaptation
+    ) {
         const processed = { ...record };
         processed._processedAt = new Date().toISOString();
 
@@ -518,7 +542,7 @@ class SummarizationTranslationAgent extends EventEmitter {
                 },
                 {
                     headers: {
-                        'Authorization': `Bearer ${this.apiConfigs.openai.apiKey}`,
+                        Authorization: `Bearer ${this.apiConfigs.openai.apiKey}`,
                         'Content-Type': 'application/json'
                     },
                     timeout: 30000
@@ -534,7 +558,6 @@ class SummarizationTranslationAgent extends EventEmitter {
                 method: 'ai',
                 confidence: 0.9
             };
-
         } catch (error) {
             console.warn('⚠️ AI摘要生成失敗，使用簡單摘要:', error.message);
             return await this.generateSimpleSummary(content, template);
@@ -545,7 +568,7 @@ class SummarizationTranslationAgent extends EventEmitter {
      * 生成簡單摘要
      */
     async generateSimpleSummary(content, template) {
-        const sentences = content.split(/[.!?]+/).filter(s => s.trim());
+        const sentences = content.split(/[.!?]+/).filter((s) => s.trim());
         const maxSentences = Math.min(template.maxSentences, sentences.length);
 
         // 選擇最重要的句子（簡化邏輯）
@@ -569,8 +592,11 @@ class SummarizationTranslationAgent extends EventEmitter {
 
         // 定義需要翻譯的字段
         const fieldsToTranslate = [
-            'dc:title', 'dc:description', 'dc:subject',
-            'ah:significance', '_summary.text'
+            'dc:title',
+            'dc:description',
+            'dc:subject',
+            'ah:significance',
+            '_summary.text'
         ];
 
         for (const field of fieldsToTranslate) {
@@ -580,8 +606,9 @@ class SummarizationTranslationAgent extends EventEmitter {
                     const translatedValue = await this.translateText(value, sourceLang, targetLang);
 
                     // 應用文化適應
-                    const adaptedValue = culturalAdaptation ?
-                        this.applyCulturalAdaptation(translatedValue, targetLang) : translatedValue;
+                    const adaptedValue = culturalAdaptation
+                        ? this.applyCulturalAdaptation(translatedValue, targetLang)
+                        : translatedValue;
 
                     this.setNestedValue(translated, field, adaptedValue);
                 } catch (error) {
@@ -637,7 +664,7 @@ class SummarizationTranslationAgent extends EventEmitter {
                 `text=${encodeURIComponent(text)}&source_lang=${sourceCode}&target_lang=${targetCode}`,
                 {
                     headers: {
-                        'Authorization': `DeepL-Auth-Key ${this.apiConfigs.deepl.apiKey}`,
+                        Authorization: `DeepL-Auth-Key ${this.apiConfigs.deepl.apiKey}`,
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
                     timeout: 30000
@@ -668,7 +695,7 @@ class SummarizationTranslationAgent extends EventEmitter {
                 },
                 {
                     headers: {
-                        'Authorization': `Bearer ${this.apiConfigs.openai.apiKey}`,
+                        Authorization: `Bearer ${this.apiConfigs.openai.apiKey}`,
                         'Content-Type': 'application/json'
                     },
                     timeout: 30000
@@ -717,8 +744,9 @@ class SummarizationTranslationAgent extends EventEmitter {
             case 'title':
                 return record['dc:title'];
             case 'artist':
-                return typeof record['dc:creator'] === 'object' ?
-                    record['dc:creator'].name : record['dc:creator'];
+                return typeof record['dc:creator'] === 'object'
+                    ? record['dc:creator'].name
+                    : record['dc:creator'];
             case 'period':
                 return record._classifications?.period?.category;
             case 'description':
@@ -755,33 +783,43 @@ class SummarizationTranslationAgent extends EventEmitter {
      */
     async saveMultilingualData(processedRecords, originalFilename, targetLanguages) {
         // 主要多語言文件
-        const mainOutputPath = path.join(this.outputDir, 'multilingual', `multilingual_${originalFilename}`);
+        const mainOutputPath = path.join(
+            this.outputDir,
+            'multilingual',
+            `multilingual_${originalFilename}`
+        );
         await fs.writeFile(mainOutputPath, JSON.stringify(processedRecords, null, 2));
 
         // 為每種語言創建單獨文件
         for (const lang of targetLanguages) {
-            const langRecords = processedRecords.map(record => {
-                if (lang === this.config.defaultLanguage) {
-                    return record;
-                } else if (record._translations && record._translations[lang]) {
-                    return {
-                        ...record._translations[lang].fields,
-                        _originalId: record._id,
-                        _language: lang,
-                        _translatedAt: record._translations[lang].translatedAt
-                    };
-                }
-                return null;
-            }).filter(Boolean);
+            const langRecords = processedRecords
+                .map((record) => {
+                    if (lang === this.config.defaultLanguage) {
+                        return record;
+                    } else if (record._translations && record._translations[lang]) {
+                        return {
+                            ...record._translations[lang].fields,
+                            _originalId: record._id,
+                            _language: lang,
+                            _translatedAt: record._translations[lang].translatedAt
+                        };
+                    }
+                    return null;
+                })
+                .filter(Boolean);
 
-            const langPath = path.join(this.outputDir, 'translations', `${lang}_${originalFilename}`);
+            const langPath = path.join(
+                this.outputDir,
+                'translations',
+                `${lang}_${originalFilename}`
+            );
             await fs.writeFile(langPath, JSON.stringify(langRecords, null, 2));
         }
 
         // 摘要專用文件
         const summaries = processedRecords
-            .filter(record => record._summary && !record._summary.error)
-            .map(record => ({
+            .filter((record) => record._summary && !record._summary.error)
+            .map((record) => ({
                 id: record._id,
                 title: record['dc:title'],
                 summary: record._summary,
@@ -789,7 +827,11 @@ class SummarizationTranslationAgent extends EventEmitter {
             }));
 
         if (summaries.length > 0) {
-            const summaryPath = path.join(this.outputDir, 'summaries', `summaries_${originalFilename}`);
+            const summaryPath = path.join(
+                this.outputDir,
+                'summaries',
+                `summaries_${originalFilename}`
+            );
             await fs.writeFile(summaryPath, JSON.stringify(summaries, null, 2));
         }
 
@@ -824,7 +866,9 @@ class SummarizationTranslationAgent extends EventEmitter {
             },
             config: this.config,
             supportedLanguages: Object.keys(this.languageMappings),
-            availableAPIs: Object.keys(this.apiConfigs).filter(key => this.apiConfigs[key].available)
+            availableAPIs: Object.keys(this.apiConfigs).filter(
+                (key) => this.apiConfigs[key].available
+            )
         };
     }
 }

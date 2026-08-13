@@ -106,7 +106,6 @@ class CacheManager {
 
             // 存取模式分析
             setInterval(() => this.analyzeAccessPatterns(), 3600000); // 每小時
-
         } catch (error) {
             this.isRedisAvailable = false;
             logger.warn('⚠️ Redis 不可用，使用記憶體快取:', error.message);
@@ -167,7 +166,6 @@ class CacheManager {
                 logger.debug(`快取未命中: ${key}`);
                 return null;
             }
-
         } catch (error) {
             this.cacheStats.errors++;
             logger.error('快取獲取錯誤:', error);
@@ -194,7 +192,11 @@ class CacheManager {
             }
 
             if (this.isRedisAvailable) {
-                await this.setInRedis(key, { data: serializedData, compressed, timestamp: Date.now() }, ttl);
+                await this.setInRedis(
+                    key,
+                    { data: serializedData, compressed, timestamp: Date.now() },
+                    ttl
+                );
             } else {
                 this.setInMemory(key, serializedData, ttl);
             }
@@ -202,7 +204,6 @@ class CacheManager {
             this.cacheStats.sets++;
             logger.debug(`快取設置: ${key} (TTL: ${ttl}s, 壓縮: ${compressed})`);
             return true;
-
         } catch (error) {
             this.cacheStats.errors++;
             logger.error('快取設置錯誤:', error);
@@ -226,7 +227,6 @@ class CacheManager {
             this.cacheStats.deletes++;
             logger.debug(`快取刪除: ${key}`);
             return true;
-
         } catch (error) {
             this.cacheStats.errors++;
             logger.error('快取刪除錯誤:', error);
@@ -249,7 +249,6 @@ class CacheManager {
 
             logger.debug(`批量刪除快取: ${searchPattern}`);
             return true;
-
         } catch (error) {
             this.cacheStats.errors++;
             logger.error('批量刪除快取錯誤:', error);
@@ -325,7 +324,7 @@ class CacheManager {
      * 在記憶體中設置
      */
     setInMemory(key, data, ttl) {
-        const expiry = Date.now() + (ttl * 1000);
+        const expiry = Date.now() + ttl * 1000;
         this.memoryCache.set(key, { data, expiry });
 
         // 檢查記憶體快取大小限制
@@ -354,7 +353,7 @@ class CacheManager {
             }
         }
 
-        keysToDelete.forEach(key => this.memoryCache.delete(key));
+        keysToDelete.forEach((key) => this.memoryCache.delete(key));
     }
 
     /**
@@ -399,7 +398,8 @@ class CacheManager {
      */
     getStats() {
         const totalRequests = this.cacheStats.hits + this.cacheStats.misses;
-        const hitRate = totalRequests > 0 ? (this.cacheStats.hits / totalRequests * 100).toFixed(2) : 0;
+        const hitRate =
+            totalRequests > 0 ? ((this.cacheStats.hits / totalRequests) * 100).toFixed(2) : 0;
 
         return {
             ...this.cacheStats,
@@ -425,8 +425,11 @@ class CacheManager {
             stats[category] = {
                 itemCount: items.length,
                 maxSize: this.cacheConfigs[category].maxSize,
-                utilizationRate: this.cacheConfigs[category].maxSize > 0 ?
-                    ((items.length / this.cacheConfigs[category].maxSize) * 100).toFixed(2) + '%' : 'N/A'
+                utilizationRate:
+                    this.cacheConfigs[category].maxSize > 0
+                        ? ((items.length / this.cacheConfigs[category].maxSize) * 100).toFixed(2) +
+                          '%'
+                        : 'N/A'
             };
         }
 
@@ -475,7 +478,6 @@ class CacheManager {
                 backend: this.isRedisAvailable ? 'Redis' : 'Memory',
                 stats: this.getStats()
             };
-
         } catch (error) {
             return {
                 healthy: false,
@@ -491,7 +493,7 @@ class CacheManager {
      */
     async wrap(category, identifier, fetchFunction, ttl = null) {
         // 嘗試從快取獲取
-        let cached = await this.get(category, identifier);
+        const cached = await this.get(category, identifier);
         if (cached !== null) {
             return cached;
         }
@@ -559,8 +561,9 @@ class CacheManager {
 
         if (pattern.lastAccess) {
             const interval = now - pattern.lastAccess;
-            pattern.avgInterval = pattern.avgInterval ?
-                (pattern.avgInterval * 0.8 + interval * 0.2) : interval;
+            pattern.avgInterval = pattern.avgInterval
+                ? pattern.avgInterval * 0.8 + interval * 0.2
+                : interval;
         }
 
         pattern.lastAccess = now;
@@ -629,8 +632,8 @@ class CacheManager {
         };
 
         // 避免重複
-        const exists = this.warmupQueue.find(item =>
-            item.category === category && item.identifier === identifier
+        const exists = this.warmupQueue.find(
+            (item) => item.category === category && item.identifier === identifier
         );
 
         if (!exists) {
@@ -729,7 +732,8 @@ class CacheManager {
                     identifier,
                     expiry: value.expiry,
                     accessCount: this.accessPatterns.get(`${category}:${identifier}`)?.count || 0,
-                    lastAccess: this.accessPatterns.get(`${category}:${identifier}`)?.lastAccess || 0
+                    lastAccess:
+                        this.accessPatterns.get(`${category}:${identifier}`)?.lastAccess || 0
                 });
             }
         }
@@ -760,7 +764,7 @@ class CacheManager {
      */
     getTTLExpiredItems(items) {
         const now = Date.now();
-        return items.filter(item => now > item.expiry);
+        return items.filter((item) => now > item.expiry);
     }
 
     /**

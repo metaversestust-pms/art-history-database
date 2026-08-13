@@ -11,21 +11,21 @@ Europeana 專用同步腳本
     python3 sync_europeana_to_databases.py
 """
 
-import glob
 import json
 import logging
 import os
 from pathlib import Path
 
 import chromadb
-from neo4j import GraphDatabase
-
 from chunking import build_chunk_records
+from neo4j import GraphDatabase
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7688")  # 原生 Neo4j（WSL 直接執行，非 Docker），7688 是因為 WSL 環境本身有另一個系統 Neo4j 服務佔用了 7687
+NEO4J_URI = os.getenv(
+    "NEO4J_URI", "bolt://127.0.0.1:7688"
+)  # 原生 Neo4j（WSL 直接執行，非 Docker），7688 是因為 WSL 環境本身有另一個系統 Neo4j 服務佔用了 7687
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "mysecretpassword")
 CHROMADB_HOST = os.getenv("CHROMADB_HOST", "localhost")
@@ -36,7 +36,8 @@ MIN_FILE_SIZE_BYTES = 1024
 
 def find_latest_europeana_file():
     candidates = [
-        f for f in DATA_DIR.rglob("europeana_crawled_*.json")
+        f
+        for f in DATA_DIR.rglob("europeana_crawled_*.json")
         if f.stat().st_size >= MIN_FILE_SIZE_BYTES
     ]
     if not candidates:
@@ -100,7 +101,8 @@ def main():
 
             node_id = f"europeana_{europeana_id}".replace("/", "_")[:128]
             chunk_ids, chunk_docs, chunk_metas = build_chunk_records(
-                node_id, document_text,
+                node_id,
+                document_text,
                 {
                     "title": str(title)[:500],
                     "artist": str(creator_str)[:200],
@@ -159,11 +161,11 @@ def main():
     for i in range(0, len(ids), batch_size):
         # upsert 而非 add：同一個 id 重複寫入會更新既有向量，不會報錯也不會產生重複
         collection.upsert(
-            ids=ids[i:i + batch_size],
-            documents=documents[i:i + batch_size],
-            metadatas=metadatas[i:i + batch_size],
+            ids=ids[i : i + batch_size],
+            documents=documents[i : i + batch_size],
+            metadatas=metadatas[i : i + batch_size],
         )
-        added += len(ids[i:i + batch_size])
+        added += len(ids[i : i + batch_size])
         logger.info(f"ChromaDB 進度 {added}/{len(ids)}")
 
     logger.info(f"✅ ChromaDB 累加/更新 {added} 筆，collection 目前總數: {collection.count()}")

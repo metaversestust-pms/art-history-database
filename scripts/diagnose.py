@@ -12,8 +12,8 @@ import glob
 import json
 import os
 import re
-import sys
 import socket
+import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent

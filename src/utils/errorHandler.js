@@ -51,7 +51,9 @@ class ErrorHandler {
                     await this.delay(retryDelay * Math.pow(2, attempt)); // 指數退避
                 }
 
-                console.warn(`⚠️ [${this.agentId}] ${context} 失敗，重試 ${attempt + 1}/${maxRetries}: ${error.message}`);
+                console.warn(
+                    `⚠️ [${this.agentId}] ${context} 失敗，重試 ${attempt + 1}/${maxRetries}: ${error.message}`
+                );
             }
         }
     }
@@ -113,7 +115,6 @@ class ErrorHandler {
                 console.log(`💡 [${this.agentId}] 檢測到常量賦值錯誤，建議檢查變數宣告`);
                 return false;
             }
-
         } catch (recoveryError) {
             console.warn(`⚠️ [${this.agentId}] 恢復嘗試失敗: ${recoveryError.message}`);
         }
@@ -142,7 +143,6 @@ class ErrorHandler {
                 console.log(`✅ [${this.agentId}] 已創建空JSON文件: ${missingPath}`);
                 return true;
             }
-
         } catch (createError) {
             console.warn(`⚠️ [${this.agentId}] 無法創建缺失文件: ${createError.message}`);
         }
@@ -193,7 +193,6 @@ class ErrorHandler {
 
             const logFile = path.join(logDir, `${this.agentId}_errors.log`);
             await fs.appendFile(logFile, JSON.stringify(logEntry) + '\n', 'utf8');
-
         } catch (logError) {
             console.warn(`⚠️ [${this.agentId}] 錯誤日誌寫入失敗: ${logError.message}`);
         }
@@ -220,7 +219,7 @@ class ErrorHandler {
      * 延遲函數
      */
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**
@@ -238,7 +237,7 @@ class ErrorHandler {
             recent: this.errors.slice(-10) // 最近10個錯誤
         };
 
-        this.errors.forEach(error => {
+        this.errors.forEach((error) => {
             // 按上下文統計
             stats.byContext[error.context] = (stats.byContext[error.context] || 0) + 1;
 
@@ -252,10 +251,11 @@ class ErrorHandler {
     /**
      * 清理舊錯誤記錄
      */
-    cleanup(maxAge = 24 * 60 * 60 * 1000) { // 24小時
+    cleanup(maxAge = 24 * 60 * 60 * 1000) {
+        // 24小時
         const cutoff = Date.now() - maxAge;
 
-        this.errors = this.errors.filter(error => {
+        this.errors = this.errors.filter((error) => {
             return new Date(error.timestamp).getTime() > cutoff;
         });
     }

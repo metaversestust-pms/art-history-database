@@ -50,7 +50,7 @@ class CrawlerPerformanceMonitor extends EventEmitter {
                 concurrentConnections: 0
             },
             sources: new Map(), // source -> metrics
-            workers: new Map()  // worker -> metrics
+            workers: new Map() // worker -> metrics
         };
 
         // 歷史資料
@@ -180,7 +180,6 @@ class CrawlerPerformanceMonitor extends EventEmitter {
                 timestamp,
                 metrics: this.getMetricsSnapshot()
             });
-
         } catch (error) {
             logger.error('收集效能指標失敗', { error: error.message });
         }
@@ -195,14 +194,14 @@ class CrawlerPerformanceMonitor extends EventEmitter {
         let totalIdle = 0;
         let totalTick = 0;
 
-        cpus.forEach(cpu => {
+        cpus.forEach((cpu) => {
             for (const type in cpu.times) {
                 totalTick += cpu.times[type];
             }
             totalIdle += cpu.times.idle;
         });
 
-        this.metrics.system.cpuUsage = 1 - (totalIdle / totalTick);
+        this.metrics.system.cpuUsage = 1 - totalIdle / totalTick;
 
         // 記憶體使用率
         const totalMemory = os.totalmem();
@@ -237,10 +236,7 @@ class CrawlerPerformanceMonitor extends EventEmitter {
      */
     async collectNetworkMetrics() {
         // 測試網路延遲 (簡化實現)
-        const testUrls = [
-            'https://www.google.com',
-            'https://www.github.com'
-        ];
+        const testUrls = ['https://www.google.com', 'https://www.github.com'];
 
         const latencies = [];
 
@@ -259,7 +255,8 @@ class CrawlerPerformanceMonitor extends EventEmitter {
         }
 
         if (latencies.length > 0) {
-            this.metrics.system.networkLatency = latencies.reduce((a, b) => a + b) / latencies.length;
+            this.metrics.system.networkLatency =
+                latencies.reduce((a, b) => a + b) / latencies.length;
         }
     }
 
@@ -319,7 +316,13 @@ class CrawlerPerformanceMonitor extends EventEmitter {
     /**
      * 記錄請求完成
      */
-    recordRequestCompletion(source, success = true, responseTime = 0, bytesDownloaded = 0, statusCode = 200) {
+    recordRequestCompletion(
+        source,
+        success = true,
+        responseTime = 0,
+        bytesDownloaded = 0,
+        statusCode = 200
+    ) {
         const sourceMetrics = this.metrics.sources.get(source);
         if (!sourceMetrics) return;
 
@@ -336,13 +339,15 @@ class CrawlerPerformanceMonitor extends EventEmitter {
         const totalSuccessful = this.metrics.crawler.successfulRequests;
         if (totalSuccessful > 0) {
             this.metrics.crawler.averageResponseTime =
-                (this.metrics.crawler.averageResponseTime * (totalSuccessful - 1) + responseTime) / totalSuccessful;
+                (this.metrics.crawler.averageResponseTime * (totalSuccessful - 1) + responseTime) /
+                totalSuccessful;
         }
 
         const sourceSuccessful = sourceMetrics.successfulRequests;
         if (sourceSuccessful > 0) {
             sourceMetrics.averageResponseTime =
-                (sourceMetrics.averageResponseTime * (sourceSuccessful - 1) + responseTime) / sourceSuccessful;
+                (sourceMetrics.averageResponseTime * (sourceSuccessful - 1) + responseTime) /
+                sourceSuccessful;
         }
 
         // 更新下載量
@@ -434,7 +439,7 @@ class CrawlerPerformanceMonitor extends EventEmitter {
         }
 
         // 處理警告
-        alerts.forEach(alert => {
+        alerts.forEach((alert) => {
             this.handleAlert(alert);
         });
     }
@@ -533,7 +538,10 @@ class CrawlerPerformanceMonitor extends EventEmitter {
             sourceStats[source] = {
                 ...metrics,
                 requestsPerHour: metrics.totalRequests / (timeSinceStart / 3600000),
-                successRate: metrics.totalRequests > 0 ? metrics.successfulRequests / metrics.totalRequests : 0
+                successRate:
+                    metrics.totalRequests > 0
+                        ? metrics.successfulRequests / metrics.totalRequests
+                        : 0
             };
         }
 
@@ -542,7 +550,8 @@ class CrawlerPerformanceMonitor extends EventEmitter {
         for (const [workerId, metrics] of this.metrics.workers.entries()) {
             workerStats[workerId] = {
                 ...metrics,
-                successRate: metrics.totalTasks > 0 ? metrics.completedTasks / metrics.totalTasks : 0
+                successRate:
+                    metrics.totalTasks > 0 ? metrics.completedTasks / metrics.totalTasks : 0
             };
         }
 
@@ -564,7 +573,7 @@ class CrawlerPerformanceMonitor extends EventEmitter {
             workers: workerStats,
             alerts: {
                 total: this.history.alerts.length,
-                recent: this.history.alerts.filter(a => now - a.timestamp < 3600000).length // 1小時內
+                recent: this.history.alerts.filter((a) => now - a.timestamp < 3600000).length // 1小時內
             }
         };
 
@@ -584,10 +593,10 @@ class CrawlerPerformanceMonitor extends EventEmitter {
      * 清理舊資料
      */
     cleanupOldData() {
-        const cutoffTime = Date.now() - (this.options.retentionDays * 86400000);
+        const cutoffTime = Date.now() - this.options.retentionDays * 86400000;
 
         // 清理警告歷史
-        this.history.alerts = this.history.alerts.filter(alert => alert.timestamp > cutoffTime);
+        this.history.alerts = this.history.alerts.filter((alert) => alert.timestamp > cutoffTime);
     }
 
     /**
@@ -606,27 +615,28 @@ class CrawlerPerformanceMonitor extends EventEmitter {
     /**
      * 獲取歷史資料
      */
-    getHistoryData(type = 'all', timeRange = 3600000) { // 預設1小時
+    getHistoryData(type = 'all', timeRange = 3600000) {
+        // 預設1小時
         const cutoffTime = Date.now() - timeRange;
         const result = {};
 
         if (type === 'all' || type === 'system') {
-            result.system = this.history.system.filter(data => data.timestamp > cutoffTime);
+            result.system = this.history.system.filter((data) => data.timestamp > cutoffTime);
         }
 
         if (type === 'all' || type === 'crawler') {
-            result.crawler = this.history.crawler.filter(data => data.timestamp > cutoffTime);
+            result.crawler = this.history.crawler.filter((data) => data.timestamp > cutoffTime);
         }
 
         if (type === 'all' || type === 'sources') {
             result.sources = {};
             for (const [source, history] of this.history.sources.entries()) {
-                result.sources[source] = history.filter(data => data.timestamp > cutoffTime);
+                result.sources[source] = history.filter((data) => data.timestamp > cutoffTime);
             }
         }
 
         if (type === 'all' || type === 'alerts') {
-            result.alerts = this.history.alerts.filter(alert => alert.timestamp > cutoffTime);
+            result.alerts = this.history.alerts.filter((alert) => alert.timestamp > cutoffTime);
         }
 
         return result;

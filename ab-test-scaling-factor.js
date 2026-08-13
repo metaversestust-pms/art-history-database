@@ -49,7 +49,7 @@ async function testWithScalingFactor(scalingFactor) {
             });
 
             const data = response.data;
-            const scores = data.sources.map(s => s.score);
+            const scores = data.sources.map((s) => s.score);
 
             results.queries.push({
                 query: q.query,
@@ -65,8 +65,7 @@ async function testWithScalingFactor(scalingFactor) {
             results.stats.scores.push(...scores);
 
             // 避免過快請求
-            await new Promise(resolve => setTimeout(resolve, 50));
-
+            await new Promise((resolve) => setTimeout(resolve, 50));
         } catch (error) {
             console.error(`  ❌ 查詢失敗: ${q.query} - ${error.message}`);
         }
@@ -83,11 +82,11 @@ async function testWithScalingFactor(scalingFactor) {
 
     // 計算分數分布
     results.stats.score_distribution = {
-        '0.0-0.2': results.stats.scores.filter(s => s >= 0.0 && s < 0.2).length,
-        '0.2-0.4': results.stats.scores.filter(s => s >= 0.2 && s < 0.4).length,
-        '0.4-0.6': results.stats.scores.filter(s => s >= 0.4 && s < 0.6).length,
-        '0.6-0.8': results.stats.scores.filter(s => s >= 0.6 && s < 0.8).length,
-        '0.8-1.0': results.stats.scores.filter(s => s >= 0.8 && s <= 1.0).length
+        '0.0-0.2': results.stats.scores.filter((s) => s >= 0.0 && s < 0.2).length,
+        '0.2-0.4': results.stats.scores.filter((s) => s >= 0.2 && s < 0.4).length,
+        '0.4-0.6': results.stats.scores.filter((s) => s >= 0.4 && s < 0.6).length,
+        '0.6-0.8': results.stats.scores.filter((s) => s >= 0.6 && s < 0.8).length,
+        '0.8-1.0': results.stats.scores.filter((s) => s >= 0.8 && s <= 1.0).length
     };
 
     // 顯示結果
@@ -97,9 +96,11 @@ async function testWithScalingFactor(scalingFactor) {
     console.log(`  平均最低分數: ${results.stats.avg_min_score.toFixed(3)}`);
     console.log(`  分數分布:`);
     Object.entries(results.stats.score_distribution).forEach(([range, count]) => {
-        const percentage = (count / results.stats.scores.length * 100).toFixed(1);
+        const percentage = ((count / results.stats.scores.length) * 100).toFixed(1);
         const bar = '█'.repeat(Math.floor(percentage / 2));
-        console.log(`    ${range}: ${count.toString().padStart(3)} (${percentage.padStart(5)}%) ${bar}`);
+        console.log(
+            `    ${range}: ${count.toString().padStart(3)} (${percentage.padStart(5)}%) ${bar}`
+        );
     });
 
     return results;
@@ -123,14 +124,21 @@ async function runABTest() {
 
     // 保存結果
     const reportPath = 'ab-test-results.json';
-    fs.writeFileSync(reportPath, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        test_config: {
-            total_queries: allQueries.length,
-            scaling_factors_tested: [20]
-        },
-        results: allResults
-    }, null, 2));
+    fs.writeFileSync(
+        reportPath,
+        JSON.stringify(
+            {
+                timestamp: new Date().toISOString(),
+                test_config: {
+                    total_queries: allQueries.length,
+                    scaling_factors_tested: [20]
+                },
+                results: allResults
+            },
+            null,
+            2
+        )
+    );
 
     console.log(`\n\n📊 詳細結果已保存到: ${reportPath}`);
 
@@ -145,10 +153,12 @@ async function runABTest() {
     }
 
     // 分數分布建議
-    const highScores = currentResult.stats.score_distribution['0.6-0.8'] +
-                       currentResult.stats.score_distribution['0.8-1.0'];
-    const lowScores = currentResult.stats.score_distribution['0.0-0.2'] +
-                      currentResult.stats.score_distribution['0.2-0.4'];
+    const highScores =
+        currentResult.stats.score_distribution['0.6-0.8'] +
+        currentResult.stats.score_distribution['0.8-1.0'];
+    const lowScores =
+        currentResult.stats.score_distribution['0.0-0.2'] +
+        currentResult.stats.score_distribution['0.2-0.4'];
 
     if (highScores < lowScores) {
         console.log('   - 高分結果較少，建議增加 scaling_factor');

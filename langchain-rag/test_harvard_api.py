@@ -4,7 +4,9 @@
 """
 
 import logging
+
 from harvard_art_museums_crawler import HarvardArtMuseumsCrawler, HarvardCrawlerConfig
+
 
 def test_harvard_api():
     """測試Harvard API連接"""
@@ -16,7 +18,7 @@ def test_harvard_api():
     config = HarvardCrawlerConfig(
         api_key="cfe24845-aa4f-4c93-9d86-f6880440af5f",
         delay_seconds=0.5,
-        max_per_page=5  # 測試用小數量
+        max_per_page=5,  # 測試用小數量
     )
 
     crawler = HarvardArtMuseumsCrawler(config)
@@ -29,8 +31,8 @@ def test_harvard_api():
     objects_response = crawler.get_objects(page=1, size=3)
     if objects_response:
         print(f"✅ 作品API成功，獲取 {len(objects_response.get('records', []))} 個作品")
-        if objects_response.get('records'):
-            sample_object = objects_response['records'][0]
+        if objects_response.get("records"):
+            sample_object = objects_response["records"][0]
             print(f"   示例作品: {sample_object.get('title', 'Unknown')}")
     else:
         print("❌ 作品API失敗")
@@ -40,8 +42,8 @@ def test_harvard_api():
     people_response = crawler.get_people(page=1, size=3)
     if people_response:
         print(f"✅ 人物API成功，獲取 {len(people_response.get('records', []))} 個人物")
-        if people_response.get('records'):
-            sample_person = people_response['records'][0]
+        if people_response.get("records"):
+            sample_person = people_response["records"][0]
             print(f"   示例人物: {sample_person.get('displayname', 'Unknown')}")
     else:
         print("❌ 人物API失敗")
@@ -51,8 +53,8 @@ def test_harvard_api():
     exhibitions_response = crawler.get_exhibitions(page=1, size=3)
     if exhibitions_response:
         print(f"✅ 展覽API成功，獲取 {len(exhibitions_response.get('records', []))} 個展覽")
-        if exhibitions_response.get('records'):
-            sample_exhibition = exhibitions_response['records'][0]
+        if exhibitions_response.get("records"):
+            sample_exhibition = exhibitions_response["records"][0]
             print(f"   示例展覽: {sample_exhibition.get('title', 'Unknown')}")
     else:
         print("❌ 展覽API失敗")
@@ -69,11 +71,12 @@ def test_harvard_api():
     print("\n💾 獲取樣本數據...")
     crawler.get_sample_data()
 
-    print(f"\n📊 API調用統計:")
+    print("\n📊 API調用統計:")
     print(f"   總調用次數: {crawler.api_calls_count}")
     print(f"   剩餘調用次數: {config.daily_limit - crawler.api_calls_count}")
 
     print("\n🎉 Harvard Art Museums API測試完成！")
+
 
 if __name__ == "__main__":
     test_harvard_api()

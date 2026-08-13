@@ -63,9 +63,12 @@ class UnifiedErrorHandlerTester {
                     throw new Error('模擬錯誤');
                 }, '失敗操作重試測試');
             } catch (error) {
-                this.addResult('基礎錯誤處理 - 重試機制', attemptCount === 3, `重試次數: ${attemptCount}`);
+                this.addResult(
+                    '基礎錯誤處理 - 重試機制',
+                    attemptCount === 3,
+                    `重試次數: ${attemptCount}`
+                );
             }
-
         } catch (error) {
             this.addResult('基礎錯誤處理', false, `測試失敗: ${error.message}`);
         }
@@ -101,11 +104,18 @@ class UnifiedErrorHandlerTester {
                     return '最終成功';
                 }, '智能重試測試');
 
-                this.addResult('智能重試機制 - 最終成功', attempts === 3, `總嘗試次數: ${attempts}`);
+                this.addResult(
+                    '智能重試機制 - 最終成功',
+                    attempts === 3,
+                    `總嘗試次數: ${attempts}`
+                );
             } catch (error) {
-                this.addResult('智能重試機制 - 指數退避', retryTimes.length === 4, `重試時間序列記錄完整`);
+                this.addResult(
+                    '智能重試機制 - 指數退避',
+                    retryTimes.length === 4,
+                    `重試時間序列記錄完整`
+                );
             }
-
         } catch (error) {
             this.addResult('智能重試機制', false, `測試失敗: ${error.message}`);
         }
@@ -128,9 +138,12 @@ class UnifiedErrorHandlerTester {
             // 觸發足夠的失敗來開啟斷路器
             for (let i = 0; i < 4; i++) {
                 try {
-                    await errorHandler.wrapAsync(async () => {
-                        throw new Error(`失敗 ${i + 1}`);
-                    }, `斷路器測試失敗 ${i + 1}`);
+                    await errorHandler.wrapAsync(
+                        async () => {
+                            throw new Error(`失敗 ${i + 1}`);
+                        },
+                        `斷路器測試失敗 ${i + 1}`
+                    );
                 } catch (error) {
                     // 預期的失敗
                 }
@@ -147,9 +160,12 @@ class UnifiedErrorHandlerTester {
                 this.addResult('斷路器模式 - 開啟阻斷', false, '斷路器未能阻斷請求');
             } catch (error) {
                 const isCircuitBreakerError = error.message.includes('Circuit breaker is OPEN');
-                this.addResult('斷路器模式 - 開啟阻斷', isCircuitBreakerError, '斷路器正確阻斷請求');
+                this.addResult(
+                    '斷路器模式 - 開啟阻斷',
+                    isCircuitBreakerError,
+                    '斷路器正確阻斷請求'
+                );
             }
-
         } catch (error) {
             this.addResult('斷路器模式', false, `測試失敗: ${error.message}`);
         }
@@ -172,19 +188,24 @@ class UnifiedErrorHandlerTester {
             // 生成重複的錯誤模式
             for (let i = 0; i < 6; i++) {
                 try {
-                    await errorHandler.wrapAsync(async () => {
-                        const error = new Error('文件未找到');
-                        error.code = 'ENOENT';
-                        throw error;
-                    }, `模式識別測試 ${i + 1}`);
+                    await errorHandler.wrapAsync(
+                        async () => {
+                            const error = new Error('文件未找到');
+                            error.code = 'ENOENT';
+                            throw error;
+                        },
+                        `模式識別測試 ${i + 1}`
+                    );
                 } catch (error) {
                     // 預期的失敗
                 }
             }
 
-            this.addResult('錯誤模式識別', patternDetected && detectedPattern?.pattern === 'Error_ENOENT',
-                detectedPattern ? `檢測到模式: ${detectedPattern.pattern}` : '未檢測到模式');
-
+            this.addResult(
+                '錯誤模式識別',
+                patternDetected && detectedPattern?.pattern === 'Error_ENOENT',
+                detectedPattern ? `檢測到模式: ${detectedPattern.pattern}` : '未檢測到模式'
+            );
         } catch (error) {
             this.addResult('錯誤模式識別', false, `測試失敗: ${error.message}`);
         }
@@ -213,7 +234,9 @@ class UnifiedErrorHandlerTester {
 
             try {
                 await errorHandler.wrapAsync(async () => {
-                    const error = new Error(`ENOENT: no such file or directory, open '${testDir}/test.json'`);
+                    const error = new Error(
+                        `ENOENT: no such file or directory, open '${testDir}/test.json'`
+                    );
                     error.code = 'ENOENT';
                     error.path = testDir;
                     throw error;
@@ -227,7 +250,6 @@ class UnifiedErrorHandlerTester {
                     this.addResult('智能恢復機制 - 目錄創建', false, '未能自動創建目錄');
                 }
             }
-
         } catch (error) {
             this.addResult('智能恢復機制', false, `測試失敗: ${error.message}`);
         }
@@ -251,9 +273,12 @@ class UnifiedErrorHandlerTester {
             // 生成足夠的錯誤觸發警報
             for (let i = 0; i < 4; i++) {
                 try {
-                    await errorHandler.wrapAsync(async () => {
-                        throw new Error(`指標測試錯誤 ${i + 1}`);
-                    }, `指標測試 ${i + 1}`);
+                    await errorHandler.wrapAsync(
+                        async () => {
+                            throw new Error(`指標測試錯誤 ${i + 1}`);
+                        },
+                        `指標測試 ${i + 1}`
+                    );
                 } catch (error) {
                     // 預期的失敗
                 }
@@ -263,9 +288,12 @@ class UnifiedErrorHandlerTester {
             const healthReport = errorHandler.generateHealthReport();
 
             this.addResult('指標收集', stats.totalErrors >= 4, `總錯誤數: ${stats.totalErrors}`);
-            this.addResult('健康報告生成', healthReport.agentId === 'test-metrics', '健康報告生成成功');
+            this.addResult(
+                '健康報告生成',
+                healthReport.agentId === 'test-metrics',
+                '健康報告生成成功'
+            );
             this.addResult('警報系統', alertTriggered, '警報正確觸發');
-
         } catch (error) {
             this.addResult('指標和警報系統', false, `測試失敗: ${error.message}`);
         }
@@ -279,21 +307,31 @@ class UnifiedErrorHandlerTester {
             const webCrawler = new WebCrawlerAgent();
 
             // 確保Agent有errorHandler屬性
-            const hasErrorHandler = webCrawler.errorHandler &&
-                                  typeof webCrawler.errorHandler.wrapAsync === 'function';
+            const hasErrorHandler =
+                webCrawler.errorHandler && typeof webCrawler.errorHandler.wrapAsync === 'function';
 
-            this.addResult('Agent整合 - WebCrawler', hasErrorHandler,
-                hasErrorHandler ? 'WebCrawler Agent成功整合統一錯誤處理' : 'WebCrawler Agent缺少錯誤處理');
+            this.addResult(
+                'Agent整合 - WebCrawler',
+                hasErrorHandler,
+                hasErrorHandler
+                    ? 'WebCrawler Agent成功整合統一錯誤處理'
+                    : 'WebCrawler Agent缺少錯誤處理'
+            );
 
             // 測試MetadataExtractor Agent的錯誤處理整合
             const metadataExtractor = new MetadataExtractorAgent();
 
-            const hasMetadataErrorHandler = metadataExtractor.errorHandler &&
-                                          typeof metadataExtractor.errorHandler.wrapAsync === 'function';
+            const hasMetadataErrorHandler =
+                metadataExtractor.errorHandler &&
+                typeof metadataExtractor.errorHandler.wrapAsync === 'function';
 
-            this.addResult('Agent整合 - MetadataExtractor', hasMetadataErrorHandler,
-                hasMetadataErrorHandler ? 'MetadataExtractor Agent成功整合統一錯誤處理' : 'MetadataExtractor Agent缺少錯誤處理');
-
+            this.addResult(
+                'Agent整合 - MetadataExtractor',
+                hasMetadataErrorHandler,
+                hasMetadataErrorHandler
+                    ? 'MetadataExtractor Agent成功整合統一錯誤處理'
+                    : 'MetadataExtractor Agent缺少錯誤處理'
+            );
         } catch (error) {
             this.addResult('Agent整合', false, `測試失敗: ${error.message}`);
         }
@@ -330,13 +368,12 @@ class UnifiedErrorHandlerTester {
             const duration = endTime - startTime;
             const throughput = Math.round(iterations / (duration / 1000));
 
-            const successCount = results.filter(r => r.includes('成功')).length;
-            const errorCount = results.filter(r => r.includes('失敗')).length;
+            const successCount = results.filter((r) => r.includes('成功')).length;
+            const errorCount = results.filter((r) => r.includes('失敗')).length;
 
             this.addResult('性能測試 - 吞吐量', throughput > 50, `${throughput} 操作/秒`);
             this.addResult('性能測試 - 錯誤處理', errorCount >= 10, `處理 ${errorCount} 個錯誤`);
             this.addResult('性能測試 - 內存使用', true, `完成 ${iterations} 次操作`);
-
         } catch (error) {
             this.addResult('性能測試', false, `測試失敗: ${error.message}`);
         }
@@ -361,8 +398,8 @@ class UnifiedErrorHandlerTester {
 
         const summary = {
             total: this.testResults.length,
-            passed: this.testResults.filter(r => r.status === 'pass').length,
-            failed: this.testResults.filter(r => r.status === 'fail').length,
+            passed: this.testResults.filter((r) => r.status === 'pass').length,
+            failed: this.testResults.filter((r) => r.status === 'fail').length,
             successRate: 0,
             duration
         };
@@ -398,8 +435,8 @@ class UnifiedErrorHandlerTester {
         if (summary.failed > 0) {
             console.log('❌ 失敗的測試:');
             this.testResults
-                .filter(r => r.status === 'fail')
-                .forEach(r => console.log(`  - ${r.test}: ${r.details}`));
+                .filter((r) => r.status === 'fail')
+                .forEach((r) => console.log(`  - ${r.test}: ${r.details}`));
         }
 
         return report;

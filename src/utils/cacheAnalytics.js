@@ -87,8 +87,8 @@ class CacheAnalytics {
             };
 
             // 計算派生指標
-            metrics.errorRate = metrics.totalRequests > 0 ?
-                (metrics.errors / metrics.totalRequests * 100) : 0;
+            metrics.errorRate =
+                metrics.totalRequests > 0 ? (metrics.errors / metrics.totalRequests) * 100 : 0;
 
             metrics.missRate = 100 - metrics.hitRate;
 
@@ -98,9 +98,13 @@ class CacheAnalytics {
                 const timeDiff = timestamp - lastMetrics.timestamp;
 
                 if (timeDiff > 0) {
-                    metrics.requestsPerSecond = ((metrics.totalRequests - lastMetrics.totalRequests) / (timeDiff / 1000)) || 0;
-                    metrics.hitsPerSecond = ((metrics.hits - lastMetrics.hits) / (timeDiff / 1000)) || 0;
-                    metrics.missesPerSecond = ((metrics.misses - lastMetrics.misses) / (timeDiff / 1000)) || 0;
+                    metrics.requestsPerSecond =
+                        (metrics.totalRequests - lastMetrics.totalRequests) / (timeDiff / 1000) ||
+                        0;
+                    metrics.hitsPerSecond =
+                        (metrics.hits - lastMetrics.hits) / (timeDiff / 1000) || 0;
+                    metrics.missesPerSecond =
+                        (metrics.misses - lastMetrics.misses) / (timeDiff / 1000) || 0;
                 }
             }
 
@@ -108,7 +112,6 @@ class CacheAnalytics {
 
             // 檢查警告條件
             this.checkAlerts(metrics);
-
         } catch (error) {
             logger.error('收集快取指標時發生錯誤:', error);
         }
@@ -164,7 +167,7 @@ class CacheAnalytics {
         }
 
         // 發送警告
-        alerts.forEach(alert => {
+        alerts.forEach((alert) => {
             if (alert.severity === 'ERROR') {
                 logger.error(`🚨 快取警告 [${alert.type}]: ${alert.message}`);
             } else {
@@ -203,7 +206,7 @@ class CacheAnalytics {
     calculateTrend(metrics, field) {
         if (metrics.length < 2) return { direction: 'stable', change: 0 };
 
-        const values = metrics.map(m => m[field] || 0);
+        const values = metrics.map((m) => m[field] || 0);
         const firstValue = values[0];
         const lastValue = values[values.length - 1];
         const change = ((lastValue - firstValue) / firstValue) * 100;
@@ -225,8 +228,8 @@ class CacheAnalytics {
         // 簡單線性回歸預測
         const predictions = {};
 
-        ['hitRate', 'requestsPerSecond', 'memoryUsage'].forEach(field => {
-            const values = metrics.map(m => m[field] || 0);
+        ['hitRate', 'requestsPerSecond', 'memoryUsage'].forEach((field) => {
+            const values = metrics.map((m) => m[field] || 0);
             const predicted = this.linearRegression(values);
             predictions[field] = predicted;
         });
@@ -294,7 +297,7 @@ class CacheAnalytics {
         }
 
         // 記錄建議
-        recommendations.forEach(rec => {
+        recommendations.forEach((rec) => {
             logger.info(`💡 快取建議 [${rec.priority}]: ${rec.message}`);
         });
     }
@@ -303,8 +306,8 @@ class CacheAnalytics {
      * 清理舊指標
      */
     cleanupOldMetrics() {
-        const cutoffTime = Date.now() - (this.retentionDays * 24 * 60 * 60 * 1000);
-        this.metricsHistory = this.metricsHistory.filter(metric => metric.timestamp > cutoffTime);
+        const cutoffTime = Date.now() - this.retentionDays * 24 * 60 * 60 * 1000;
+        this.metricsHistory = this.metricsHistory.filter((metric) => metric.timestamp > cutoffTime);
 
         logger.debug(`清理了 ${this.metricsHistory.length} 條舊的快取指標記錄`);
     }
@@ -318,19 +321,24 @@ class CacheAnalytics {
         }
 
         const latest = this.metricsHistory[this.metricsHistory.length - 1];
-        const timeRange = this.metricsHistory.length > 1 ?
-            this.metricsHistory[this.metricsHistory.length - 1].timestamp - this.metricsHistory[0].timestamp : 0;
+        const timeRange =
+            this.metricsHistory.length > 1
+                ? this.metricsHistory[this.metricsHistory.length - 1].timestamp -
+                  this.metricsHistory[0].timestamp
+                : 0;
 
         // 計算平均值
-        const avgHitRate = this.metricsHistory.reduce((sum, m) => sum + m.hitRate, 0) / this.metricsHistory.length;
-        const avgRequestRate = this.metricsHistory
-            .filter(m => m.requestsPerSecond !== undefined)
-            .reduce((sum, m) => sum + m.requestsPerSecond, 0) /
-            this.metricsHistory.filter(m => m.requestsPerSecond !== undefined).length || 0;
+        const avgHitRate =
+            this.metricsHistory.reduce((sum, m) => sum + m.hitRate, 0) / this.metricsHistory.length;
+        const avgRequestRate =
+            this.metricsHistory
+                .filter((m) => m.requestsPerSecond !== undefined)
+                .reduce((sum, m) => sum + m.requestsPerSecond, 0) /
+                this.metricsHistory.filter((m) => m.requestsPerSecond !== undefined).length || 0;
 
         // 找出性能峰值
-        const maxHitRate = Math.max(...this.metricsHistory.map(m => m.hitRate));
-        const minHitRate = Math.min(...this.metricsHistory.map(m => m.hitRate));
+        const maxHitRate = Math.max(...this.metricsHistory.map((m) => m.hitRate));
+        const minHitRate = Math.min(...this.metricsHistory.map((m) => m.hitRate));
 
         return {
             summary: {
@@ -348,11 +356,20 @@ class CacheAnalytics {
                 warmupQueueSize: latest.warmupQueueSize,
                 categoryStats: latest.categoryStats
             },
-            trends: this.metricsHistory.length > 1 ? {
-                hitRate: this.calculateTrend(this.metricsHistory.slice(-5), 'hitRate'),
-                memoryUsage: this.calculateTrend(this.metricsHistory.slice(-5), 'memoryUsage'),
-                requestRate: this.calculateTrend(this.metricsHistory.slice(-5), 'requestsPerSecond')
-            } : null,
+            trends:
+                this.metricsHistory.length > 1
+                    ? {
+                          hitRate: this.calculateTrend(this.metricsHistory.slice(-5), 'hitRate'),
+                          memoryUsage: this.calculateTrend(
+                              this.metricsHistory.slice(-5),
+                              'memoryUsage'
+                          ),
+                          requestRate: this.calculateTrend(
+                              this.metricsHistory.slice(-5),
+                              'requestsPerSecond'
+                          )
+                      }
+                    : null,
             monitoring: {
                 isActive: this.isMonitoring,
                 interval: `${this.analysisInterval / 1000}s`,

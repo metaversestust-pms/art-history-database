@@ -127,8 +127,9 @@ class TaskScheduler extends EventEmitter {
         if (this.runningTasks.size > 0) {
             console.log(`⏳ 等待 ${this.runningTasks.size} 個任務完成...`);
 
-            const runningTaskPromises = Array.from(this.runningTasks.values())
-                .map(task => task.promise);
+            const runningTaskPromises = Array.from(this.runningTasks.values()).map(
+                (task) => task.promise
+            );
 
             try {
                 await Promise.allSettled(runningTaskPromises);
@@ -259,7 +260,6 @@ class TaskScheduler extends EventEmitter {
 
             console.log(`✅ 任務完成: ${task.id} (耗時: ${executionTime}ms)`);
             this.emit('taskCompleted', completedTask);
-
         } catch (error) {
             // 任務執行失敗
             const executionTime = Date.now() - startTime;
@@ -271,13 +271,14 @@ class TaskScheduler extends EventEmitter {
 
             if (task.retryCount < this.options.maxRetries) {
                 // 重新調度任務
-                console.log(`🔁 重新調度任務: ${task.id} (重試 ${task.retryCount}/${this.options.maxRetries})`);
+                console.log(
+                    `🔁 重新調度任務: ${task.id} (重試 ${task.retryCount}/${this.options.maxRetries})`
+                );
 
                 // 添加延遲後重新加入隊列
                 setTimeout(() => {
                     this.taskQueues[task.priority].unshift(task);
                 }, this.options.retryDelay * task.retryCount);
-
             } else {
                 // 達到最大重試次數，標記為失敗
                 const failedTask = {
@@ -330,7 +331,7 @@ class TaskScheduler extends EventEmitter {
         }
 
         for (const dependencyId of task.dependencies) {
-            const dependency = this.completedTasks.find(t => t.id === dependencyId);
+            const dependency = this.completedTasks.find((t) => t.id === dependencyId);
             if (!dependency || dependency.status !== 'completed') {
                 return false;
             }
@@ -351,7 +352,7 @@ class TaskScheduler extends EventEmitter {
      * 等待任務槽位
      */
     async waitForTaskSlot() {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             const checkSlot = () => {
                 if (this.runningTasks.size < this.options.maxConcurrentTasks) {
                     resolve();
@@ -435,8 +436,8 @@ class TaskScheduler extends EventEmitter {
         this.resourceStats.memoryUsage = memoryUsage.heapUsed / memoryUsage.heapTotal;
 
         // 計算任務吞吐量
-        const recentTasks = this.completedTasks.filter(task =>
-            Date.now() - task.completedAt.getTime() < 60000
+        const recentTasks = this.completedTasks.filter(
+            (task) => Date.now() - task.completedAt.getTime() < 60000
         );
         this.resourceStats.taskThroughput = recentTasks.length;
 
@@ -447,12 +448,12 @@ class TaskScheduler extends EventEmitter {
         }
 
         // 計算錯誤率
-        const recentFailures = this.failedTasks.filter(task =>
-            Date.now() - task.failedAt.getTime() < 60000
+        const recentFailures = this.failedTasks.filter(
+            (task) => Date.now() - task.failedAt.getTime() < 60000
         );
         const totalRecentTasks = recentTasks.length + recentFailures.length;
-        this.resourceStats.errorRate = totalRecentTasks > 0 ?
-            recentFailures.length / totalRecentTasks : 0;
+        this.resourceStats.errorRate =
+            totalRecentTasks > 0 ? recentFailures.length / totalRecentTasks : 0;
 
         this.emit('resourceStatsUpdated', this.resourceStats);
     }
@@ -506,8 +507,9 @@ class TaskScheduler extends EventEmitter {
         if (recentTasks.length === 0) return 0;
 
         const totalWaitTime = recentTasks.reduce((sum, task) => {
-            const waitTime = task.startTime ?
-                task.startTime.getTime() - task.scheduledAt.getTime() : 0;
+            const waitTime = task.startTime
+                ? task.startTime.getTime() - task.scheduledAt.getTime()
+                : 0;
             return sum + waitTime;
         }, 0);
 
@@ -533,16 +535,15 @@ class TaskScheduler extends EventEmitter {
     /**
      * 清理已完成的任務歷史
      */
-    cleanupTaskHistory(maxAge = 24 * 60 * 60 * 1000) { // 默認24小時
+    cleanupTaskHistory(maxAge = 24 * 60 * 60 * 1000) {
+        // 默認24小時
         const cutoffTime = Date.now() - maxAge;
 
-        this.completedTasks = this.completedTasks.filter(task =>
-            task.completedAt.getTime() > cutoffTime
+        this.completedTasks = this.completedTasks.filter(
+            (task) => task.completedAt.getTime() > cutoffTime
         );
 
-        this.failedTasks = this.failedTasks.filter(task =>
-            task.failedAt.getTime() > cutoffTime
-        );
+        this.failedTasks = this.failedTasks.filter((task) => task.failedAt.getTime() > cutoffTime);
 
         console.log('🧹 任務歷史清理完成');
     }
@@ -551,7 +552,7 @@ class TaskScheduler extends EventEmitter {
      * 輔助函數：sleep
      */
     sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 }
 

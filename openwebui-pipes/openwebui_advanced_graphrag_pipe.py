@@ -6,8 +6,8 @@ description: 查詢改寫(術語正規化) + 多跳圖檢索(2-hop：風格/材�
 """
 
 import requests
-from pydantic import BaseModel, Field
 from opencc import OpenCC
+from pydantic import BaseModel, Field
 
 _opencc = OpenCC("s2twp")
 
@@ -44,7 +44,8 @@ class Pipe:
 
         if isinstance(user_message, list):
             user_message = " ".join(
-                part.get("text", "") for part in user_message
+                part.get("text", "")
+                for part in user_message
                 if isinstance(part, dict) and part.get("type") == "text"
             )
 

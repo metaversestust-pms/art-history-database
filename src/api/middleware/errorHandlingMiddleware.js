@@ -21,7 +21,7 @@ const globalErrorHandler = new AdvancedErrorHandler('api-server', {
 const ERROR_MAPPINGS = {
     // 驗證錯誤
     ValidationError: { status: 400, type: 'client_error', recoverable: false },
-    'CastError': { status: 400, type: 'client_error', recoverable: false },
+    CastError: { status: 400, type: 'client_error', recoverable: false },
 
     // 認證和授權錯誤
     UnauthorizedError: { status: 401, type: 'auth_error', recoverable: false },
@@ -101,7 +101,6 @@ function createErrorHandlingMiddleware(options = {}) {
 
             // 發送錯誤響應
             res.json(errorResponse);
-
         } catch (handlingError) {
             // 錯誤處理過程中出錯，發送基本錯誤響應
             logger.error('錯誤處理中間件失敗', {
@@ -123,11 +122,7 @@ function createErrorHandlingMiddleware(options = {}) {
  * 創建非同步操作包裝中間件
  */
 function createAsyncWrapper(options = {}) {
-    const {
-        enableRetry = true,
-        maxRetries = 2,
-        retryDelay = 1000
-    } = options;
+    const { enableRetry = true, maxRetries = 2, retryDelay = 1000 } = options;
 
     return (asyncFn) => {
         return async (req, res, next) => {
@@ -159,11 +154,7 @@ function createAsyncWrapper(options = {}) {
  * 創建資料庫操作包裝中間件
  */
 function createDatabaseWrapper(options = {}) {
-    const {
-        maxRetries = 3,
-        retryDelay = 2000,
-        enableCircuitBreaker = true
-    } = options;
+    const { maxRetries = 3, retryDelay = 2000, enableCircuitBreaker = true } = options;
 
     return (dbFn) => {
         return async (req, res, next) => {
@@ -194,11 +185,7 @@ function createDatabaseWrapper(options = {}) {
  * 創建外部API調用包裝中間件
  */
 function createExternalAPIWrapper(options = {}) {
-    const {
-        maxRetries = 3,
-        retryDelay = 1500,
-        timeout = 10000
-    } = options;
+    const { maxRetries = 3, retryDelay = 1500, timeout = 10000 } = options;
 
     return (apiFn) => {
         return async (req, res, next) => {
@@ -207,10 +194,7 @@ function createExternalAPIWrapper(options = {}) {
 
             try {
                 const result = await globalErrorHandler.executeWithRetry(
-                    () => Promise.race([
-                        apiFn(req, res, next),
-                        createTimeoutPromise(timeout)
-                    ]),
+                    () => Promise.race([apiFn(req, res, next), createTimeoutPromise(timeout)]),
                     context,
                     {
                         maxRetries,
@@ -266,8 +250,12 @@ function createHealthCheckMiddleware() {
     return (req, res) => {
         const healthReport = globalErrorHandler.generateHealthReport();
 
-        const status = healthReport.status === 'healthy' ? 200 :
-                      healthReport.status === 'degraded' ? 200 : 503;
+        const status =
+            healthReport.status === 'healthy'
+                ? 200
+                : healthReport.status === 'degraded'
+                  ? 200
+                  : 503;
 
         res.status(status).json({
             success: status === 200,
@@ -396,13 +384,13 @@ function calculateRetryAfter(errorInfo) {
         case 'rate_limit':
             return 60000; // 1分鐘
         case 'database_error':
-            return 5000;  // 5秒
+            return 5000; // 5秒
         case 'external_api_error':
             return 10000; // 10秒
         case 'timeout_error':
             return 15000; // 15秒
         default:
-            return 3000;  // 3秒
+            return 3000; // 3秒
     }
 }
 

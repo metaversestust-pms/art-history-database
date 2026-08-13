@@ -45,7 +45,7 @@ class CachePerformanceTester {
         const hotTime = await this.testApiResponse(endpoint, '藝術作品詳情 (熱快取)');
 
         if (coldTime && hotTime) {
-            const improvement = ((coldTime - hotTime) / coldTime * 100).toFixed(2);
+            const improvement = (((coldTime - hotTime) / coldTime) * 100).toFixed(2);
             console.log(`⚡ 快取改善: ${improvement}%`);
             this.testResults.artwork = { coldTime, hotTime, improvement };
         }
@@ -65,7 +65,7 @@ class CachePerformanceTester {
         const hotTime = await this.testApiResponse(endpoint, '全域搜索 (熱快取)');
 
         if (coldTime && hotTime) {
-            const improvement = ((coldTime - hotTime) / coldTime * 100).toFixed(2);
+            const improvement = (((coldTime - hotTime) / coldTime) * 100).toFixed(2);
             console.log(`⚡ 搜索快取改善: ${improvement}%`);
             this.testResults.search = { coldTime, hotTime, improvement };
         }
@@ -84,7 +84,7 @@ class CachePerformanceTester {
         const hotTime = await this.testApiResponse(endpoint, '統計資料 (熱快取)');
 
         if (coldTime && hotTime) {
-            const improvement = ((coldTime - hotTime) / coldTime * 100).toFixed(2);
+            const improvement = (((coldTime - hotTime) / coldTime) * 100).toFixed(2);
             console.log(`⚡ 統計快取改善: ${improvement}%`);
             this.testResults.statistics = { coldTime, hotTime, improvement };
         }
@@ -103,7 +103,7 @@ class CachePerformanceTester {
         const hotTime = await this.testApiResponse(endpoint, '搜索建議 (熱快取)');
 
         if (coldTime && hotTime) {
-            const improvement = ((coldTime - hotTime) / coldTime * 100).toFixed(2);
+            const improvement = (((coldTime - hotTime) / coldTime) * 100).toFixed(2);
             console.log(`⚡ 建議快取改善: ${improvement}%`);
         }
     }
@@ -151,7 +151,6 @@ class CachePerformanceTester {
             // 清除藝術作品快取
             await axios.post(`${BASE_URL}/api/v1/cache/clear/artwork`);
             console.log('✅ 藝術作品快取已清除');
-
         } catch (error) {
             console.log(`❌ 清除快取失敗: ${error.message}`);
         }
@@ -167,18 +166,20 @@ class CachePerformanceTester {
 
         console.log(`發送 ${requests} 個並發請求...`);
 
-        const promises = Array(requests).fill().map(async (_, index) => {
-            const startTime = Date.now();
-            try {
-                await axios.get(`${BASE_URL}${endpoint}`);
-                const responseTime = Date.now() - startTime;
-                times.push(responseTime);
-                return responseTime;
-            } catch (error) {
-                console.log(`請求 ${index + 1} 失敗: ${error.message}`);
-                return null;
-            }
-        });
+        const promises = Array(requests)
+            .fill()
+            .map(async (_, index) => {
+                const startTime = Date.now();
+                try {
+                    await axios.get(`${BASE_URL}${endpoint}`);
+                    const responseTime = Date.now() - startTime;
+                    times.push(responseTime);
+                    return responseTime;
+                } catch (error) {
+                    console.log(`請求 ${index + 1} 失敗: ${error.message}`);
+                    return null;
+                }
+            });
 
         await Promise.all(promises);
 
@@ -203,7 +204,7 @@ class CachePerformanceTester {
         await this.testCacheClear();
 
         // 等待一小段時間讓清除生效
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // 執行各項測試
         await this.testArtworkCache();
@@ -263,7 +264,7 @@ async function main() {
 
 // 如果直接執行此腳本
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('測試執行錯誤:', error.message);
         process.exit(1);
     });

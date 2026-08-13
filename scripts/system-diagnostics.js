@@ -49,7 +49,6 @@ class SystemDiagnostics {
 
             // 7. 生成報告
             this.generateReport();
-
         } catch (error) {
             console.error('❌ 診斷過程中發生錯誤:', error);
             process.exit(1);
@@ -88,7 +87,6 @@ class SystemDiagnostics {
             this.results.environment.cwd = process.cwd();
 
             this.addSuccess('環境檢查完成');
-
         } catch (error) {
             this.addIssue('環境檢查失敗', error.message);
         }
@@ -117,8 +115,14 @@ class SystemDiagnostics {
 
             // 檢查關鍵依賴
             const criticalDeps = [
-                'express', 'axios', 'cheerio', 'playwright',
-                'pg', 'redis', 'winston', 'dotenv'
+                'express',
+                'axios',
+                'cheerio',
+                'playwright',
+                'pg',
+                'redis',
+                'winston',
+                'dotenv'
             ];
 
             const missingDeps = [];
@@ -141,7 +145,6 @@ class SystemDiagnostics {
             } else {
                 this.addIssue('缺少關鍵依賴項', missingDeps.join(', '));
             }
-
         } catch (error) {
             this.addIssue('依賴項檢查失敗', error.message);
         }
@@ -200,7 +203,6 @@ class SystemDiagnostics {
                 this.addWarning('未啟用 Ollama，將依賴外部 API');
                 this.results.configuration.aiMode = 'External API';
             }
-
         } catch (error) {
             this.addIssue('配置檢查失敗', error.message);
         }
@@ -232,14 +234,14 @@ class SystemDiagnostics {
                 this.results.services.ollama = {
                     status: 'running',
                     modelsCount: models.length,
-                    models: models.map(m => m.name)
+                    models: models.map((m) => m.name)
                 };
 
                 this.addSuccess('Ollama 服務正常運行', `${models.length} 個模型可用`);
 
                 // 檢查必要模型
                 const requiredModels = ['llama3.1:8b', 'bge-m3:latest'];
-                const availableModels = models.map(m => m.name);
+                const availableModels = models.map((m) => m.name);
 
                 for (const model of requiredModels) {
                     if (availableModels.includes(model)) {
@@ -248,11 +250,9 @@ class SystemDiagnostics {
                         this.addWarning(`模型 ${model} 未安裝`);
                     }
                 }
-
             } else {
                 this.addIssue('Ollama 服務回應異常', `HTTP ${response.status}`);
             }
-
         } catch (error) {
             this.results.services.ollama = {
                 status: 'not_available',
@@ -302,7 +302,6 @@ class SystemDiagnostics {
             }
 
             this.results.functionality.modules = moduleStatus;
-
         } catch (error) {
             this.addIssue('功能檢查失敗', error.message);
         }
@@ -352,7 +351,6 @@ class SystemDiagnostics {
 
             // 檢查網路連接
             await this.checkNetworkConnectivity();
-
         } catch (error) {
             this.addIssue('爬取功能檢查失敗', error.message);
         }
@@ -381,7 +379,6 @@ class SystemDiagnostics {
                     this.addWarning(`網路連接測試失敗`, `${url}: ${error.message}`);
                 }
             }
-
         } catch (error) {
             this.addWarning('網路連接測試跳過', error.message);
         }
@@ -429,9 +426,14 @@ class SystemDiagnostics {
         console.log(`   ⚠️ 警告項目: ${totalWarnings}`);
         console.log(`   ❌ 問題項目: ${totalIssues}`);
 
-        const overallStatus = totalIssues === 0 ?
-            (totalWarnings === 0 ? '優秀' : '良好') :
-            (totalIssues <= 2 ? '需要注意' : '需要修復');
+        const overallStatus =
+            totalIssues === 0
+                ? totalWarnings === 0
+                    ? '優秀'
+                    : '良好'
+                : totalIssues <= 2
+                  ? '需要注意'
+                  : '需要修復';
 
         console.log(`   🎯 系統狀態: ${overallStatus}\n`);
 
@@ -439,7 +441,9 @@ class SystemDiagnostics {
         if (this.results.environment) {
             console.log('🌍 運行環境:');
             console.log(`   Node.js: ${this.results.environment.nodeVersion}`);
-            console.log(`   平台: ${this.results.environment.platform} (${this.results.environment.arch})`);
+            console.log(
+                `   平台: ${this.results.environment.platform} (${this.results.environment.arch})`
+            );
             console.log(`   記憶體: ${this.results.environment.memory?.heapUsed || 'N/A'}\n`);
         }
 
@@ -470,7 +474,9 @@ class SystemDiagnostics {
         if (totalIssues > 0) {
             console.log('❌ 需要解決的問題:');
             this.issues.forEach((issue, index) => {
-                console.log(`   ${index + 1}. ${issue.message}${issue.detail ? ` (${issue.detail})` : ''}`);
+                console.log(
+                    `   ${index + 1}. ${issue.message}${issue.detail ? ` (${issue.detail})` : ''}`
+                );
             });
             console.log('');
         }
@@ -500,24 +506,26 @@ class SystemDiagnostics {
         const recommendations = [];
 
         // 基於問題生成建議
-        if (this.issues.some(i => i.message.includes('依賴項'))) {
+        if (this.issues.some((i) => i.message.includes('依賴項'))) {
             recommendations.push('執行 npm install 安裝缺少的依賴項');
         }
 
-        if (this.issues.some(i => i.message.includes('Ollama'))) {
+        if (this.issues.some((i) => i.message.includes('Ollama'))) {
             recommendations.push('啟動 Ollama 服務: ollama serve');
-            recommendations.push('下載必要模型: ollama pull llama3.1:8b && ollama pull bge-m3:latest');
+            recommendations.push(
+                '下載必要模型: ollama pull llama3.1:8b && ollama pull bge-m3:latest'
+            );
         }
 
-        if (this.warnings.some(w => w.message.includes('配置'))) {
+        if (this.warnings.some((w) => w.message.includes('配置'))) {
             recommendations.push('檢查並完善 .env 配置文件');
         }
 
-        if (this.warnings.some(w => w.message.includes('模型'))) {
+        if (this.warnings.some((w) => w.message.includes('模型'))) {
             recommendations.push('下載缺少的 AI 模型');
         }
 
-        if (this.warnings.some(w => w.message.includes('網路'))) {
+        if (this.warnings.some((w) => w.message.includes('網路'))) {
             recommendations.push('檢查網路連接和防火牆設置');
         }
 

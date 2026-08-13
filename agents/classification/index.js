@@ -30,60 +30,60 @@ class ClassificationAgent extends EventEmitter {
         this.taxonomies = {
             // 時期分類
             periods: {
-                'ancient': ['古代', '古典時期', 'ancient', 'classical'],
-                'medieval': ['中世紀', '拜占庭', 'medieval', 'byzantine'],
-                'renaissance': ['文藝復興', '早期文藝復興', 'renaissance', 'early renaissance'],
-                'baroque': ['巴洛克', 'baroque'],
-                'neoclassical': ['新古典主義', 'neoclassical'],
-                'romantic': ['浪漫主義', 'romantic', 'romanticism'],
-                'impressionist': ['印象派', '印象主義', 'impressionist', 'impressionism'],
-                'post_impressionist': ['後印象派', 'post-impressionist', 'post impressionist'],
-                'modern': ['現代', '現代主義', 'modern', 'modernism'],
-                'contemporary': ['當代', '當代藝術', 'contemporary', 'contemporary art']
+                ancient: ['古代', '古典時期', 'ancient', 'classical'],
+                medieval: ['中世紀', '拜占庭', 'medieval', 'byzantine'],
+                renaissance: ['文藝復興', '早期文藝復興', 'renaissance', 'early renaissance'],
+                baroque: ['巴洛克', 'baroque'],
+                neoclassical: ['新古典主義', 'neoclassical'],
+                romantic: ['浪漫主義', 'romantic', 'romanticism'],
+                impressionist: ['印象派', '印象主義', 'impressionist', 'impressionism'],
+                post_impressionist: ['後印象派', 'post-impressionist', 'post impressionist'],
+                modern: ['現代', '現代主義', 'modern', 'modernism'],
+                contemporary: ['當代', '當代藝術', 'contemporary', 'contemporary art']
             },
             // 風格分類
             styles: {
-                'realism': ['寫實主義', '現實主義', 'realism', 'realistic'],
-                'abstract': ['抽象', '抽象主義', 'abstract', 'abstraction'],
-                'expressionism': ['表現主義', 'expressionism', 'expressionist'],
-                'cubism': ['立體主義', 'cubism', 'cubist'],
-                'surrealism': ['超現實主義', 'surrealism', 'surrealist'],
-                'minimalism': ['極簡主義', 'minimalism', 'minimalist'],
-                'conceptual': ['觀念藝術', 'conceptual art', 'conceptual']
+                realism: ['寫實主義', '現實主義', 'realism', 'realistic'],
+                abstract: ['抽象', '抽象主義', 'abstract', 'abstraction'],
+                expressionism: ['表現主義', 'expressionism', 'expressionist'],
+                cubism: ['立體主義', 'cubism', 'cubist'],
+                surrealism: ['超現實主義', 'surrealism', 'surrealist'],
+                minimalism: ['極簡主義', 'minimalism', 'minimalist'],
+                conceptual: ['觀念藝術', 'conceptual art', 'conceptual']
             },
             // 媒材分類
             mediums: {
-                'painting': ['繪畫', '油畫', 'painting', 'oil painting', 'canvas'],
-                'sculpture': ['雕塑', 'sculpture', 'carved', 'bronze', 'marble'],
-                'drawing': ['素描', '繪圖', 'drawing', 'sketch', 'charcoal'],
-                'print': ['版畫', '印刷', 'print', 'etching', 'lithograph'],
-                'photography': ['攝影', 'photography', 'photograph'],
-                'digital': ['數位藝術', 'digital art', 'computer art'],
-                'installation': ['裝置藝術', 'installation', 'installation art'],
-                'video': ['錄影藝術', 'video art', 'video'],
-                'performance': ['行為藝術', 'performance art', 'performance']
+                painting: ['繪畫', '油畫', 'painting', 'oil painting', 'canvas'],
+                sculpture: ['雕塑', 'sculpture', 'carved', 'bronze', 'marble'],
+                drawing: ['素描', '繪圖', 'drawing', 'sketch', 'charcoal'],
+                print: ['版畫', '印刷', 'print', 'etching', 'lithograph'],
+                photography: ['攝影', 'photography', 'photograph'],
+                digital: ['數位藝術', 'digital art', 'computer art'],
+                installation: ['裝置藝術', 'installation', 'installation art'],
+                video: ['錄影藝術', 'video art', 'video'],
+                performance: ['行為藝術', 'performance art', 'performance']
             },
             // 主題分類
             subjects: {
-                'portrait': ['肖像', '人像', 'portrait', 'portraiture'],
-                'landscape': ['風景', '景觀', 'landscape', 'scenery'],
-                'still_life': ['靜物', 'still life', 'nature morte'],
-                'religious': ['宗教', '宗教題材', 'religious', 'sacred'],
-                'mythology': ['神話', '神話題材', 'mythology', 'mythological'],
-                'history': ['歷史', '歷史畫', 'history', 'historical'],
-                'genre': ['風俗畫', '日常生活', 'genre', 'everyday life'],
-                'nude': ['裸體', '人體', 'nude', 'figure study'],
-                'animal': ['動物', 'animal', 'fauna'],
-                'abstract_subject': ['抽象主題', 'abstract subject', 'non-representational']
+                portrait: ['肖像', '人像', 'portrait', 'portraiture'],
+                landscape: ['風景', '景觀', 'landscape', 'scenery'],
+                still_life: ['靜物', 'still life', 'nature morte'],
+                religious: ['宗教', '宗教題材', 'religious', 'sacred'],
+                mythology: ['神話', '神話題材', 'mythology', 'mythological'],
+                history: ['歷史', '歷史畫', 'history', 'historical'],
+                genre: ['風俗畫', '日常生活', 'genre', 'everyday life'],
+                nude: ['裸體', '人體', 'nude', 'figure study'],
+                animal: ['動物', 'animal', 'fauna'],
+                abstract_subject: ['抽象主題', 'abstract subject', 'non-representational']
             },
             // 地理分類
             regions: {
-                'european': ['歐洲', 'european', 'europe'],
-                'american': ['美國', '美洲', 'american', 'americas'],
-                'asian': ['亞洲', 'asian', 'asia'],
-                'african': ['非洲', 'african', 'africa'],
-                'oceanic': ['大洋洲', 'oceanic', 'oceania'],
-                'middle_eastern': ['中東', 'middle eastern', 'middle east']
+                european: ['歐洲', 'european', 'europe'],
+                american: ['美國', '美洲', 'american', 'americas'],
+                asian: ['亞洲', 'asian', 'asia'],
+                african: ['非洲', 'african', 'africa'],
+                oceanic: ['大洋洲', 'oceanic', 'oceania'],
+                middle_eastern: ['中東', 'middle eastern', 'middle east']
             }
         };
 
@@ -103,7 +103,10 @@ class ClassificationAgent extends EventEmitter {
 
         // 輸入和輸出路徑
         this.inputDir = process.env.DATA_PROCESSED_DIR || './data/processed';
-        this.outputDir = path.join(process.env.DATA_PROCESSED_DIR || './data/processed', 'classified');
+        this.outputDir = path.join(
+            process.env.DATA_PROCESSED_DIR || './data/processed',
+            'classified'
+        );
         this.modelsDir = process.env.MODELS_DIR || './models';
 
         console.log(`🏷️ ${this.name} 初始化完成`);
@@ -132,7 +135,6 @@ class ClassificationAgent extends EventEmitter {
             this.status = 'ready';
             console.log('✅ Classification Agent 初始化完成');
             this.emit('initialized');
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ Classification Agent 初始化失敗:', error.message);
@@ -188,7 +190,7 @@ class ClassificationAgent extends EventEmitter {
             'dc:date': '1503-1519',
             'dc:type': 'painting',
             'dc:description': 'Renaissance portrait painting',
-            '_source': 'test'
+            _source: 'test'
         };
 
         const classification = await this.classifyArtwork(testArtwork);
@@ -236,7 +238,6 @@ class ClassificationAgent extends EventEmitter {
             });
 
             return results;
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ 分類任務失敗:', error.message);
@@ -255,14 +256,17 @@ class ClassificationAgent extends EventEmitter {
             const sourceDir = path.join(this.inputDir, source);
 
             try {
-                const dirExists = await fs.access(sourceDir).then(() => true).catch(() => false);
+                const dirExists = await fs
+                    .access(sourceDir)
+                    .then(() => true)
+                    .catch(() => false);
                 if (!dirExists) {
                     console.warn(`⚠️ 資料夾不存在: ${sourceDir}`);
                     continue;
                 }
 
                 const dirFiles = await fs.readdir(sourceDir);
-                const jsonFiles = dirFiles.filter(f => f.endsWith('.json'));
+                const jsonFiles = dirFiles.filter((f) => f.endsWith('.json'));
 
                 for (const file of jsonFiles) {
                     const filePath = path.join(sourceDir, file);
@@ -316,7 +320,6 @@ class ClassificationAgent extends EventEmitter {
                 });
 
                 console.log(`✅ 分類完成: ${file.filename} (${classifiedRecords.length} 記錄)`);
-
             } catch (error) {
                 console.error(`❌ 分類文件失敗 ${file.filename}:`, error.message);
                 this.errors.push({
@@ -354,7 +357,9 @@ class ClassificationAgent extends EventEmitter {
         }
 
         // 計算總體分類置信度
-        classified._classificationConfidence = this.calculateOverallConfidence(classified._classifications);
+        classified._classificationConfidence = this.calculateOverallConfidence(
+            classified._classifications
+        );
 
         return classified;
     }
@@ -407,7 +412,7 @@ class ClassificationAgent extends EventEmitter {
 
         // 找出最高分數的時期
         const maxScore = Math.max(...Object.values(scores));
-        const bestPeriod = Object.keys(scores).find(p => scores[p] === maxScore);
+        const bestPeriod = Object.keys(scores).find((p) => scores[p] === maxScore);
 
         return {
             category: bestPeriod || 'unknown',
@@ -486,7 +491,7 @@ class ClassificationAgent extends EventEmitter {
         }
 
         const maxScore = Math.max(...Object.values(scores));
-        const bestCategory = Object.keys(scores).find(c => scores[c] === maxScore);
+        const bestCategory = Object.keys(scores).find((c) => scores[c] === maxScore);
 
         return {
             category: bestCategory || 'unknown',
@@ -500,8 +505,14 @@ class ClassificationAgent extends EventEmitter {
      */
     extractTextForClassification(artwork) {
         const fields = [
-            'dc:title', 'dc:creator', 'dc:description', 'dc:subject',
-            'dc:type', 'ah:style', 'ah:technique', 'ah:significance'
+            'dc:title',
+            'dc:creator',
+            'dc:description',
+            'dc:subject',
+            'dc:type',
+            'ah:style',
+            'ah:technique',
+            'ah:significance'
         ];
 
         let text = '';
@@ -525,8 +536,8 @@ class ClassificationAgent extends EventEmitter {
      */
     calculateOverallConfidence(classifications) {
         const confidences = Object.values(classifications)
-            .filter(c => c.confidence !== undefined)
-            .map(c => c.confidence);
+            .filter((c) => c.confidence !== undefined)
+            .map((c) => c.confidence);
 
         if (confidences.length === 0) return 0;
 
@@ -550,7 +561,11 @@ class ClassificationAgent extends EventEmitter {
         }
 
         for (const [period, records] of Object.entries(byPeriod)) {
-            const periodPath = path.join(this.outputDir, 'by_period', `${period}_${originalFilename}`);
+            const periodPath = path.join(
+                this.outputDir,
+                'by_period',
+                `${period}_${originalFilename}`
+            );
             await fs.writeFile(periodPath, JSON.stringify(records, null, 2));
         }
 
@@ -590,7 +605,11 @@ class ClassificationAgent extends EventEmitter {
             configuration: this.config
         };
 
-        const reportPath = path.join(this.outputDir, 'reports', `classification_report_${Date.now()}.json`);
+        const reportPath = path.join(
+            this.outputDir,
+            'reports',
+            `classification_report_${Date.now()}.json`
+        );
         await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
 
         console.log(`📊 分類報告已生成: ${reportPath}`);

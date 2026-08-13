@@ -7,24 +7,16 @@ const Joi = require('joi');
 
 // 藝術家基礎結構驗證
 const artistSchema = Joi.object({
-    name: Joi.string()
-        .min(1)
-        .max(200)
-        .required()
-        .messages({
-            'string.empty': '藝術家姓名不能為空',
-            'string.max': '藝術家姓名不能超過200個字符',
-            'any.required': '藝術家姓名為必填項'
-        }),
+    name: Joi.string().min(1).max(200).required().messages({
+        'string.empty': '藝術家姓名不能為空',
+        'string.max': '藝術家姓名不能超過200個字符',
+        'any.required': '藝術家姓名為必填項'
+    }),
 
-    name_variants: Joi.array()
-        .items(Joi.string().max(200))
-        .max(20)
-        .optional()
-        .messages({
-            'array.max': '姓名變體不能超過20個',
-            'string.max': '單個姓名變體不能超過200個字符'
-        }),
+    name_variants: Joi.array().items(Joi.string().max(200)).max(20).optional().messages({
+        'array.max': '姓名變體不能超過20個',
+        'string.max': '單個姓名變體不能超過200個字符'
+    }),
 
     birth_year: Joi.number()
         .integer()
@@ -46,73 +38,44 @@ const artistSchema = Joi.object({
             'number.max': '死亡年份不能超過當前年份'
         }),
 
-    nationality: Joi.string()
-        .max(100)
-        .optional()
-        .messages({
-            'string.max': '國籍不能超過100個字符'
-        }),
+    nationality: Joi.string().max(100).optional().messages({
+        'string.max': '國籍不能超過100個字符'
+    }),
 
-    art_movement: Joi.string()
-        .max(100)
-        .optional()
-        .messages({
-            'string.max': '藝術運動不能超過100個字符'
-        }),
+    art_movement: Joi.string().max(100).optional().messages({
+        'string.max': '藝術運動不能超過100個字符'
+    }),
 
-    biography: Joi.string()
-        .max(10000)
-        .optional()
-        .messages({
-            'string.max': '傳記不能超過10000個字符'
-        }),
+    biography: Joi.string().max(10000).optional().messages({
+        'string.max': '傳記不能超過10000個字符'
+    }),
 
-    source_urls: Joi.array()
-        .items(Joi.string().uri().max(1000))
-        .max(20)
-        .optional()
-        .messages({
-            'array.max': '來源URL不能超過20個',
-            'string.uri': '必須是有效的URL格式'
-        }),
+    source_urls: Joi.array().items(Joi.string().uri().max(1000)).max(20).optional().messages({
+        'array.max': '來源URL不能超過20個',
+        'string.uri': '必須是有效的URL格式'
+    }),
 
-    metadata: Joi.object()
-        .optional()
-        .messages({
-            'object.base': '元數據必須是對象格式'
-        })
+    metadata: Joi.object().optional().messages({
+        'object.base': '元數據必須是對象格式'
+    })
 });
 
 // 更新時的驗證（所有字段都是可選的）
-const artistUpdateSchema = artistSchema.fork(
-    ['name'],
-    (schema) => schema.optional()
-);
+const artistUpdateSchema = artistSchema.fork(['name'], (schema) => schema.optional());
 
 // 搜索參數驗證
 const artistSearchSchema = Joi.object({
-    q: Joi.string()
-        .min(1)
-        .max(200)
-        .required()
-        .messages({
-            'string.empty': '搜索關鍵字不能為空',
-            'string.max': '搜索關鍵字不能超過200個字符',
-            'any.required': '搜索關鍵字為必填項'
-        }),
+    q: Joi.string().min(1).max(200).required().messages({
+        'string.empty': '搜索關鍵字不能為空',
+        'string.max': '搜索關鍵字不能超過200個字符',
+        'any.required': '搜索關鍵字為必填項'
+    }),
 
-    nationality: Joi.string()
-        .max(100)
-        .optional(),
+    nationality: Joi.string().max(100).optional(),
 
-    art_movement: Joi.string()
-        .max(100)
-        .optional(),
+    art_movement: Joi.string().max(100).optional(),
 
-    birth_year_min: Joi.number()
-        .integer()
-        .min(-3000)
-        .optional(),
+    birth_year_min: Joi.number().integer().min(-3000).optional(),
 
     birth_year_max: Joi.number()
         .integer()
@@ -120,32 +83,18 @@ const artistSearchSchema = Joi.object({
         .max(new Date().getFullYear())
         .optional(),
 
-    limit: Joi.number()
-        .integer()
-        .min(1)
-        .max(100)
-        .default(20)
-        .optional(),
+    limit: Joi.number().integer().min(1).max(100).default(20).optional(),
 
-    page: Joi.number()
-        .integer()
-        .min(1)
-        .default(1)
-        .optional()
+    page: Joi.number().integer().min(1).default(1).optional()
 });
 
 // 批量操作驗證
 const bulkCreateArtistsSchema = Joi.object({
-    artists: Joi.array()
-        .items(artistSchema)
-        .min(1)
-        .max(50)
-        .required()
-        .messages({
-            'array.min': '至少需要一個藝術家數據',
-            'array.max': '批量創建不能超過50個藝術家',
-            'any.required': '藝術家數組為必填項'
-        })
+    artists: Joi.array().items(artistSchema).min(1).max(50).required().messages({
+        'array.min': '至少需要一個藝術家數據',
+        'array.max': '批量創建不能超過50個藝術家',
+        'any.required': '藝術家數組為必填項'
+    })
 });
 
 // 驗證函數
@@ -183,7 +132,7 @@ const validateArtistMiddleware = (isUpdate = false) => {
             return res.status(400).json({
                 success: false,
                 message: '資料驗證失敗',
-                errors: error.details.map(detail => ({
+                errors: error.details.map((detail) => ({
                     field: detail.path.join('.'),
                     message: detail.message,
                     value: detail.context?.value
@@ -204,7 +153,7 @@ const validateArtistSearchMiddleware = () => {
             return res.status(400).json({
                 success: false,
                 message: '搜索參數驗證失敗',
-                errors: error.details.map(detail => ({
+                errors: error.details.map((detail) => ({
                     field: detail.path.join('.'),
                     message: detail.message,
                     value: detail.context?.value

@@ -11,17 +11,17 @@ class DuplicateDetector {
         this.options = {
             // 相似度閾值
             similarityThresholds: {
-                exact: 1.0,           // 完全相同
-                high: 0.95,           // 高度相似
-                medium: 0.85,         // 中度相似
-                low: 0.75             // 低度相似
+                exact: 1.0, // 完全相同
+                high: 0.95, // 高度相似
+                medium: 0.85, // 中度相似
+                low: 0.75 // 低度相似
             },
             // 檢測算法權重
             algorithmWeights: {
-                exactMatch: 0.4,      // 精確匹配
-                levenshtein: 0.3,     // 編輯距離
-                jaccard: 0.2,         // Jaccard相似度
-                soundex: 0.1          // 音韻相似度
+                exactMatch: 0.4, // 精確匹配
+                levenshtein: 0.3, // 編輯距離
+                jaccard: 0.2, // Jaccard相似度
+                soundex: 0.1 // 音韻相似度
             },
             // 字段權重（用於綜合評分）
             fieldWeights: {
@@ -32,9 +32,9 @@ class DuplicateDetector {
                 dimensions: 0.1,
                 location: 0.05
             },
-            batchSize: 100,           // 批次處理大小
-            enableCaching: true,      // 啟用快取
-            cacheSize: 1000,         // 快取大小
+            batchSize: 100, // 批次處理大小
+            enableCaching: true, // 啟用快取
+            cacheSize: 1000, // 快取大小
             ...options
         };
 
@@ -97,7 +97,6 @@ class DuplicateDetector {
             });
 
             return processedResults;
-
         } catch (error) {
             logger.error('重複資料檢測失敗', { error: error.message });
             throw error;
@@ -132,8 +131,8 @@ class DuplicateDetector {
 
         return TextCleaner.cleanText(text)
             .toLowerCase()
-            .replace(/[^\w\s]/g, '')  // 移除標點符號
-            .replace(/\s+/g, ' ')     // 標準化空格
+            .replace(/[^\w\s]/g, '') // 移除標點符號
+            .replace(/\s+/g, ' ') // 標準化空格
             .trim();
     }
 
@@ -157,7 +156,7 @@ class DuplicateDetector {
 
         return dimensions
             .toLowerCase()
-            .replace(/[^\d.,x×\s]/g, '')  // 只保留數字、小數點、x、×
+            .replace(/[^\d.,x×\s]/g, '') // 只保留數字、小數點、x、×
             .replace(/\s+/g, ' ')
             .trim();
     }
@@ -180,7 +179,7 @@ class DuplicateDetector {
         const hashGroups = new Map();
 
         // 按複合鍵分組
-        normalizedData.forEach(record => {
+        normalizedData.forEach((record) => {
             const key = record.normalized.compositeKey;
             if (!hashGroups.has(key)) {
                 hashGroups.set(key, []);
@@ -252,16 +251,14 @@ class DuplicateDetector {
 
         // 從快速檢測結果中移除已確認重複的記錄
         const fastDuplicateIds = new Set();
-        fastDuplicates.forEach(group => {
-            group.records.forEach(record => {
+        fastDuplicates.forEach((group) => {
+            group.records.forEach((record) => {
                 fastDuplicateIds.add(record.id);
             });
         });
 
         // 對剩餘記錄執行精確檢測
-        const remainingData = normalizedData.filter(record =>
-            !fastDuplicateIds.has(record.id)
-        );
+        const remainingData = normalizedData.filter((record) => !fastDuplicateIds.has(record.id));
 
         const accurateDuplicates = await this.accurateDuplicateDetection(remainingData);
 
@@ -398,7 +395,7 @@ class DuplicateDetector {
             const val2 = parseFloat(nums2[i]);
             const diff = Math.abs(val1 - val2);
             const avg = (val1 + val2) / 2;
-            const similarity = avg > 0 ? Math.max(0, 1 - (diff / avg)) : 1;
+            const similarity = avg > 0 ? Math.max(0, 1 - diff / avg) : 1;
             totalSimilarity += similarity;
         }
 
@@ -411,7 +408,7 @@ class DuplicateDetector {
     levenshteinSimilarity(str1, str2) {
         const distance = this.levenshteinDistance(str1, str2);
         const maxLength = Math.max(str1.length, str2.length);
-        return maxLength > 0 ? 1 - (distance / maxLength) : 1;
+        return maxLength > 0 ? 1 - distance / maxLength : 1;
     }
 
     /**
@@ -452,7 +449,7 @@ class DuplicateDetector {
         const set1 = new Set(str1.split(/\s+/));
         const set2 = new Set(str2.split(/\s+/));
 
-        const intersection = new Set([...set1].filter(x => set2.has(x)));
+        const intersection = new Set([...set1].filter((x) => set2.has(x)));
         const union = new Set([...set1, ...set2]);
 
         return union.size > 0 ? intersection.size / union.size : 0;
@@ -480,8 +477,12 @@ class DuplicateDetector {
         let code = firstLetter;
 
         const mapping = {
-            'BFPV': '1', 'CGJKQSXZ': '2', 'DT': '3',
-            'L': '4', 'MN': '5', 'R': '6'
+            BFPV: '1',
+            CGJKQSXZ: '2',
+            DT: '3',
+            L: '4',
+            MN: '5',
+            R: '6'
         };
 
         for (let i = 1; i < str.length; i++) {
@@ -587,7 +588,7 @@ class DuplicateDetector {
             similarity: Math.round(group.similarity * 10000) / 100, // 百分比，保留2位小數
             confidence: group.confidence,
             recordCount: group.records.length,
-            records: group.records.map(record => ({
+            records: group.records.map((record) => ({
                 id: record.id,
                 data: record.originalRecord,
                 normalized: record.normalized
@@ -620,8 +621,12 @@ class DuplicateDetector {
 
         // 建議最新記錄
         const newest = records.reduce((latest, current) => {
-            const latestDate = new Date(latest.originalRecord.created_at || latest.originalRecord.updated_at || 0);
-            const currentDate = new Date(current.originalRecord.created_at || current.originalRecord.updated_at || 0);
+            const latestDate = new Date(
+                latest.originalRecord.created_at || latest.originalRecord.updated_at || 0
+            );
+            const currentDate = new Date(
+                current.originalRecord.created_at || current.originalRecord.updated_at || 0
+            );
             return currentDate > latestDate ? current : latest;
         });
 
@@ -643,7 +648,7 @@ class DuplicateDetector {
         const importantFields = ['title', 'artist_name', 'creation_year', 'description', 'medium'];
         let filledFields = 0;
 
-        importantFields.forEach(field => {
+        importantFields.forEach((field) => {
             if (record[field] && record[field].toString().trim()) {
                 filledFields++;
             }

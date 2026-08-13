@@ -82,7 +82,9 @@ class PerformanceOptimizer extends EventEmitter {
                 }
 
                 const batchTime = Date.now() - batchStartTime;
-                console.log(`✅ 批次 ${i + 1}/${batches.length} 完成: ${batch.length} 項目，耗時 ${batchTime}ms`);
+                console.log(
+                    `✅ 批次 ${i + 1}/${batches.length} 完成: ${batch.length} 項目，耗時 ${batchTime}ms`
+                );
 
                 // 更新指標
                 this.updateBatchMetrics(batch.length, batchTime);
@@ -101,7 +103,6 @@ class PerformanceOptimizer extends EventEmitter {
                     processed: results.length,
                     errors: errors.length
                 });
-
             } catch (error) {
                 console.error(`❌ 批次 ${i + 1} 處理失敗:`, error.message);
                 errors.push({ batch: i + 1, error: error.message, items: batch });
@@ -111,7 +112,9 @@ class PerformanceOptimizer extends EventEmitter {
         const totalTime = Date.now() - startTime;
         const throughput = Math.round(items.length / (totalTime / 1000));
 
-        console.log(`🎉 批處理完成: ${results.length}/${items.length} 成功，${errors.length} 錯誤，吞吐量: ${throughput} 項目/秒`);
+        console.log(
+            `🎉 批處理完成: ${results.length}/${items.length} 成功，${errors.length} 錯誤，吞吐量: ${throughput} 項目/秒`
+        );
 
         return {
             results,
@@ -171,14 +174,15 @@ class PerformanceOptimizer extends EventEmitter {
             }
         });
 
-        return { results: results.filter(r => r !== undefined), errors };
+        return { results: results.filter((r) => r !== undefined), errors };
     }
 
     /**
      * Worker線程處理
      */
     async processWithWorkers(items, workerScript, options = {}) {
-        const numWorkers = options.numWorkers || Math.min(this.options.maxConcurrency, os.cpus().length);
+        const numWorkers =
+            options.numWorkers || Math.min(this.options.maxConcurrency, os.cpus().length);
         const chunkSize = Math.ceil(items.length / numWorkers);
         const chunks = this.chunkArray(items, chunkSize);
 
@@ -190,15 +194,19 @@ class PerformanceOptimizer extends EventEmitter {
 
         try {
             const results = await Promise.all(workerPromises);
-            const flatResults = results.reduce((acc, result) => {
-                acc.results.push(...result.results);
-                acc.errors.push(...result.errors);
-                return acc;
-            }, { results: [], errors: [] });
+            const flatResults = results.reduce(
+                (acc, result) => {
+                    acc.results.push(...result.results);
+                    acc.errors.push(...result.errors);
+                    return acc;
+                },
+                { results: [], errors: [] }
+            );
 
-            console.log(`🎉 Worker處理完成: ${flatResults.results.length} 成功，${flatResults.errors.length} 錯誤`);
+            console.log(
+                `🎉 Worker處理完成: ${flatResults.results.length} 成功，${flatResults.errors.length} 錯誤`
+            );
             return flatResults;
-
         } catch (error) {
             console.error('❌ Worker處理失敗:', error);
             throw error;
@@ -280,20 +288,20 @@ class PerformanceOptimizer extends EventEmitter {
 
             this.updateTaskMetrics(processingTime);
             this.emit('taskCompleted', { id: taskWrapper.id, result, processingTime });
-
         } catch (error) {
             taskWrapper.retries++;
 
             if (taskWrapper.retries < taskWrapper.maxRetries) {
                 // 重新排程
-                console.log(`⚠️ 任務 ${taskWrapper.id} 重試 ${taskWrapper.retries}/${taskWrapper.maxRetries}`);
+                console.log(
+                    `⚠️ 任務 ${taskWrapper.id} 重試 ${taskWrapper.retries}/${taskWrapper.maxRetries}`
+                );
                 this.insertTaskByPriority(taskWrapper);
                 this.metrics.tasksQueued++;
             } else {
                 console.error(`❌ 任務 ${taskWrapper.id} 最終失敗:`, error.message);
                 this.emit('taskFailed', { id: taskWrapper.id, error: error.message });
             }
-
         } finally {
             this.runningTasks.delete(taskWrapper.id);
 
@@ -338,8 +346,10 @@ class PerformanceOptimizer extends EventEmitter {
         const memoryUsage = process.memoryUsage();
         const memoryPressure = memoryUsage.heapUsed / memoryUsage.heapTotal;
 
-        return memoryPressure > this.options.memoryThreshold ||
-               this.metrics.cpuUsage > this.options.cpuThreshold;
+        return (
+            memoryPressure > this.options.memoryThreshold ||
+            this.metrics.cpuUsage > this.options.cpuThreshold
+        );
     }
 
     /**
@@ -442,8 +452,7 @@ class PerformanceOptimizer extends EventEmitter {
     }
 
     canProcessMoreTasks() {
-        return this.runningTasks.size < this.options.maxConcurrency &&
-               !this.isResourceStrained();
+        return this.runningTasks.size < this.options.maxConcurrency && !this.isResourceStrained();
     }
 
     generateTaskId() {
@@ -451,7 +460,7 @@ class PerformanceOptimizer extends EventEmitter {
     }
 
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     cleanupWorkers() {
@@ -476,7 +485,8 @@ class PerformanceOptimizer extends EventEmitter {
                 capacity: this.options.maxConcurrency
             },
             resourceStatus: {
-                memoryPressure: this.metrics.memoryUsage.heapUsed / this.metrics.memoryUsage.heapTotal,
+                memoryPressure:
+                    this.metrics.memoryUsage.heapUsed / this.metrics.memoryUsage.heapTotal,
                 cpuUsage: this.metrics.cpuUsage,
                 isStrained: this.isResourceStrained()
             },
@@ -494,7 +504,8 @@ class PerformanceOptimizer extends EventEmitter {
             recommendations.push('考慮降低並發數量或增加處理延遲');
         }
 
-        const memoryPressure = this.metrics.memoryUsage.heapUsed / this.metrics.memoryUsage.heapTotal;
+        const memoryPressure =
+            this.metrics.memoryUsage.heapUsed / this.metrics.memoryUsage.heapTotal;
         if (memoryPressure > 0.85) {
             recommendations.push('記憶體使用率過高，建議減少批次大小');
         }

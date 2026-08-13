@@ -68,7 +68,6 @@ router.post('/detect/artworks', async (req, res) => {
             },
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('檢測藝術作品重複失敗', { error: error.message });
         res.status(500).json({
@@ -119,7 +118,6 @@ router.post('/detect/artists', async (req, res) => {
             },
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('檢測藝術家重複失敗', { error: error.message });
         res.status(500).json({
@@ -163,7 +161,6 @@ router.post('/detect/batch', async (req, res) => {
             },
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('批次重複檢測失敗', { error: error.message });
         res.status(500).json({
@@ -203,12 +200,15 @@ router.post('/compare', async (req, res) => {
             data: {
                 similarity: Math.round(similarity.overall * 10000) / 100,
                 details: similarity,
-                confidence: similarity.overall >= 0.95 ? 'high' :
-                          similarity.overall >= 0.85 ? 'medium' : 'low'
+                confidence:
+                    similarity.overall >= 0.95
+                        ? 'high'
+                        : similarity.overall >= 0.85
+                          ? 'medium'
+                          : 'low'
             },
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('記錄比較失敗', { error: error.message });
         res.status(500).json({
@@ -231,7 +231,6 @@ router.get('/stats', async (req, res) => {
             data: stats,
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('獲取重複檢測統計失敗', { error: error.message });
         res.status(500).json({
@@ -264,7 +263,7 @@ router.post('/merge-suggestions', async (req, res) => {
         const suggestions = duplicateDetector.generateMergeSuggestions(normalizedData);
 
         // 計算每筆記錄的完整度評分
-        const completenessScores = records.map(record => ({
+        const completenessScores = records.map((record) => ({
             id: record.id,
             score: duplicateDetector.calculateCompletenessScore(record),
             percentage: Math.round(duplicateDetector.calculateCompletenessScore(record) * 100)
@@ -279,7 +278,6 @@ router.post('/merge-suggestions', async (req, res) => {
             },
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('獲取合併建議失敗', { error: error.message });
         res.status(500).json({
@@ -326,8 +324,8 @@ router.post('/auto-merge', async (req, res) => {
             }
         }
 
-        const successCount = mergeResults.filter(r => r.success).length;
-        const failCount = mergeResults.filter(r => !r.success).length;
+        const successCount = mergeResults.filter((r) => r.success).length;
+        const failCount = mergeResults.filter((r) => !r.success).length;
 
         res.json({
             success: true,
@@ -344,7 +342,6 @@ router.post('/auto-merge', async (req, res) => {
             message: dryRun ? '乾跑模式：未實際執行合併' : '合併處理完成',
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('自動合併失敗', { error: error.message });
         res.status(500).json({
@@ -367,7 +364,6 @@ router.delete('/cache', async (req, res) => {
             message: '檢測快取已清除',
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('清除快取失敗', { error: error.message });
         res.status(500).json({
@@ -390,7 +386,6 @@ router.delete('/stats', async (req, res) => {
             message: '統計資料已重設',
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('重設統計失敗', { error: error.message });
         res.status(500).json({
@@ -420,7 +415,9 @@ async function processMergeGroup(group, strategy, dryRun) {
         case 'keep_newest':
             recordToKeep = records.reduce((newest, current) => {
                 const newestDate = new Date(newest.data.updated_at || newest.data.created_at || 0);
-                const currentDate = new Date(current.data.updated_at || current.data.created_at || 0);
+                const currentDate = new Date(
+                    current.data.updated_at || current.data.created_at || 0
+                );
                 return currentDate > newestDate ? current : newest;
             });
             break;
@@ -430,13 +427,13 @@ async function processMergeGroup(group, strategy, dryRun) {
             break;
     }
 
-    const recordsToDelete = records.filter(r => r.id !== recordToKeep.id);
+    const recordsToDelete = records.filter((r) => r.id !== recordToKeep.id);
 
     const result = {
         groupId,
         success: true,
         recordToKeep: recordToKeep.id,
-        recordsToDelete: recordsToDelete.map(r => r.id),
+        recordsToDelete: recordsToDelete.map((r) => r.id),
         strategy
     };
 
@@ -501,7 +498,6 @@ router.get('/algorithms', async (req, res) => {
             data: algorithms,
             timestamp: new Date().toISOString()
         });
-
     } catch (error) {
         logger.error('獲取演算法資訊失敗', { error: error.message });
         res.status(500).json({

@@ -175,34 +175,53 @@ class WebCrawlerAgent extends EventEmitter {
             }, '確保輸出目錄存在');
 
             // 初始化瀏覽器（用於動態內容爬取）
-            await this.errorHandler.wrapAsync(async () => {
-                await this.initializeBrowser();
-            }, '初始化瀏覽器', { maxRetries: 1 });
+            await this.errorHandler.wrapAsync(
+                async () => {
+                    await this.initializeBrowser();
+                },
+                '初始化瀏覽器',
+                { maxRetries: 1 }
+            );
 
             // 初始化速率限制管理器
-            await this.errorHandler.wrapAsync(async () => {
-                await this.initializeRateLimits();
-            }, '初始化速率限制管理器', { maxRetries: 1 });
+            await this.errorHandler.wrapAsync(
+                async () => {
+                    await this.initializeRateLimits();
+                },
+                '初始化速率限制管理器',
+                { maxRetries: 1 }
+            );
 
             // 初始化並行爬取系統
-            await this.errorHandler.wrapAsync(async () => {
-                await this.parallelCrawler.initialize();
-            }, '初始化並行爬取系統', { maxRetries: 1 });
+            await this.errorHandler.wrapAsync(
+                async () => {
+                    await this.parallelCrawler.initialize();
+                },
+                '初始化並行爬取系統',
+                { maxRetries: 1 }
+            );
 
             // 啟動效能監控
-            await this.errorHandler.wrapAsync(async () => {
-                this.performanceMonitor.start();
-            }, '啟動效能監控系統', { maxRetries: 1 });
+            await this.errorHandler.wrapAsync(
+                async () => {
+                    this.performanceMonitor.start();
+                },
+                '啟動效能監控系統',
+                { maxRetries: 1 }
+            );
 
             // 測試網絡連通性
-            await this.errorHandler.wrapAsync(async () => {
-                await this.testConnectivity();
-            }, '測試網絡連通性', { maxRetries: 2 });
+            await this.errorHandler.wrapAsync(
+                async () => {
+                    await this.testConnectivity();
+                },
+                '測試網絡連通性',
+                { maxRetries: 2 }
+            );
 
             this.status = 'ready';
             console.log('✅ Web Crawler Agent 初始化完成');
             this.emit('initialized');
-
         }, 'Agent初始化');
     }
 
@@ -213,24 +232,30 @@ class WebCrawlerAgent extends EventEmitter {
         // 註冊所有資料源的速率限制配置
         const sourceConfigs = {
             // 博物館API配置
-            ...Object.entries(this.sources.museums).map(([name, config]) => [name, {
-                rateLimit: Math.floor(60000 / config.rateLimit), // 轉換為每分鐘請求數
-                burstLimit: config.burstLimit || 10,
-                windowSize: 60000,
-                priority: config.priority,
-                maxConcurrency: 3,
-                respectRetryAfter: true
-            }]),
+            ...Object.entries(this.sources.museums).map(([name, config]) => [
+                name,
+                {
+                    rateLimit: Math.floor(60000 / config.rateLimit), // 轉換為每分鐘請求數
+                    burstLimit: config.burstLimit || 10,
+                    windowSize: 60000,
+                    priority: config.priority,
+                    maxConcurrency: 3,
+                    respectRetryAfter: true
+                }
+            ]),
 
             // 學術資源配置
-            ...Object.entries(this.sources.academic).map(([name, config]) => [name, {
-                rateLimit: Math.floor(60000 / config.rateLimit),
-                burstLimit: config.burstLimit || 5,
-                windowSize: 60000,
-                priority: config.priority,
-                maxConcurrency: 2,
-                respectRetryAfter: true
-            }])
+            ...Object.entries(this.sources.academic).map(([name, config]) => [
+                name,
+                {
+                    rateLimit: Math.floor(60000 / config.rateLimit),
+                    burstLimit: config.burstLimit || 5,
+                    windowSize: 60000,
+                    priority: config.priority,
+                    maxConcurrency: 2,
+                    respectRetryAfter: true
+                }
+            ])
         };
 
         // 註冊所有資料源
@@ -240,11 +265,15 @@ class WebCrawlerAgent extends EventEmitter {
 
         // 監聽速率限制事件
         this.rateLimitManager.on('requestDenied', (event) => {
-            console.warn(`⏱️ 速率限制觸發: ${event.source} - ${event.reason}, 等待 ${event.waitTime}ms`);
+            console.warn(
+                `⏱️ 速率限制觸發: ${event.source} - ${event.reason}, 等待 ${event.waitTime}ms`
+            );
         });
 
         this.rateLimitManager.on('backoffTriggered', (event) => {
-            console.warn(`🔄 退避機制觸發: ${event.source} - ${event.reason}, 等級 ${event.level}, 等待 ${event.backoffTime}ms`);
+            console.warn(
+                `🔄 退避機制觸發: ${event.source} - ${event.reason}, 等級 ${event.level}, 等待 ${event.backoffTime}ms`
+            );
         });
 
         console.log('🚦 速率限制管理器初始化完成');
@@ -296,7 +325,7 @@ class WebCrawlerAgent extends EventEmitter {
         ];
 
         const results = await Promise.allSettled(
-            testUrls.map(url =>
+            testUrls.map((url) =>
                 axios.get(url, {
                     timeout: 5000,
                     headers: { 'User-Agent': this.config.userAgent }
@@ -304,7 +333,7 @@ class WebCrawlerAgent extends EventEmitter {
             )
         );
 
-        const successful = results.filter(r => r.status === 'fulfilled').length;
+        const successful = results.filter((r) => r.status === 'fulfilled').length;
         console.log(`🌐 網絡連通性測試: ${successful}/${testUrls.length} 成功`);
 
         if (successful === 0) {
@@ -347,7 +376,6 @@ class WebCrawlerAgent extends EventEmitter {
             });
 
             return results;
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ 爬取任務失敗:', error.message);
@@ -408,7 +436,7 @@ class WebCrawlerAgent extends EventEmitter {
         this.setupParallelCrawlerEvents();
 
         // 將所有任務轉換為並行爬取任務格式並加入隊列
-        const taskConfigs = tasks.map(task => this.convertToParallelTask(task));
+        const taskConfigs = tasks.map((task) => this.convertToParallelTask(task));
         const taskIds = this.parallelCrawler.addTasks(taskConfigs);
 
         console.log(`📋 已加入 ${taskIds.length} 個任務到並行隊列`);
@@ -424,10 +452,11 @@ class WebCrawlerAgent extends EventEmitter {
      * 將原始任務轉換為並行任務格式
      */
     convertToParallelTask(task) {
-        const sourceConfig = this.sources.museums[task.source] || this.sources.academic[task.source];
+        const sourceConfig =
+            this.sources.museums[task.source] || this.sources.academic[task.source];
 
-        let taskType = 'api';
-        let taskConfig = {
+        const taskType = 'api';
+        const taskConfig = {
             source: task.source,
             url: this.buildTaskUrl(task, sourceConfig),
             type: sourceConfig?.type || 'api',
@@ -520,12 +549,12 @@ class WebCrawlerAgent extends EventEmitter {
      */
     getTaskPriority(source) {
         const priorityMap = {
-            'met': 'high',
-            'europeana': 'high',
-            'louvre': 'medium',
-            'british': 'medium',
-            'jstor': 'low',
-            'academia': 'low'
+            met: 'high',
+            europeana: 'high',
+            louvre: 'medium',
+            british: 'medium',
+            jstor: 'low',
+            academia: 'low'
         };
 
         return priorityMap[source] || 'medium';
@@ -538,7 +567,9 @@ class WebCrawlerAgent extends EventEmitter {
         if (this.parallelEventsSetup) return;
 
         this.parallelCrawler.on('taskCompleted', (task, result) => {
-            console.log(`✅ 並行任務完成: ${task.config.source} - ${task.config.metadata?.keyword}`);
+            console.log(
+                `✅ 並行任務完成: ${task.config.source} - ${task.config.metadata?.keyword}`
+            );
         });
 
         this.parallelCrawler.on('taskFailed', (task, error) => {
@@ -551,7 +582,9 @@ class WebCrawlerAgent extends EventEmitter {
         });
 
         this.parallelCrawler.on('taskStarted', (task) => {
-            console.log(`🎯 開始並行任務: ${task.config.source} - ${task.config.metadata?.keyword}`);
+            console.log(
+                `🎯 開始並行任務: ${task.config.source} - ${task.config.metadata?.keyword}`
+            );
         });
 
         this.parallelEventsSetup = true;
@@ -599,7 +632,9 @@ class WebCrawlerAgent extends EventEmitter {
                     this.parallelCrawler.off('taskCompleted', taskCompletedHandler);
                     this.parallelCrawler.off('taskFailed', taskFailedHandler);
 
-                    console.log(`📊 任務完成統計: 成功 ${completedTaskIds.size}, 失敗 ${failedTaskIds.size}`);
+                    console.log(
+                        `📊 任務完成統計: 成功 ${completedTaskIds.size}, 失敗 ${failedTaskIds.size}`
+                    );
                     resolve(results);
                 }
             };
@@ -613,7 +648,9 @@ class WebCrawlerAgent extends EventEmitter {
                 this.parallelCrawler.off('taskCompleted', taskCompletedHandler);
                 this.parallelCrawler.off('taskFailed', taskFailedHandler);
 
-                console.warn(`⏰ 任務執行超時，已完成 ${completedTaskIds.size}/${taskIds.length} 個任務`);
+                console.warn(
+                    `⏰ 任務執行超時，已完成 ${completedTaskIds.size}/${taskIds.length} 個任務`
+                );
                 resolve(results);
             }, timeoutMs);
         });
@@ -688,7 +725,6 @@ class WebCrawlerAgent extends EventEmitter {
 
             console.log(`✅ Met Museum ${task.keyword}: 收集了 ${artworks.length} 件作品`);
             return artworks;
-
         } catch (error) {
             console.error(`❌ Met Museum 爬取失敗:`, error.message);
             throw error;
@@ -753,7 +789,7 @@ class WebCrawlerAgent extends EventEmitter {
                 const results = [];
                 const items = document.querySelectorAll('.search-result-item');
 
-                items.forEach(item => {
+                items.forEach((item) => {
                     const title = item.querySelector('h3')?.textContent?.trim();
                     const artist = item.querySelector('.artist')?.textContent?.trim();
                     const image = item.querySelector('img')?.src;
@@ -781,7 +817,6 @@ class WebCrawlerAgent extends EventEmitter {
 
             console.log(`✅ Louvre ${task.keyword}: 收集了 ${artworks.length} 件作品`);
             return artworks;
-
         } catch (error) {
             console.error(`❌ Louvre 爬取失敗:`, error.message);
             throw error;
@@ -852,7 +887,6 @@ class WebCrawlerAgent extends EventEmitter {
 
             console.log(`✅ Europeana ${task.keyword}: 收集了 ${artworks.length} 件作品`);
             return artworks;
-
         } catch (error) {
             console.error(`❌ Europeana 爬取失敗:`, error.message);
 
@@ -891,11 +925,14 @@ class WebCrawlerAgent extends EventEmitter {
             if (Array.isArray(textObj)) return textObj[0] || '';
 
             // 優先順序：英文 > 任何其他語言
-            return textObj.en?.[0] ||
-                   textObj.de?.[0] ||
-                   textObj.fr?.[0] ||
-                   textObj.it?.[0] ||
-                   Object.values(textObj)[0]?.[0] || '';
+            return (
+                textObj.en?.[0] ||
+                textObj.de?.[0] ||
+                textObj.fr?.[0] ||
+                textObj.it?.[0] ||
+                Object.values(textObj)[0]?.[0] ||
+                ''
+            );
         };
 
         return {
@@ -903,12 +940,12 @@ class WebCrawlerAgent extends EventEmitter {
             id: item.id || '',
             europeanaId: item.id,
             title: getLocalizedText(item.title),
-            creator: getLocalizedText(item.dcCreator) ||
-                    getLocalizedText(item.dcContributor) || 'Unknown',
-            date: getLocalizedText(item.dcDate) ||
-                  getLocalizedText(item.year) || '',
-            type: getLocalizedText(item.type) ||
-                  getLocalizedText(item.dcType) || '',
+            creator:
+                getLocalizedText(item.dcCreator) ||
+                getLocalizedText(item.dcContributor) ||
+                'Unknown',
+            date: getLocalizedText(item.dcDate) || getLocalizedText(item.year) || '',
+            type: getLocalizedText(item.type) || getLocalizedText(item.dcType) || '',
             description: getLocalizedText(item.dcDescription) || '',
             subject: getLocalizedText(item.dcSubject) || '',
             format: getLocalizedText(item.dcFormat) || '',
@@ -999,7 +1036,6 @@ class WebCrawlerAgent extends EventEmitter {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
             });
-
         } catch (error) {
             console.warn(`⚠️ 圖片下載失敗 ${imageUrl}:`, error.message);
         }
@@ -1021,7 +1057,7 @@ class WebCrawlerAgent extends EventEmitter {
      * 延遲函數
      */
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**

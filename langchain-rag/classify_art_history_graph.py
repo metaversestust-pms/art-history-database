@@ -40,15 +40,47 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "mysecretpassword")
 TERMS_FILE = Path(__file__).parent.parent / "art_history_terms_dictionary.json"
 
 # 示範/測試節點的標籤（舊 enhanced_graph_builder.py 產生，內容跟真實爬蟲資料無關）
-DEMO_LABELS = ["Style", "Movement", "Technique", "Material", "Theme", "Iconography",
-               "Place", "Institution", "Event", "Source", "Text", "Concept", "Translation"]
+DEMO_LABELS = [
+    "Style",
+    "Movement",
+    "Technique",
+    "Material",
+    "Theme",
+    "Iconography",
+    "Place",
+    "Institution",
+    "Event",
+    "Source",
+    "Text",
+    "Concept",
+    "Translation",
+]
 
 # === (3) 流派/運動：風格關鍵字（會出現在 Artwork.period 裡） ===
 STYLE_KEYWORDS = [
-    "Renaissance", "Baroque", "Rococo", "Gothic", "Romanesque", "Byzantine",
-    "Neoclassical", "Neoclassicism", "Romanticism", "Impressionism", "Post-Impressionism",
-    "Realism", "Modernism", "Cubism", "Surrealism", "Expressionism", "Art Nouveau",
-    "Art Deco", "Mannerism", "Ukiyo-e", "Abstract", "Minimalism", "Pop Art",
+    "Renaissance",
+    "Baroque",
+    "Rococo",
+    "Gothic",
+    "Romanesque",
+    "Byzantine",
+    "Neoclassical",
+    "Neoclassicism",
+    "Romanticism",
+    "Impressionism",
+    "Post-Impressionism",
+    "Realism",
+    "Modernism",
+    "Cubism",
+    "Surrealism",
+    "Expressionism",
+    "Art Nouveau",
+    "Art Deco",
+    "Mannerism",
+    "Ukiyo-e",
+    "Abstract",
+    "Minimalism",
+    "Pop Art",
 ]
 
 # === (6) 時間：紀年/朝代關鍵字判斷（regex，抓 "XXX period/dynasty/era" 或西元年份區間） ===
@@ -62,26 +94,121 @@ PERIOD_PATTERNS = [
 
 # === (7) 地點：culture 欄位常見國家/地區/民族關鍵字 ===
 PLACE_KEYWORDS = [
-    "Italian", "Italy", "French", "France", "German", "Germany", "British", "England",
-    "Spanish", "Spain", "Dutch", "Netherlandish", "Netherlands", "Flemish", "Flanders",
-    "American", "United States", "Chinese", "China", "Japanese", "Japan", "Korean", "Korea",
-    "Indian", "India", "Persian", "Iran", "Tibetan", "Tibet", "Thai", "Thailand",
-    "Swedish", "Sweden", "Finnish", "Finland", "Slovak", "Slovakia", "Polish", "Poland",
-    "Venetian", "Venice", "Roman", "Greek", "Greece", "Egyptian", "Egypt", "African",
-    "Ottoman", "Turkish", "Turkey", "Russian", "Russia", "Austrian", "Swiss", "Belgian",
+    "Italian",
+    "Italy",
+    "French",
+    "France",
+    "German",
+    "Germany",
+    "British",
+    "England",
+    "Spanish",
+    "Spain",
+    "Dutch",
+    "Netherlandish",
+    "Netherlands",
+    "Flemish",
+    "Flanders",
+    "American",
+    "United States",
+    "Chinese",
+    "China",
+    "Japanese",
+    "Japan",
+    "Korean",
+    "Korea",
+    "Indian",
+    "India",
+    "Persian",
+    "Iran",
+    "Tibetan",
+    "Tibet",
+    "Thai",
+    "Thailand",
+    "Swedish",
+    "Sweden",
+    "Finnish",
+    "Finland",
+    "Slovak",
+    "Slovakia",
+    "Polish",
+    "Poland",
+    "Venetian",
+    "Venice",
+    "Roman",
+    "Greek",
+    "Greece",
+    "Egyptian",
+    "Egypt",
+    "African",
+    "Ottoman",
+    "Turkish",
+    "Turkey",
+    "Russian",
+    "Russia",
+    "Austrian",
+    "Swiss",
+    "Belgian",
 ]
 
 # === (4) 材質/技法：medium 欄位拆解後的分類關鍵字 ===
 MATERIAL_KEYWORDS = [
-    "bronze", "marble", "oil", "wood", "ivory", "gold", "silver", "ceramic", "porcelain",
-    "textile", "paper", "canvas", "clay", "stone", "glass", "copper", "iron", "steel",
-    "wool", "silk", "leather", "alabaster", "granite", "terracotta", "lacquer", "enamel",
-    "ink", "watercolor", "gesso", "gemstone", "pearl", "diamond", "ruby",
+    "bronze",
+    "marble",
+    "oil",
+    "wood",
+    "ivory",
+    "gold",
+    "silver",
+    "ceramic",
+    "porcelain",
+    "textile",
+    "paper",
+    "canvas",
+    "clay",
+    "stone",
+    "glass",
+    "copper",
+    "iron",
+    "steel",
+    "wool",
+    "silk",
+    "leather",
+    "alabaster",
+    "granite",
+    "terracotta",
+    "lacquer",
+    "enamel",
+    "ink",
+    "watercolor",
+    "gesso",
+    "gemstone",
+    "pearl",
+    "diamond",
+    "ruby",
 ]
 TECHNIQUE_KEYWORDS = [
-    "fresco", "engraving", "tempera", "sculpture", "casting", "gilding", "painting",
-    "drawing", "printing", "weaving", "glazed", "glaze", "carving", "embroidery",
-    "etching", "lithograph", "woodcut", "mosaic", "inlay", "enameling", "chiseled",
+    "fresco",
+    "engraving",
+    "tempera",
+    "sculpture",
+    "casting",
+    "gilding",
+    "painting",
+    "drawing",
+    "printing",
+    "weaving",
+    "glazed",
+    "glaze",
+    "carving",
+    "embroidery",
+    "etching",
+    "lithograph",
+    "woodcut",
+    "mosaic",
+    "inlay",
+    "enameling",
+    "chiseled",
 ]
 
 # === (10) 機構：依來源對應（specialized_art / europeana 有真實機構欄位，其餘用固定名稱） ===
@@ -115,10 +242,21 @@ def clean_demo_nodes(session):
 
 
 def ensure_constraints(session):
-    for label in ["Style", "Technique", "Material", "Period", "Place", "Institution",
-                  "Theme", "Event", "Concept"]:
-        session.run(f"CREATE CONSTRAINT {label.lower()}_name_unique IF NOT EXISTS "
-                     f"FOR (n:{label}) REQUIRE n.name IS UNIQUE").consume()
+    for label in [
+        "Style",
+        "Technique",
+        "Material",
+        "Period",
+        "Place",
+        "Institution",
+        "Theme",
+        "Event",
+        "Concept",
+    ]:
+        session.run(
+            f"CREATE CONSTRAINT {label.lower()}_name_unique IF NOT EXISTS "
+            f"FOR (n:{label}) REQUIRE n.name IS UNIQUE"
+        ).consume()
     # 注意：複合唯一約束 (NODE KEY) 是 Neo4j Enterprise 限定功能，Community Edition 不支援
     # Translation 節點的去重靠 MERGE 時同時比對 text/language/term 三個屬性達成，不靠 DB 約束
     logger.info("✅ 12 類節點的唯一性約束已就緒（Translation 節點靠 MERGE 三屬性比對去重）")
@@ -134,15 +272,19 @@ def add_translations(session, node_label, node_name, translations: dict):
                 MERGE (t:Translation {{text: $text, language: $lang, term: $name}})
                 MERGE (n)-[:HAS_TRANSLATION]->(t)
                 """,
-                name=node_name, text=text, lang=lang,
+                name=node_name,
+                text=text,
+                lang=lang,
             )
 
 
 def classify_styles_and_periods(session):
     """(3) 流派/運動 + (6) 時間：從 Artwork.period 抽取"""
     style_count, period_count = 0, 0
-    rows = session.run("MATCH (a:Artwork) WHERE a.period IS NOT NULL AND a.period <> '' "
-                        "RETURN DISTINCT a.period as period")
+    rows = session.run(
+        "MATCH (a:Artwork) WHERE a.period IS NOT NULL AND a.period <> '' "
+        "RETURN DISTINCT a.period as period"
+    )
     for row in rows:
         period_val = row["period"]
         matched_style = next((s for s in STYLE_KEYWORDS if s.lower() in period_val.lower()), None)
@@ -154,7 +296,8 @@ def classify_styles_and_periods(session):
                 MATCH (a:Artwork {period: $period_val})
                 MERGE (a)-[:BELONGS_TO_STYLE]->(s)
                 """,
-                name=matched_style, period_val=period_val,
+                name=matched_style,
+                period_val=period_val,
             )
             style_count += 1
         elif any(re.search(p, period_val) for p in PERIOD_PATTERNS):
@@ -165,17 +308,22 @@ def classify_styles_and_periods(session):
                 MATCH (a:Artwork {period: $period_val})
                 MERGE (a)-[:CREATED_IN_PERIOD]->(p)
                 """,
-                name=period_val, period_val=period_val,
+                name=period_val,
+                period_val=period_val,
             )
             period_count += 1
-    logger.info(f"✅ (3)流派/運動: {style_count} 種 period 值歸類為風格 | (6)時間: {period_count} 種歸類為紀年")
+    logger.info(
+        f"✅ (3)流派/運動: {style_count} 種 period 值歸類為風格 | (6)時間: {period_count} 種歸類為紀年"
+    )
 
 
 def classify_materials_and_techniques(session):
     """(4) 技法與材質：拆解 Artwork.medium"""
     material_count, technique_count = 0, 0
-    rows = session.run("MATCH (a:Artwork) WHERE a.medium IS NOT NULL AND a.medium <> '' "
-                        "RETURN DISTINCT a.medium as medium")
+    rows = session.run(
+        "MATCH (a:Artwork) WHERE a.medium IS NOT NULL AND a.medium <> '' "
+        "RETURN DISTINCT a.medium as medium"
+    )
     for row in rows:
         medium_val = row["medium"]
         medium_lower = medium_val.lower()
@@ -188,7 +336,8 @@ def classify_materials_and_techniques(session):
                     MATCH (a:Artwork {medium: $medium_val})
                     MERGE (a)-[:USES_MATERIAL]->(m)
                     """,
-                    name=kw, medium_val=medium_val,
+                    name=kw,
+                    medium_val=medium_val,
                 )
                 material_count += 1
         for kw in TECHNIQUE_KEYWORDS:
@@ -200,7 +349,8 @@ def classify_materials_and_techniques(session):
                     MATCH (a:Artwork {medium: $medium_val})
                     MERGE (a)-[:USES_TECHNIQUE]->(t)
                     """,
-                    name=kw, medium_val=medium_val,
+                    name=kw,
+                    medium_val=medium_val,
                 )
                 technique_count += 1
     logger.info(f"✅ (4)材質標記: {material_count} 筆 | 技法標記: {technique_count} 筆")
@@ -209,8 +359,10 @@ def classify_materials_and_techniques(session):
 def classify_places(session):
     """(7) 地點：從 Artwork.culture 抽取"""
     place_count = 0
-    rows = session.run("MATCH (a:Artwork) WHERE a.culture IS NOT NULL AND a.culture <> '' "
-                        "RETURN DISTINCT a.culture as culture")
+    rows = session.run(
+        "MATCH (a:Artwork) WHERE a.culture IS NOT NULL AND a.culture <> '' "
+        "RETURN DISTINCT a.culture as culture"
+    )
     for row in rows:
         culture_val = row["culture"]
         for kw in PLACE_KEYWORDS:
@@ -222,7 +374,8 @@ def classify_places(session):
                     MATCH (a:Artwork {culture: $culture_val})
                     MERGE (a)-[:FROM_PLACE]->(p)
                     """,
-                    name=kw, culture_val=culture_val,
+                    name=kw,
+                    culture_val=culture_val,
                 )
                 place_count += 1
                 break  # 一個 culture 值只取第一個命中的地點關鍵字，避免重複
@@ -241,7 +394,8 @@ def classify_institutions(session):
             MERGE (a)-[:HELD_BY]->(i)
             RETURN count(a) as c
             """,
-            inst_name=inst_name, source=source,
+            inst_name=inst_name,
+            source=source,
         )
         count += result.single()["c"]
 
@@ -285,13 +439,15 @@ def classify_institutions(session):
 
 def tag_text_sources(session):
     """(10) 文獻 Source/Text：google_books 來源額外標記 :Source"""
-    result = session.run("MATCH (a:Artwork {source:'google_books'}) SET a:Source RETURN count(a) as c")
+    result = session.run(
+        "MATCH (a:Artwork {source:'google_books'}) SET a:Source RETURN count(a) as c"
+    )
     logger.info(f"✅ (10)文獻: {result.single()['c']} 筆 google_books 資料標記為 :Source")
 
 
 def classify_concepts_and_theme_genres(session, terms):
     """(11) 概念與術語：art_concepts 詞典比對作品標題/描述
-       (5) 主題與圖像學：只用詞典裡可靠的 genre 詞（portrait/landscape/still life），不對描述文字自由猜測"""
+    (5) 主題與圖像學：只用詞典裡可靠的 genre 詞（portrait/landscape/still life），不對描述文字自由猜測"""
     concept_count = 0
     for term, translations in terms.get("art_concepts", {}).items():
         # 先無條件建立 Concept 節點（就算目前沒有作品命中，節點與翻譯也要存在），再另外找命中的作品建立關聯
@@ -308,7 +464,9 @@ def classify_concepts_and_theme_genres(session, terms):
         )
         concept_count += result.single()["c"]
         add_translations(session, "Concept", term, translations)
-    logger.info(f"✅ (11)概念與術語: {len(terms.get('art_concepts', {}))} 個概念詞條，共 {concept_count} 筆作品關聯")
+    logger.info(
+        f"✅ (11)概念與術語: {len(terms.get('art_concepts', {}))} 個概念詞條，共 {concept_count} 筆作品關聯"
+    )
 
     theme_genre_terms = {"portrait", "landscape", "still life"}
     theme_count = 0
@@ -329,7 +487,9 @@ def classify_concepts_and_theme_genres(session, terms):
         )
         theme_count += result.single()["c"]
         add_translations(session, "Theme", term, translations)
-    logger.info(f"✅ (5)主題與圖像學（僅詞典可靠 genre 詞，未對描述文字自由猜測）: {theme_count} 筆作品關聯")
+    logger.info(
+        f"✅ (5)主題與圖像學（僅詞典可靠 genre 詞，未對描述文字自由猜測）: {theme_count} 筆作品關聯"
+    )
 
 
 def seed_dictionary_styles_materials(session, terms):
@@ -362,16 +522,30 @@ def seed_dictionary_styles_materials(session, terms):
 
 def ensure_empty_schema_labels(session):
     """(9) 事件：僅建立標籤與唯一性約束，不填入任何資料（無來源資料可用，避免捏造）"""
-    session.run("CREATE CONSTRAINT event_name_unique IF NOT EXISTS "
-                 "FOR (n:Event) REQUIRE n.name IS UNIQUE").consume()
+    session.run(
+        "CREATE CONSTRAINT event_name_unique IF NOT EXISTS FOR (n:Event) REQUIRE n.name IS UNIQUE"
+    ).consume()
     logger.info("✅ (9)事件: schema 已建立，暫不填入資料（無來源資料）")
 
 
 def print_summary(session):
     logger.info("=" * 60)
     logger.info("📊 12 類分類節點統計")
-    for label in ["Artist", "Artwork", "Style", "Technique", "Material", "Theme",
-                  "Period", "Place", "Institution", "Event", "Source", "Concept", "Translation"]:
+    for label in [
+        "Artist",
+        "Artwork",
+        "Style",
+        "Technique",
+        "Material",
+        "Theme",
+        "Period",
+        "Place",
+        "Institution",
+        "Event",
+        "Source",
+        "Concept",
+        "Translation",
+    ]:
         result = session.run(f"MATCH (n:{label}) RETURN count(n) as c")
         logger.info(f"  {label}: {result.single()['c']}")
     logger.info("=" * 60)
@@ -379,6 +553,7 @@ def print_summary(session):
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-clean", action="store_true", help="不清除舊示範節點，只疊加分類")
     args = parser.parse_args()

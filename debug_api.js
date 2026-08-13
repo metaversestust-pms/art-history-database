@@ -20,8 +20,14 @@ async function debugArtistController() {
         // 模擬成功回應的創建
         console.log('3. 測試回應格式化');
         const mockRes = {
-            status: function(code) { console.log(`Status: ${code}`); return this; },
-            json: function(data) { console.log('Response:', JSON.stringify(data, null, 2)); return this; }
+            status: function (code) {
+                console.log(`Status: ${code}`);
+                return this;
+            },
+            json: function (data) {
+                console.log('Response:', JSON.stringify(data, null, 2));
+                return this;
+            }
         };
 
         // 這應該不會卡住，除非有其他問題
@@ -31,7 +37,6 @@ async function debugArtistController() {
             limit: 20,
             total: artists.length
         });
-
     } catch (error) {
         console.error('❌ 調試過程中發生錯誤:', error.message);
         console.error('Stack:', error.stack);

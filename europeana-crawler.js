@@ -88,12 +88,7 @@ class EuropeanaCrawler {
                 media: true, // 只搜尋有媒體檔案的記錄
                 thumbnail: true, // 只搜尋有縮圖的記錄
                 profile: 'rich', // 獲取豐富的元數據
-                qf: [
-                    'TYPE:IMAGE',
-                    'TYPE:VIDEO',
-                    'TYPE:3D',
-                    'PROVIDER:*museum*'
-                ]
+                qf: ['TYPE:IMAGE', 'TYPE:VIDEO', 'TYPE:3D', 'PROVIDER:*museum*']
             };
 
             const response = await axios.get(this.searchUrl, {
@@ -107,7 +102,9 @@ class EuropeanaCrawler {
             }
 
             const items = response.data.items;
-            console.log(`   📊 找到 ${response.data.totalResults} 項結果，將收集 ${items.length} 項`);
+            console.log(
+                `   📊 找到 ${response.data.totalResults} 項結果，將收集 ${items.length} 項`
+            );
 
             // 處理每個項目
             const processedItems = [];
@@ -119,11 +116,10 @@ class EuropeanaCrawler {
             }
 
             return processedItems;
-
         } catch (error) {
             if (error.response?.status === 429) {
                 console.warn(`   ⚠️ API 限制達到，等待後重試...`);
-                await new Promise(resolve => setTimeout(resolve, 5000));
+                await new Promise((resolve) => setTimeout(resolve, 5000));
                 return this.searchByQuery(query, rows);
             } else {
                 console.error(`   ⚠️ 搜尋 "${query}" 失敗:`, error.message);
@@ -176,7 +172,6 @@ class EuropeanaCrawler {
             processedItem.qualityScore = this.calculateQualityScore(processedItem);
 
             return processedItem;
-
         } catch (error) {
             console.warn(`   ⚠️ 處理項目失敗: ${error.message}`);
             return null;
@@ -199,7 +194,9 @@ class EuropeanaCrawler {
             creators.push(...(Array.isArray(item.dcCreator) ? item.dcCreator : [item.dcCreator]));
         }
         if (item.dcContributor) {
-            creators.push(...(Array.isArray(item.dcContributor) ? item.dcContributor : [item.dcContributor]));
+            creators.push(
+                ...(Array.isArray(item.dcContributor) ? item.dcContributor : [item.dcContributor])
+            );
         }
         return creators;
     }
@@ -213,7 +210,9 @@ class EuropeanaCrawler {
 
     extractDescription(item) {
         if (item.dcDescription) {
-            const desc = Array.isArray(item.dcDescription) ? item.dcDescription[0] : item.dcDescription;
+            const desc = Array.isArray(item.dcDescription)
+                ? item.dcDescription[0]
+                : item.dcDescription;
             return desc.substring(0, 1000); // 限制長度
         }
         return null;
@@ -222,50 +221,55 @@ class EuropeanaCrawler {
     extractMediaUrls(item) {
         const mediaUrls = [];
         if (item.edmIsShownBy) {
-            mediaUrls.push(...(Array.isArray(item.edmIsShownBy) ? item.edmIsShownBy : [item.edmIsShownBy]));
+            mediaUrls.push(
+                ...(Array.isArray(item.edmIsShownBy) ? item.edmIsShownBy : [item.edmIsShownBy])
+            );
         }
         if (item.edmHasView) {
-            mediaUrls.push(...(Array.isArray(item.edmHasView) ? item.edmHasView : [item.edmHasView]));
+            mediaUrls.push(
+                ...(Array.isArray(item.edmHasView) ? item.edmHasView : [item.edmHasView])
+            );
         }
         return mediaUrls;
     }
 
     categorizeArtHistoryContent(item) {
         const categories = [];
-        const content = `${item.title} ${item.description || ''} ${item.subject.join(' ')}`.toLowerCase();
+        const content =
+            `${item.title} ${item.description || ''} ${item.subject.join(' ')}`.toLowerCase();
 
         // 時期分類
         const periods = {
-            'ancient': ['ancient', 'classical', 'roman', 'greek', 'egyptian'],
-            'medieval': ['medieval', 'gothic', 'romanesque', 'byzantine'],
-            'renaissance': ['renaissance', 'quattrocento', 'cinquecento'],
-            'baroque': ['baroque', 'rococo'],
-            'neoclassical': ['neoclassical', 'neoclassicism'],
-            'romantic': ['romantic', 'romanticism'],
-            'impressionist': ['impressionist', 'impressionism'],
-            'modern': ['modern', 'contemporary', 'abstract', 'cubism', 'surrealism'],
-            'postmodern': ['postmodern', 'conceptual', 'installation']
+            ancient: ['ancient', 'classical', 'roman', 'greek', 'egyptian'],
+            medieval: ['medieval', 'gothic', 'romanesque', 'byzantine'],
+            renaissance: ['renaissance', 'quattrocento', 'cinquecento'],
+            baroque: ['baroque', 'rococo'],
+            neoclassical: ['neoclassical', 'neoclassicism'],
+            romantic: ['romantic', 'romanticism'],
+            impressionist: ['impressionist', 'impressionism'],
+            modern: ['modern', 'contemporary', 'abstract', 'cubism', 'surrealism'],
+            postmodern: ['postmodern', 'conceptual', 'installation']
         };
 
         // 媒介分類
         const media = {
-            'painting': ['painting', 'oil', 'watercolor', 'fresco'],
-            'sculpture': ['sculpture', 'statue', 'bronze', 'marble'],
-            'architecture': ['architecture', 'building', 'cathedral', 'palace'],
-            'photography': ['photography', 'photograph', 'daguerreotype'],
-            'drawing': ['drawing', 'sketch', 'charcoal', 'ink']
+            painting: ['painting', 'oil', 'watercolor', 'fresco'],
+            sculpture: ['sculpture', 'statue', 'bronze', 'marble'],
+            architecture: ['architecture', 'building', 'cathedral', 'palace'],
+            photography: ['photography', 'photograph', 'daguerreotype'],
+            drawing: ['drawing', 'sketch', 'charcoal', 'ink']
         };
 
         // 檢查時期
         for (const [period, keywords] of Object.entries(periods)) {
-            if (keywords.some(keyword => content.includes(keyword))) {
+            if (keywords.some((keyword) => content.includes(keyword))) {
                 categories.push(`period:${period}`);
             }
         }
 
         // 檢查媒介
         for (const [medium, keywords] of Object.entries(media)) {
-            if (keywords.some(keyword => content.includes(keyword))) {
+            if (keywords.some((keyword) => content.includes(keyword))) {
                 categories.push(`medium:${medium}`);
             }
         }
@@ -318,7 +322,7 @@ class EuropeanaCrawler {
 
             // API 限制控制
             if (i < allQueries.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             }
         }
 
@@ -346,10 +350,13 @@ class EuropeanaCrawler {
                 unique.push(item);
             } else {
                 // 如果重複，保留品質分數更高的
-                const existingIndex = unique.findIndex(u =>
-                    `${u.title}_${u.creator.join(',')}_${u.date}` === key
+                const existingIndex = unique.findIndex(
+                    (u) => `${u.title}_${u.creator.join(',')}_${u.date}` === key
                 );
-                if (existingIndex !== -1 && item.qualityScore > unique[existingIndex].qualityScore) {
+                if (
+                    existingIndex !== -1 &&
+                    item.qualityScore > unique[existingIndex].qualityScore
+                ) {
                     unique[existingIndex] = item;
                 }
             }
@@ -368,7 +375,8 @@ class EuropeanaCrawler {
                 totalItems: data.length,
                 source: 'Europeana API',
                 apiKey: this.apiKey.substring(0, 5) + '***',
-                averageQualityScore: data.reduce((sum, item) => sum + item.qualityScore, 0) / data.length,
+                averageQualityScore:
+                    data.reduce((sum, item) => sum + item.qualityScore, 0) / data.length,
                 categoriesDistribution: this.getCategoriesDistribution(data)
             },
             data: data

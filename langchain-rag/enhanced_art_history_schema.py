@@ -4,151 +4,155 @@
 更細緻的節點分類和關係定義
 """
 
-from typing import Dict, List, Any, Optional
+import json
 from dataclasses import dataclass, field
 from enum import Enum
-import json
+from typing import Dict, List
+
 
 class NodeType(Enum):
     """增強的節點類型定義"""
+
     # === 人物相關 ===
-    ARTIST = "Artist"                    # 藝術家
-    CRITIC = "Critic"                    # 藝術評論家
-    CURATOR = "Curator"                  # 策展人
-    DEALER = "Dealer"                    # 藝術商人
-    PATRON = "Patron"                    # 贊助者
-    COLLECTOR = "Collector"              # 收藏家
-    HISTORIAN = "ArtHistorian"           # 藝術史學家
-    APPRENTICE = "Apprentice"            # 學徒
-    ASSISTANT = "Assistant"              # 助手
-    MODEL = "Model"                      # 模特兒
+    ARTIST = "Artist"  # 藝術家
+    CRITIC = "Critic"  # 藝術評論家
+    CURATOR = "Curator"  # 策展人
+    DEALER = "Dealer"  # 藝術商人
+    PATRON = "Patron"  # 贊助者
+    COLLECTOR = "Collector"  # 收藏家
+    HISTORIAN = "ArtHistorian"  # 藝術史學家
+    APPRENTICE = "Apprentice"  # 學徒
+    ASSISTANT = "Assistant"  # 助手
+    MODEL = "Model"  # 模特兒
 
     # === 作品相關 ===
-    ARTWORK = "Artwork"                  # 藝術作品
-    PAINTING = "Painting"                # 繪畫
-    SCULPTURE = "Sculpture"              # 雕塑
-    DRAWING = "Drawing"                  # 素描
-    PRINT = "Print"                      # 版畫
-    PHOTOGRAPH = "Photograph"            # 攝影
-    INSTALLATION = "Installation"        # 裝置藝術
-    VIDEO_ART = "VideoArt"              # 影像藝術
-    PERFORMANCE = "Performance"          # 行為藝術
-    DIGITAL_ART = "DigitalArt"          # 數位藝術
-    CRAFT = "Craft"                     # 工藝品
-    MANUSCRIPT = "Manuscript"           # 手稿
-    SKETCH = "Sketch"                   # 草圖
-    STUDY = "Study"                     # 習作
+    ARTWORK = "Artwork"  # 藝術作品
+    PAINTING = "Painting"  # 繪畫
+    SCULPTURE = "Sculpture"  # 雕塑
+    DRAWING = "Drawing"  # 素描
+    PRINT = "Print"  # 版畫
+    PHOTOGRAPH = "Photograph"  # 攝影
+    INSTALLATION = "Installation"  # 裝置藝術
+    VIDEO_ART = "VideoArt"  # 影像藝術
+    PERFORMANCE = "Performance"  # 行為藝術
+    DIGITAL_ART = "DigitalArt"  # 數位藝術
+    CRAFT = "Craft"  # 工藝品
+    MANUSCRIPT = "Manuscript"  # 手稿
+    SKETCH = "Sketch"  # 草圖
+    STUDY = "Study"  # 習作
 
     # === 風格和運動 ===
-    MOVEMENT = "Movement"                # 藝術運動
-    STYLE = "Style"                     # 藝術風格
-    SCHOOL = "School"                   # 畫派
-    TECHNIQUE = "Technique"             # 技法
-    MEDIUM = "Medium"                   # 媒材
-    GENRE = "Genre"                     # 類型
+    MOVEMENT = "Movement"  # 藝術運動
+    STYLE = "Style"  # 藝術風格
+    SCHOOL = "School"  # 畫派
+    TECHNIQUE = "Technique"  # 技法
+    MEDIUM = "Medium"  # 媒材
+    GENRE = "Genre"  # 類型
 
     # === 時間概念 ===
-    PERIOD = "Period"                   # 時期
-    ERA = "Era"                         # 時代
-    CENTURY = "Century"                 # 世紀
-    DECADE = "Decade"                   # 年代
-    YEAR = "Year"                       # 年份
-    SEASON = "Season"                   # 季節
+    PERIOD = "Period"  # 時期
+    ERA = "Era"  # 時代
+    CENTURY = "Century"  # 世紀
+    DECADE = "Decade"  # 年代
+    YEAR = "Year"  # 年份
+    SEASON = "Season"  # 季節
 
     # === 地理空間 ===
-    CONTINENT = "Continent"             # 大陸
-    COUNTRY = "Country"                 # 國家
-    REGION = "Region"                   # 地區
-    CITY = "City"                       # 城市
-    DISTRICT = "District"               # 區域
-    LOCATION = "Location"               # 一般地點
-    STUDIO = "Studio"                   # 工作室
-    WORKSHOP = "Workshop"               # 工坊
-    ATELIER = "Atelier"                 # 畫室
+    CONTINENT = "Continent"  # 大陸
+    COUNTRY = "Country"  # 國家
+    REGION = "Region"  # 地區
+    CITY = "City"  # 城市
+    DISTRICT = "District"  # 區域
+    LOCATION = "Location"  # 一般地點
+    STUDIO = "Studio"  # 工作室
+    WORKSHOP = "Workshop"  # 工坊
+    ATELIER = "Atelier"  # 畫室
 
     # === 機構組織 ===
-    MUSEUM = "Museum"                   # 博物館
-    GALLERY = "Gallery"                 # 畫廊
-    ACADEMY = "Academy"                 # 學院
-    INSTITUTION = "Institution"         # 機構
-    FOUNDATION = "Foundation"           # 基金會
-    SOCIETY = "Society"                 # 學會
-    GUILD = "Guild"                     # 行會
-    UNIVERSITY = "University"           # 大學
-    LIBRARY = "Library"                 # 圖書館
-    ARCHIVE = "Archive"                 # 檔案館
+    MUSEUM = "Museum"  # 博物館
+    GALLERY = "Gallery"  # 畫廊
+    ACADEMY = "Academy"  # 學院
+    INSTITUTION = "Institution"  # 機構
+    FOUNDATION = "Foundation"  # 基金會
+    SOCIETY = "Society"  # 學會
+    GUILD = "Guild"  # 行會
+    UNIVERSITY = "University"  # 大學
+    LIBRARY = "Library"  # 圖書館
+    ARCHIVE = "Archive"  # 檔案館
 
     # === 展覽活動 ===
-    EXHIBITION = "Exhibition"           # 展覽
-    SOLO_SHOW = "SoloShow"             # 個展
-    GROUP_SHOW = "GroupShow"           # 聯展
-    BIENNIAL = "Biennial"              # 雙年展
-    FAIR = "ArtFair"                   # 藝術博覽會
-    AUCTION = "Auction"                # 拍賣
-    COMPETITION = "Competition"        # 競賽
-    FESTIVAL = "Festival"              # 節慶
-    SYMPOSIUM = "Symposium"            # 研討會
+    EXHIBITION = "Exhibition"  # 展覽
+    SOLO_SHOW = "SoloShow"  # 個展
+    GROUP_SHOW = "GroupShow"  # 聯展
+    BIENNIAL = "Biennial"  # 雙年展
+    FAIR = "ArtFair"  # 藝術博覽會
+    AUCTION = "Auction"  # 拍賣
+    COMPETITION = "Competition"  # 競賽
+    FESTIVAL = "Festival"  # 節慶
+    SYMPOSIUM = "Symposium"  # 研討會
 
     # === 主題內容 ===
-    THEME = "Theme"                     # 主題
-    SUBJECT = "Subject"                 # 題材
-    MOTIF = "Motif"                     # 母題
-    SYMBOL = "Symbol"                   # 象徵
-    MYTHOLOGY = "Mythology"             # 神話
-    RELIGION = "Religion"               # 宗教
-    PORTRAIT = "Portrait"               # 肖像
-    LANDSCAPE = "Landscape"             # 風景
-    STILL_LIFE = "StillLife"           # 靜物
-    HISTORY_PAINTING = "HistoryPainting" # 歷史畫
+    THEME = "Theme"  # 主題
+    SUBJECT = "Subject"  # 題材
+    MOTIF = "Motif"  # 母題
+    SYMBOL = "Symbol"  # 象徵
+    MYTHOLOGY = "Mythology"  # 神話
+    RELIGION = "Religion"  # 宗教
+    PORTRAIT = "Portrait"  # 肖像
+    LANDSCAPE = "Landscape"  # 風景
+    STILL_LIFE = "StillLife"  # 靜物
+    HISTORY_PAINTING = "HistoryPainting"  # 歷史畫
 
     # === 材料工具 ===
-    PIGMENT = "Pigment"                 # 顏料
-    CANVAS = "Canvas"                   # 畫布
-    PAPER = "Paper"                     # 紙張
-    WOOD = "Wood"                       # 木材
-    STONE = "Stone"                     # 石材
-    METAL = "Metal"                     # 金屬
-    CLAY = "Clay"                       # 黏土
-    TOOL = "Tool"                       # 工具
-    BRUSH = "Brush"                     # 畫筆
+    PIGMENT = "Pigment"  # 顏料
+    CANVAS = "Canvas"  # 畫布
+    PAPER = "Paper"  # 紙張
+    WOOD = "Wood"  # 木材
+    STONE = "Stone"  # 石材
+    METAL = "Metal"  # 金屬
+    CLAY = "Clay"  # 黏土
+    TOOL = "Tool"  # 工具
+    BRUSH = "Brush"  # 畫筆
 
     # === 收藏保存 ===
-    COLLECTION = "Collection"           # 收藏
+    COLLECTION = "Collection"  # 收藏
     PRIVATE_COLLECTION = "PrivateCollection"  # 私人收藏
-    PUBLIC_COLLECTION = "PublicCollection"    # 公共收藏
-    PROVENANCE = "Provenance"          # 來源
-    CONSERVATION = "Conservation"       # 保存
-    RESTORATION = "Restoration"        # 修復
+    PUBLIC_COLLECTION = "PublicCollection"  # 公共收藏
+    PROVENANCE = "Provenance"  # 來源
+    CONSERVATION = "Conservation"  # 保存
+    RESTORATION = "Restoration"  # 修復
 
     # === 文獻資料 ===
-    DOCUMENT = "Document"               # 文獻
-    LETTER = "Letter"                   # 信件
-    DIARY = "Diary"                     # 日記
-    BIOGRAPHY = "Biography"             # 傳記
-    CATALOG = "Catalog"                 # 目錄
-    ARTICLE = "Article"                 # 文章
-    BOOK = "Book"                       # 書籍
-    REVIEW = "Review"                   # 評論
-    INTERVIEW = "Interview"             # 訪談
+    DOCUMENT = "Document"  # 文獻
+    LETTER = "Letter"  # 信件
+    DIARY = "Diary"  # 日記
+    BIOGRAPHY = "Biography"  # 傳記
+    CATALOG = "Catalog"  # 目錄
+    ARTICLE = "Article"  # 文章
+    BOOK = "Book"  # 書籍
+    REVIEW = "Review"  # 評論
+    INTERVIEW = "Interview"  # 訪談
 
     # === 市場經濟 ===
-    PRICE = "Price"                     # 價格
-    VALUATION = "Valuation"             # 估價
-    SALE = "Sale"                       # 銷售
-    COMMISSION = "Commission"           # 委託
-    CONTRACT = "Contract"               # 合約
-    INSURANCE = "Insurance"             # 保險
+    PRICE = "Price"  # 價格
+    VALUATION = "Valuation"  # 估價
+    SALE = "Sale"  # 銷售
+    COMMISSION = "Commission"  # 委託
+    CONTRACT = "Contract"  # 合約
+    INSURANCE = "Insurance"  # 保險
 
     # === 技術分析 ===
-    ANALYSIS = "Analysis"               # 分析
-    X_RAY = "XRay"                      # X光
-    INFRARED = "Infrared"              # 紅外線
-    PIGMENT_ANALYSIS = "PigmentAnalysis" # 顏料分析
-    CARBON_DATING = "CarbonDating"     # 碳定年
-    CONDITION_REPORT = "ConditionReport" # 狀況報告
+    ANALYSIS = "Analysis"  # 分析
+    X_RAY = "XRay"  # X光
+    INFRARED = "Infrared"  # 紅外線
+    PIGMENT_ANALYSIS = "PigmentAnalysis"  # 顏料分析
+    CARBON_DATING = "CarbonDating"  # 碳定年
+    CONDITION_REPORT = "ConditionReport"  # 狀況報告
+
 
 class RelationType(Enum):
     """增強的關係類型定義"""
+
     # === 創作關係 ===
     CREATED_BY = "CREATED_BY"
     DESIGNED_BY = "DESIGNED_BY"
@@ -247,15 +251,18 @@ class RelationType(Enum):
     CATALOGUED_IN = "CATALOGUED_IN"
     PUBLISHED_IN = "PUBLISHED_IN"
 
+
 @dataclass
 class EnhancedNodeDefinition:
     """增強的節點定義"""
+
     type: NodeType
     properties: Dict[str, type]
     required_properties: List[str]
     description: str
     subcategories: List[str] = field(default_factory=list)
     aliases: List[str] = field(default_factory=list)
+
 
 class EnhancedArtHistorySchema:
     """增強的藝術史知識圖譜架構"""
@@ -299,14 +306,19 @@ class EnhancedArtHistorySchema:
                     "workshop_location": str,
                     "patrons": List[str],
                     "influences": List[str],
-                    "legacy": str
+                    "legacy": str,
                 },
                 required_properties=["name"],
                 description="藝術家實體，包含完整的個人和藝術信息",
-                subcategories=["Painter", "Sculptor", "Printmaker", "Photographer", "Conceptual Artist"],
-                aliases=["Creator", "Painter", "Master"]
+                subcategories=[
+                    "Painter",
+                    "Sculptor",
+                    "Printmaker",
+                    "Photographer",
+                    "Conceptual Artist",
+                ],
+                aliases=["Creator", "Painter", "Master"],
             ),
-
             # === 繪畫作品節點 ===
             NodeType.PAINTING: EnhancedNodeDefinition(
                 type=NodeType.PAINTING,
@@ -341,14 +353,13 @@ class EnhancedArtHistorySchema:
                     "cultural_significance": str,
                     "technical_analysis": str,
                     "conservation_history": List[str],
-                    "related_works": List[str]
+                    "related_works": List[str],
                 },
                 required_properties=["title", "artist"],
                 description="繪畫作品的詳細信息",
                 subcategories=["Oil Painting", "Watercolor", "Fresco", "Tempera", "Acrylic"],
-                aliases=["Picture", "Canvas", "Work"]
+                aliases=["Picture", "Canvas", "Work"],
             ),
-
             # === 博物館節點 ===
             NodeType.MUSEUM: EnhancedNodeDefinition(
                 type=NodeType.MUSEUM,
@@ -385,14 +396,18 @@ class EnhancedArtHistorySchema:
                     "funding_sources": List[str],
                     "mission_statement": str,
                     "acquisition_policy": str,
-                    "deaccession_policy": str
+                    "deaccession_policy": str,
                 },
                 required_properties=["name", "location"],
                 description="博物館機構的完整信息",
-                subcategories=["Art Museum", "History Museum", "Contemporary Art Center", "Private Museum"],
-                aliases=["Gallery", "Institution", "Collection"]
+                subcategories=[
+                    "Art Museum",
+                    "History Museum",
+                    "Contemporary Art Center",
+                    "Private Museum",
+                ],
+                aliases=["Gallery", "Institution", "Collection"],
             ),
-
             # === 藝術運動節點 ===
             NodeType.MOVEMENT: EnhancedNodeDefinition(
                 type=NodeType.MOVEMENT,
@@ -424,14 +439,13 @@ class EnhancedArtHistorySchema:
                     "critical_reception": str,
                     "legacy": str,
                     "scholarly_interpretation": str,
-                    "regional_variations": List[str]
+                    "regional_variations": List[str],
                 },
                 required_properties=["name"],
                 description="藝術運動的詳細發展脈絡",
                 subcategories=["Avant-garde", "Traditional", "Modern", "Contemporary"],
-                aliases=["School", "Style", "Trend"]
+                aliases=["School", "Style", "Trend"],
             ),
-
             # === 展覽節點 ===
             NodeType.EXHIBITION: EnhancedNodeDefinition(
                 type=NodeType.EXHIBITION,
@@ -465,14 +479,13 @@ class EnhancedArtHistorySchema:
                     "multimedia": List[str],
                     "significance": str,
                     "innovations": List[str],
-                    "traveling_venues": List[str]
+                    "traveling_venues": List[str],
                 },
                 required_properties=["title", "venue"],
                 description="展覽活動的完整記錄",
                 subcategories=["Retrospective", "Group Show", "Thematic", "Historical Survey"],
-                aliases=["Show", "Display", "Presentation"]
+                aliases=["Show", "Display", "Presentation"],
             ),
-
             # === 技法節點 ===
             NodeType.TECHNIQUE: EnhancedNodeDefinition(
                 type=NodeType.TECHNIQUE,
@@ -499,13 +512,18 @@ class EnhancedArtHistorySchema:
                     "preservation_concerns": List[str],
                     "modern_adaptations": List[str],
                     "teaching_traditions": List[str],
-                    "cultural_significance": str
+                    "cultural_significance": str,
                 },
                 required_properties=["name"],
                 description="藝術技法的詳細信息",
-                subcategories=["Painting Technique", "Sculpture Technique", "Printmaking", "Drawing"],
-                aliases=["Method", "Process", "Approach"]
-            )
+                subcategories=[
+                    "Painting Technique",
+                    "Sculpture Technique",
+                    "Printmaking",
+                    "Drawing",
+                ],
+                aliases=["Method", "Process", "Approach"],
+            ),
         }
 
     def _define_enhanced_relationships(self) -> List[dict]:
@@ -519,8 +537,8 @@ class EnhancedArtHistorySchema:
                     "creation_location": str,
                     "commission_type": str,
                     "collaboration": List[str],
-                    "attribution_certainty": float
-                }
+                    "attribution_certainty": float,
+                },
             },
             {
                 "type": RelationType.INFLUENCED_BY,
@@ -530,8 +548,8 @@ class EnhancedArtHistorySchema:
                     "evidence": str,
                     "period": str,
                     "degree": float,
-                    "specific_aspects": List[str]
-                }
+                    "specific_aspects": List[str],
+                },
             },
             {
                 "type": RelationType.EXHIBITED_AT,
@@ -541,9 +559,9 @@ class EnhancedArtHistorySchema:
                     "date": str,
                     "venue": str,
                     "role": str,
-                    "significance": str
-                }
-            }
+                    "significance": str,
+                },
+            },
         ]
 
     def generate_enhanced_cypher_schema(self) -> List[str]:
@@ -561,7 +579,14 @@ class EnhancedArtHistorySchema:
             )
 
         # 創建索引
-        index_properties = ["name", "title", "creation_date", "birth_year", "death_year", "location"]
+        index_properties = [
+            "name",
+            "title",
+            "creation_date",
+            "birth_year",
+            "death_year",
+            "location",
+        ]
         for node_type in self.nodes.keys():
             for prop in index_properties:
                 statements.append(
@@ -578,19 +603,20 @@ class EnhancedArtHistorySchema:
                 "version": "2.0",
                 "description": "Enhanced Art History Knowledge Graph Schema",
                 "node_types_count": len(self.nodes),
-                "relationship_types_count": len(self.relationships)
+                "relationship_types_count": len(self.relationships),
             },
             "nodes": {
                 node_type.value: {
                     "properties": {
-                        prop: str(prop_type.__name__) if hasattr(prop_type, '__name__')
+                        prop: str(prop_type.__name__)
+                        if hasattr(prop_type, "__name__")
                         else str(prop_type)
                         for prop, prop_type in node_def.properties.items()
                     },
                     "required_properties": node_def.required_properties,
                     "description": node_def.description,
                     "subcategories": node_def.subcategories,
-                    "aliases": node_def.aliases
+                    "aliases": node_def.aliases,
                 }
                 for node_type, node_def in self.nodes.items()
             },
@@ -598,13 +624,14 @@ class EnhancedArtHistorySchema:
                 {
                     "type": rel["type"].value,
                     "description": rel["description"],
-                    "properties": rel.get("properties", {})
+                    "properties": rel.get("properties", {}),
                 }
                 for rel in self.relationships
-            ]
+            ],
         }
 
         return json.dumps(schema_data, ensure_ascii=False, indent=2)
+
 
 # 使用示例
 if __name__ == "__main__":
@@ -621,7 +648,7 @@ if __name__ == "__main__":
         "作品相關": ["PAINTING", "SCULPTURE", "DRAWING", "PRINT", "PHOTOGRAPH"],
         "機構組織": ["MUSEUM", "GALLERY", "ACADEMY", "INSTITUTION"],
         "展覽活動": ["EXHIBITION", "SOLO_SHOW", "GROUP_SHOW", "BIENNIAL"],
-        "技術材料": ["TECHNIQUE", "MEDIUM", "PIGMENT", "CANVAS"]
+        "技術材料": ["TECHNIQUE", "MEDIUM", "PIGMENT", "CANVAS"],
     }
 
     for category, node_types in categories.items():

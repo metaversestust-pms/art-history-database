@@ -66,7 +66,9 @@ class OpenWebUIIntegrationTester {
                 const hasResults = response.data.sources && response.data.sources.length > 0;
 
                 if (hasResults) {
-                    console.log(`\n✅ 查詢「${test.description}」: 找到 ${response.data.sources.length} 個結果`);
+                    console.log(
+                        `\n✅ 查詢「${test.description}」: 找到 ${response.data.sources.length} 個結果`
+                    );
                     console.log(`   信心分數: ${response.data.confidence_score}`);
                     this.results.graphRAG.passed++;
                 } else {
@@ -179,9 +181,9 @@ class OpenWebUIIntegrationTester {
             { name: 'OpenWebUI', results: this.results.openwebui }
         ];
 
-        sections.forEach(section => {
+        sections.forEach((section) => {
             const total = section.results.passed + section.results.failed;
-            const successRate = total > 0 ? (section.results.passed / total * 100).toFixed(1) : 0;
+            const successRate = total > 0 ? ((section.results.passed / total) * 100).toFixed(1) : 0;
 
             console.log(`\n📊 ${section.name}:`);
             console.log(`   通過: ${section.results.passed}`);
@@ -192,7 +194,7 @@ class OpenWebUIIntegrationTester {
         // 總體評估
         const totalPassed = Object.values(this.results).reduce((sum, r) => sum + r.passed, 0);
         const totalFailed = Object.values(this.results).reduce((sum, r) => sum + r.failed, 0);
-        const overallRate = totalPassed / (totalPassed + totalFailed) * 100;
+        const overallRate = (totalPassed / (totalPassed + totalFailed)) * 100;
 
         console.log('\n🎯 總體評估:');
         console.log(`   總測試數: ${totalPassed + totalFailed}`);

@@ -184,9 +184,10 @@ class NumberCleaner {
         }
 
         // 標準化尺寸格式
-        let cleaned = dimensions.trim()
-            .replace(/\s*[xX×]\s*/g, ' × ')  // 標準化乘號
-            .replace(/\s*cm\s*/gi, ' cm')    // 標準化單位
+        const cleaned = dimensions
+            .trim()
+            .replace(/\s*[xX×]\s*/g, ' × ') // 標準化乘號
+            .replace(/\s*cm\s*/gi, ' cm') // 標準化單位
             .replace(/\s*mm\s*/gi, ' mm')
             .replace(/\s*m\s*/gi, ' m')
             .replace(/\s*in\s*/gi, ' in')
@@ -255,7 +256,9 @@ class ArtDataCleaner {
 
         // 清理主題內容
         if (artworkData.subject_matter) {
-            cleaned.subject_matter = TextCleaner.cleanText(artworkData.subject_matter, { maxLength: 200 });
+            cleaned.subject_matter = TextCleaner.cleanText(artworkData.subject_matter, {
+                maxLength: 200
+            });
         }
 
         // 清理位置信息
@@ -264,7 +267,9 @@ class ArtDataCleaner {
         }
 
         if (artworkData.current_location) {
-            cleaned.current_location = TextCleaner.cleanText(artworkData.current_location, { maxLength: 300 });
+            cleaned.current_location = TextCleaner.cleanText(artworkData.current_location, {
+                maxLength: 300
+            });
         }
 
         // 清理來源和意義
@@ -359,7 +364,9 @@ class ArtDataCleaner {
 
         // 清理藝術運動
         if (artistData.art_movement) {
-            cleaned.art_movement = TextCleaner.cleanText(artistData.art_movement, { maxLength: 100 });
+            cleaned.art_movement = TextCleaner.cleanText(artistData.art_movement, {
+                maxLength: 100
+            });
         }
 
         // 清理傳記

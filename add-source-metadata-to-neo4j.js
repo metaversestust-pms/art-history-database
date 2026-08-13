@@ -40,9 +40,9 @@ class SourceMetadataAdder {
                 },
                 {
                     headers: {
-                        'Authorization': `Basic ${this.auth}`,
+                        Authorization: `Basic ${this.auth}`,
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        Accept: 'application/json'
                     }
                 }
             );
@@ -52,7 +52,6 @@ class SourceMetadataAdder {
             }
 
             return response.data.results[0];
-
         } catch (error) {
             console.error(`❌ 查詢失敗: ${error.message}`);
             if (error.response) {
@@ -233,14 +232,13 @@ class SourceMetadataAdder {
             console.log('資料來源統計:');
             console.log('='.repeat(60));
 
-            result.data.forEach(item => {
+            result.data.forEach((item) => {
                 const type = item.row[0];
                 const count = item.row[1];
                 console.log(`${type}: ${count}`);
             });
 
             console.log('='.repeat(60) + '\n');
-
         } catch (error) {
             console.error('❌ 驗證失敗\n');
         }
@@ -254,7 +252,7 @@ class SourceMetadataAdder {
         console.log('='.repeat(60) + '\n');
 
         // 測試連接
-        if (!await this.testConnection()) {
+        if (!(await this.testConnection())) {
             return false;
         }
 
@@ -302,7 +300,6 @@ class SourceMetadataAdder {
             console.log('   3. 更新 OpenWebUI v4.0');
 
             return true;
-
         } catch (error) {
             console.error('\n❌ 執行失敗:', error.message);
             return false;

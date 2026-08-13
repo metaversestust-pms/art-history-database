@@ -13,7 +13,7 @@ class MemoryPressureManager {
         this.enabled = options.enabled !== false;
         this.pressureLevels = {
             low: {
-                threshold: options.lowPressure || 60,      // 60% 記憶體使用
+                threshold: options.lowPressure || 60, // 60% 記憶體使用
                 actions: ['cleanup_expired_cache', 'pool_maintenance']
             },
             moderate: {
@@ -21,7 +21,7 @@ class MemoryPressureManager {
                 actions: ['aggressive_cache_cleanup', 'minor_gc', 'buffer_reduction']
             },
             high: {
-                threshold: options.highPressure || 85,     // 85% 記憶體使用
+                threshold: options.highPressure || 85, // 85% 記憶體使用
                 actions: ['emergency_cache_clear', 'major_gc', 'pool_shrinking']
             },
             critical: {
@@ -39,8 +39,8 @@ class MemoryPressureManager {
         // 記憶體限制設定
         this.memoryLimits = {
             heap: options.heapLimit || this.getDefaultHeapLimit(),
-            rss: options.rssLimit || (2 * 1024 * 1024 * 1024), // 2GB RSS 限制
-            external: options.externalLimit || (500 * 1024 * 1024) // 500MB 外部記憶體限制
+            rss: options.rssLimit || 2 * 1024 * 1024 * 1024, // 2GB RSS 限制
+            external: options.externalLimit || 500 * 1024 * 1024 // 500MB 外部記憶體限制
         };
 
         // 緊急回應策略
@@ -59,7 +59,7 @@ class MemoryPressureManager {
             const v8 = require('v8');
             if (v8.getHeapStatistics) {
                 const stats = v8.getHeapStatistics();
-                return stats.heap_size_limit || (1024 * 1024 * 1024); // 預設 1GB
+                return stats.heap_size_limit || 1024 * 1024 * 1024; // 預設 1GB
             }
         } catch (error) {
             // 預設值
@@ -102,9 +102,9 @@ class MemoryPressureManager {
         this.emergencyStrategies.set('minor_gc', async () => {
             logger.info('🗑️ 執行輕量垃圾回收...');
             const result = gcOptimizer.forceGC('minor');
-            return result ?
-                { success: true, action: '輕量GC', freed: result.memoryFreed } :
-                { success: false, reason: 'GC 不可用' };
+            return result
+                ? { success: true, action: '輕量GC', freed: result.memoryFreed }
+                : { success: false, reason: 'GC 不可用' };
         });
 
         // 緩衝區減少
@@ -138,9 +138,9 @@ class MemoryPressureManager {
         this.emergencyStrategies.set('major_gc', async () => {
             logger.warn('🗑️ 執行主要垃圾回收...');
             const result = gcOptimizer.forceGC('major');
-            return result ?
-                { success: true, action: '主要GC', freed: result.memoryFreed } :
-                { success: false, reason: 'GC 不可用' };
+            return result
+                ? { success: true, action: '主要GC', freed: result.memoryFreed }
+                : { success: false, reason: 'GC 不可用' };
         });
 
         // 物件池縮減
@@ -290,7 +290,6 @@ class MemoryPressureManager {
                     external: `${externalUtilization.toFixed(2)}%`
                 });
             }
-
         } catch (error) {
             logger.error('記憶體壓力檢查失敗:', error);
         }
@@ -316,7 +315,9 @@ class MemoryPressureManager {
      * 處理壓力等級變化
      */
     async handlePressureLevelChange(newLevel, memUsage, utilization) {
-        logger.warn(`📈 記憶體壓力等級變化: ${this.currentPressureLevel} → ${newLevel} (${utilization.toFixed(2)}%)`);
+        logger.warn(
+            `📈 記憶體壓力等級變化: ${this.currentPressureLevel} → ${newLevel} (${utilization.toFixed(2)}%)`
+        );
 
         if (newLevel === 'normal') {
             // 壓力緩解，記錄恢復
@@ -367,17 +368,21 @@ class MemoryPressureManager {
         }
 
         // 記錄成功的動作
-        const successfulActions = actionResults.filter(r => r.success);
-        const failedActions = actionResults.filter(r => !r.success);
+        const successfulActions = actionResults.filter((r) => r.success);
+        const failedActions = actionResults.filter((r) => !r.success);
 
         if (successfulActions.length > 0) {
-            logger.info(`✅ 成功執行 ${successfulActions.length} 個應對動作:`,
-                successfulActions.map(a => a.action));
+            logger.info(
+                `✅ 成功執行 ${successfulActions.length} 個應對動作:`,
+                successfulActions.map((a) => a.action)
+            );
         }
 
         if (failedActions.length > 0) {
-            logger.error(`❌ ${failedActions.length} 個動作執行失敗:`,
-                failedActions.map(a => `${a.action}: ${a.reason || a.error}`));
+            logger.error(
+                `❌ ${failedActions.length} 個動作執行失敗:`,
+                failedActions.map((a) => `${a.action}: ${a.reason || a.error}`)
+            );
         }
     }
 
@@ -412,9 +417,9 @@ class MemoryPressureManager {
                 usage: memUsage,
                 limits: this.memoryLimits,
                 utilization: {
-                    heap: `${(memUsage.heapUsed / this.memoryLimits.heap * 100).toFixed(2)}%`,
-                    rss: `${(memUsage.rss / this.memoryLimits.rss * 100).toFixed(2)}%`,
-                    external: `${(memUsage.external / this.memoryLimits.external * 100).toFixed(2)}%`
+                    heap: `${((memUsage.heapUsed / this.memoryLimits.heap) * 100).toFixed(2)}%`,
+                    rss: `${((memUsage.rss / this.memoryLimits.rss) * 100).toFixed(2)}%`,
+                    external: `${((memUsage.external / this.memoryLimits.external) * 100).toFixed(2)}%`
                 }
             },
             v8: v8Stats,
@@ -444,12 +449,14 @@ class MemoryPressureManager {
             level: 'manual',
             utilization: 'N/A',
             memUsage: process.memoryUsage(),
-            actions: [{
-                action: actionName,
-                timestamp: Date.now(),
-                level: 'manual',
-                ...result
-            }]
+            actions: [
+                {
+                    action: actionName,
+                    timestamp: Date.now(),
+                    level: 'manual',
+                    ...result
+                }
+            ]
         });
 
         return result;
@@ -472,9 +479,9 @@ class MemoryPressureManager {
                     rss: `${Math.round(memUsage.rss / 1024 / 1024)}MB`,
                     external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
                     utilization: {
-                        heap: `${(memUsage.heapUsed / this.memoryLimits.heap * 100).toFixed(2)}%`,
-                        rss: `${(memUsage.rss / this.memoryLimits.rss * 100).toFixed(2)}%`,
-                        external: `${(memUsage.external / this.memoryLimits.external * 100).toFixed(2)}%`
+                        heap: `${((memUsage.heapUsed / this.memoryLimits.heap) * 100).toFixed(2)}%`,
+                        rss: `${((memUsage.rss / this.memoryLimits.rss) * 100).toFixed(2)}%`,
+                        external: `${((memUsage.external / this.memoryLimits.external) * 100).toFixed(2)}%`
                     }
                 }
             },
@@ -486,7 +493,7 @@ class MemoryPressureManager {
                     rss: `${Math.round(this.memoryLimits.rss / 1024 / 1024)}MB`,
                     external: `${Math.round(this.memoryLimits.external / 1024 / 1024)}MB`
                 },
-                pressureLevels: Object.keys(this.pressureLevels).map(level => ({
+                pressureLevels: Object.keys(this.pressureLevels).map((level) => ({
                     level,
                     threshold: `${this.pressureLevels[level].threshold}%`,
                     actions: this.pressureLevels[level].actions
@@ -494,14 +501,18 @@ class MemoryPressureManager {
             },
             activity: {
                 totalActions: this.actionHistory.length,
-                recentActions: recentActions.map(entry => ({
+                recentActions: recentActions.map((entry) => ({
                     timestamp: new Date(entry.timestamp).toISOString(),
                     level: entry.level,
                     utilization: entry.utilization,
-                    actions: entry.actions.map(a => ({
+                    actions: entry.actions.map((a) => ({
                         name: a.action,
                         success: a.success,
-                        result: a.success ? (a.freed ? `freed ${Math.round(a.freed / 1024 / 1024)}MB` : 'completed') : a.reason
+                        result: a.success
+                            ? a.freed
+                                ? `freed ${Math.round(a.freed / 1024 / 1024)}MB`
+                                : 'completed'
+                            : a.reason
                     }))
                 }))
             },
@@ -516,7 +527,7 @@ class MemoryPressureManager {
      * 延遲工具函數
      */
     delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**

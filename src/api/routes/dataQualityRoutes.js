@@ -90,12 +90,7 @@ function createDataQualityRoutes(dataQualityMonitor) {
      */
     router.get('/metrics', async (req, res) => {
         try {
-            const {
-                metric = 'overall',
-                limit = 100,
-                startDate,
-                endDate
-            } = req.query;
+            const { metric = 'overall', limit = 100, startDate, endDate } = req.query;
 
             const allMetrics = dataQualityMonitor.qualityMetrics;
 
@@ -103,7 +98,9 @@ function createDataQualityRoutes(dataQualityMonitor) {
                 return res.status(400).json({
                     success: false,
                     error: '無效的指標名稱',
-                    availableMetrics: Object.keys(allMetrics).filter(key => Array.isArray(allMetrics[key]))
+                    availableMetrics: Object.keys(allMetrics).filter((key) =>
+                        Array.isArray(allMetrics[key])
+                    )
                 });
             }
 
@@ -114,7 +111,7 @@ function createDataQualityRoutes(dataQualityMonitor) {
                 const start = startDate ? new Date(startDate) : new Date(0);
                 const end = endDate ? new Date(endDate) : new Date();
 
-                metrics = metrics.filter(m => {
+                metrics = metrics.filter((m) => {
                     const timestamp = new Date(m.timestamp);
                     return timestamp >= start && timestamp <= end;
                 });
@@ -157,12 +154,12 @@ function createDataQualityRoutes(dataQualityMonitor) {
 
             for (const [key, metrics] of Object.entries(allMetrics)) {
                 if (Array.isArray(metrics)) {
-                    const recentMetrics = metrics.filter(m =>
-                        new Date(m.timestamp).getTime() > cutoffTime
+                    const recentMetrics = metrics.filter(
+                        (m) => new Date(m.timestamp).getTime() > cutoffTime
                     );
 
                     if (recentMetrics.length > 0) {
-                        const values = recentMetrics.map(m => m.value);
+                        const values = recentMetrics.map((m) => m.value);
                         trends[key] = {
                             current: values[values.length - 1],
                             average: values.reduce((sum, v) => sum + v, 0) / values.length,
@@ -198,22 +195,21 @@ function createDataQualityRoutes(dataQualityMonitor) {
      */
     router.put('/config', async (req, res) => {
         try {
-            const {
-                evaluationInterval,
-                alertThresholds,
-                sampleSize,
-                enableAlerts
-            } = req.body;
+            const { evaluationInterval, alertThresholds, sampleSize, enableAlerts } = req.body;
 
             // 驗證配置參數
             const updates = {};
 
-            if (evaluationInterval && evaluationInterval >= 60000) { // 最少1分鐘
+            if (evaluationInterval && evaluationInterval >= 60000) {
+                // 最少1分鐘
                 updates.evaluationInterval = evaluationInterval;
             }
 
             if (alertThresholds && typeof alertThresholds === 'object') {
-                updates.alertThresholds = { ...dataQualityMonitor.options.alertThresholds, ...alertThresholds };
+                updates.alertThresholds = {
+                    ...dataQualityMonitor.options.alertThresholds,
+                    ...alertThresholds
+                };
             }
 
             if (sampleSize && sampleSize > 0 && sampleSize <= 10000) {
@@ -253,31 +249,25 @@ function createDataQualityRoutes(dataQualityMonitor) {
      */
     router.get('/alerts', async (req, res) => {
         try {
-            const {
-                limit = 50,
-                severity,
-                type,
-                startDate,
-                endDate
-            } = req.query;
+            const { limit = 50, severity, type, startDate, endDate } = req.query;
 
             // 從事件歷史中獲取告警記錄
             let alerts = dataQualityMonitor.alertHistory || [];
 
             // 過濾條件
             if (severity) {
-                alerts = alerts.filter(alert => alert.severity === severity);
+                alerts = alerts.filter((alert) => alert.severity === severity);
             }
 
             if (type) {
-                alerts = alerts.filter(alert => alert.type === type);
+                alerts = alerts.filter((alert) => alert.type === type);
             }
 
             if (startDate || endDate) {
                 const start = startDate ? new Date(startDate) : new Date(0);
                 const end = endDate ? new Date(endDate) : new Date();
 
-                alerts = alerts.filter(alert => {
+                alerts = alerts.filter((alert) => {
                     const timestamp = new Date(alert.timestamp);
                     return timestamp >= start && timestamp <= end;
                 });
@@ -321,11 +311,13 @@ function createDataQualityRoutes(dataQualityMonitor) {
                     lastEvaluation: status.lastEvaluation,
                     evaluationInterval: status.evaluationInterval
                 },
-                currentQuality: report.current ? {
-                    overallScore: report.current.overallScore,
-                    grade: report.summary?.qualityGrade,
-                    timestamp: report.current.timestamp
-                } : null,
+                currentQuality: report.current
+                    ? {
+                          overallScore: report.current.overallScore,
+                          grade: report.summary?.qualityGrade,
+                          timestamp: report.current.timestamp
+                      }
+                    : null,
                 trends: report.trends,
                 topIssues: report.summary?.topIssues || [],
                 recommendations: report.summary?.recommendations || [],

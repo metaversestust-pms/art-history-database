@@ -50,7 +50,7 @@ const TEST_QUERIES = [
 class AllRAGMethodsTester {
     constructor() {
         this.results = {};
-        RAG_STRATEGIES.forEach(strategy => {
+        RAG_STRATEGIES.forEach((strategy) => {
             this.results[strategy] = {
                 passed: 0,
                 failed: 0,
@@ -75,26 +75,33 @@ class AllRAGMethodsTester {
             // Graph RAG可以使用任一端點
             if (strategy === 'GRAPH_ONLY') {
                 // 使用專用Graph RAG端點
-                response = await axios.post(`${GRAPH_RAG_URL}/query`, {
-                    query: query,
-                    strategy: 'graph_only',
-                    top_k: 5
-                }, { timeout: 30000 });
+                response = await axios.post(
+                    `${GRAPH_RAG_URL}/query`,
+                    {
+                        query: query,
+                        strategy: 'graph_only',
+                        top_k: 5
+                    },
+                    { timeout: 30000 }
+                );
 
                 answer = response.data.answer || '';
                 sources = response.data.sources || [];
                 confidence = response.data.confidence_score || 0;
-
             } else {
                 // 其他策略使用RAG Manager，需要model_combination_id
                 // 使用llama3.1:8b作為默認LLM
                 const modelCombinationId = `llama3.1:8b@${strategyLower}`;
 
-                response = await axios.post(`${RAG_MANAGER_URL}/api/v1/query`, {
-                    query: query,
-                    model_combination_id: modelCombinationId,
-                    top_k: 5
-                }, { timeout: 60000 });
+                response = await axios.post(
+                    `${RAG_MANAGER_URL}/api/v1/query`,
+                    {
+                        query: query,
+                        model_combination_id: modelCombinationId,
+                        top_k: 5
+                    },
+                    { timeout: 60000 }
+                );
 
                 answer = response.data.answer || response.data.response || '';
                 sources = response.data.sources || response.data.context || [];
@@ -106,7 +113,7 @@ class AllRAGMethodsTester {
             const hasSources = sources && sources.length > 0;
 
             // 檢查答案中是否包含預期關鍵字
-            const keywordsFound = expectedKeywords.filter(keyword =>
+            const keywordsFound = expectedKeywords.filter((keyword) =>
                 answer.toLowerCase().includes(keyword.toLowerCase())
             );
 
@@ -147,13 +154,14 @@ class AllRAGMethodsTester {
 
                 return false;
             }
-
         } catch (error) {
             console.log(`   ❌ 失敗: ${error.message}`);
 
             if (error.response) {
                 console.log(`      狀態碼: ${error.response.status}`);
-                console.log(`      錯誤: ${error.response.data?.error || error.response.data?.detail || '未知錯誤'}`);
+                console.log(
+                    `      錯誤: ${error.response.data?.error || error.response.data?.detail || '未知錯誤'}`
+                );
             }
 
             this.results[strategy].failed++;
@@ -236,7 +244,7 @@ class AllRAGMethodsTester {
                 );
 
                 // 稍微延遲避免請求過快
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise((resolve) => setTimeout(resolve, 500));
             }
         }
 
@@ -253,14 +261,16 @@ class AllRAGMethodsTester {
         let totalPassed = 0;
         let totalFailed = 0;
 
-        RAG_STRATEGIES.forEach(strategy => {
+        RAG_STRATEGIES.forEach((strategy) => {
             const result = this.results[strategy];
             const total = result.passed + result.failed;
-            const successRate = total > 0 ? (result.passed / total * 100).toFixed(1) : 0;
+            const successRate = total > 0 ? ((result.passed / total) * 100).toFixed(1) : 0;
 
             const icon = successRate >= 90 ? '✅' : successRate >= 70 ? '⚠️' : '❌';
 
-            console.log(`${icon} ${strategy.padEnd(20)} - 成功: ${result.passed}/${total} (${successRate}%)`);
+            console.log(
+                `${icon} ${strategy.padEnd(20)} - 成功: ${result.passed}/${total} (${successRate}%)`
+            );
 
             totalPassed += result.passed;
             totalFailed += result.failed;
@@ -268,11 +278,13 @@ class AllRAGMethodsTester {
 
         // 總體統計
         const overallTotal = totalPassed + totalFailed;
-        const overallRate = overallTotal > 0 ? (totalPassed / overallTotal * 100).toFixed(1) : 0;
+        const overallRate = overallTotal > 0 ? ((totalPassed / overallTotal) * 100).toFixed(1) : 0;
 
         console.log('\n' + '─'.repeat(63));
         console.log('\n🎯 總體統計:');
-        console.log(`   總測試數: ${overallTotal} (${RAG_STRATEGIES.length} 個策略 × ${TEST_QUERIES.length} 個查詢)`);
+        console.log(
+            `   總測試數: ${overallTotal} (${RAG_STRATEGIES.length} 個策略 × ${TEST_QUERIES.length} 個查詢)`
+        );
         console.log(`   成功: ${totalPassed}`);
         console.log(`   失敗: ${totalFailed}`);
         console.log(`   成功率: ${overallRate}%`);
@@ -290,18 +302,18 @@ class AllRAGMethodsTester {
         }
 
         // 列出失敗的策略
-        const failedStrategies = RAG_STRATEGIES.filter(strategy => {
+        const failedStrategies = RAG_STRATEGIES.filter((strategy) => {
             const result = this.results[strategy];
             const total = result.passed + result.failed;
-            return total > 0 && (result.passed / total < 0.7);
+            return total > 0 && result.passed / total < 0.7;
         });
 
         if (failedStrategies.length > 0) {
             console.log('\n⚠️ 需要改進的策略:');
-            failedStrategies.forEach(strategy => {
+            failedStrategies.forEach((strategy) => {
                 const result = this.results[strategy];
                 const total = result.passed + result.failed;
-                const rate = (result.passed / total * 100).toFixed(1);
+                const rate = ((result.passed / total) * 100).toFixed(1);
                 console.log(`   - ${strategy}: ${result.passed}/${total} (${rate}%)`);
             });
         }
@@ -315,7 +327,7 @@ class AllRAGMethodsTester {
         RAG_STRATEGIES.forEach((strategy, idx) => {
             const result = this.results[strategy];
             const total = result.passed + result.failed;
-            const successRate = total > 0 ? (result.passed / total * 100).toFixed(1) : 0;
+            const successRate = total > 0 ? ((result.passed / total) * 100).toFixed(1) : 0;
             const status = successRate >= 70 ? '✅' : '⚠️';
             console.log(`   ${idx + 1}. ${status} ${strategy}`);
         });

@@ -18,20 +18,22 @@ harvard_{harvardId}）寫入。同一件作品重複爬到只會更新屬性、�
 """
 
 import json
+import logging
 import os
 import re
-import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-from neo4j import GraphDatabase
-import chromadb
+from typing import Dict, List, Optional
 
+import chromadb
 from chunking import build_chunk_records
+from neo4j import GraphDatabase
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7688")  # 原生 Neo4j（WSL 直接執行，非 Docker），7688 是因為 WSL 環境本身有另一個系統 Neo4j 服務佔用了 7687
+NEO4J_URI = os.getenv(
+    "NEO4J_URI", "bolt://127.0.0.1:7688"
+)  # 原生 Neo4j（WSL 直接執行，非 Docker），7688 是因為 WSL 環境本身有另一個系統 Neo4j 服務佔用了 7687
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "mysecretpassword")
 DATA_DIR = Path(os.getenv("DATA_RAW_DIR", str(Path(__file__).parent.parent / "data" / "raw")))
@@ -48,9 +50,11 @@ SOURCE_PATTERNS = {
     # 兩種命名法是同一資料的不同世代快照，用 alternation 合成一個 pattern 只取整體最新一份
     "harvard": [r"^(harvard_art_museums_.*|harvard_objects)\.json$"],
     "masterpieces_curated": [r"^masterpieces_curated\.json$"],
-    "met_museum": [r"^met_museum_crawled_.*\.json$",
-                   r"^renaissance_baroque_\d.*\.json$",
-                   r"^renaissance_baroque_quick_.*\.json$"],
+    "met_museum": [
+        r"^met_museum_crawled_.*\.json$",
+        r"^renaissance_baroque_\d.*\.json$",
+        r"^renaissance_baroque_quick_.*\.json$",
+    ],
     "specialized_art": [r"^specialized_art_.*\.json$"],
     "art_institute_chicago": [r"^art_institute_chicago_crawled_.*\.json$"],
     "va_museum": [r"^va_museum_crawled_.*\.json$"],
@@ -124,7 +128,9 @@ def normalize_google_books(item: Dict) -> Dict:
 
 def normalize_harvard(item: Dict) -> Dict:
     people = item.get("people") or []
-    artist = ", ".join(p.get("displayname", "") for p in people if isinstance(p, dict) and p.get("displayname"))
+    artist = ", ".join(
+        p.get("displayname", "") for p in people if isinstance(p, dict) and p.get("displayname")
+    )
     return {
         "id": f"harvard_{item.get('harvardId') or item.get('id')}",
         "title": safe_str(item.get("title"), 500) or "Untitled",
@@ -293,11 +299,13 @@ class Neo4jBatchWriter:
         self.artwork_rows.append(row)
         if artwork.get("artist"):
             for artist_name in [n.strip() for n in artwork["artist"].split(",") if n.strip()]:
-                self.artist_rows.append({
-                    "artist_name": artist_name,
-                    "artwork_id": artwork["id"],
-                    "source": source,
-                })
+                self.artist_rows.append(
+                    {
+                        "artist_name": artist_name,
+                        "artwork_id": artwork["id"],
+                        "source": source,
+                    }
+                )
         if len(self.artwork_rows) >= self.batch_size:
             self.flush()
 
@@ -405,9 +413,18 @@ def clean_previous_import(session):
 
 def ensure_fulltext_indexes(session):
     indexes = [
-        ("artist_name_fulltext", "CREATE FULLTEXT INDEX artist_name_fulltext IF NOT EXISTS FOR (n:Artist) ON EACH [n.name]"),
-        ("artwork_title_fulltext", "CREATE FULLTEXT INDEX artwork_title_fulltext IF NOT EXISTS FOR (n:Artwork) ON EACH [n.title]"),
-        ("artwork_description_fulltext", "CREATE FULLTEXT INDEX artwork_description_fulltext IF NOT EXISTS FOR (n:Artwork) ON EACH [n.description]"),
+        (
+            "artist_name_fulltext",
+            "CREATE FULLTEXT INDEX artist_name_fulltext IF NOT EXISTS FOR (n:Artist) ON EACH [n.name]",
+        ),
+        (
+            "artwork_title_fulltext",
+            "CREATE FULLTEXT INDEX artwork_title_fulltext IF NOT EXISTS FOR (n:Artwork) ON EACH [n.title]",
+        ),
+        (
+            "artwork_description_fulltext",
+            "CREATE FULLTEXT INDEX artwork_description_fulltext IF NOT EXISTS FOR (n:Artwork) ON EACH [n.description]",
+        ),
     ]
     for name, query in indexes:
         session.run(query).consume()
@@ -416,9 +433,13 @@ def ensure_fulltext_indexes(session):
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--clean", action="store_true",
-                         help="清除模式：先清空非 Europeana 的舊資料再重建（預設為累加模式，不清除）")
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="清除模式：先清空非 Europeana 的舊資料再重建（預設為累加模式，不清除）",
+    )
     args = parser.parse_args()
 
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
@@ -434,7 +455,9 @@ def main():
         if args.clean:
             clean_previous_import(session)
         else:
-            logger.info("📌 累加模式：不清除舊資料，只用 MERGE 更新/新增（同一作品重複爬到不會產生重複節點）")
+            logger.info(
+                "📌 累加模式：不清除舊資料，只用 MERGE 更新/新增（同一作品重複爬到不會產生重複節點）"
+            )
 
         neo4j_writer = Neo4jBatchWriter(session)
         sources = resolve_sources()
@@ -472,7 +495,9 @@ def main():
     driver.close()
 
     chroma_writer.flush()
-    logger.info(f"✅ ChromaDB 累加/更新完成，本次寫入 {chroma_writer.total_written} 筆（失敗 {chroma_writer.total_errors} 筆），collection 目前總數: {chroma_collection.count()}")
+    logger.info(
+        f"✅ ChromaDB 累加/更新完成，本次寫入 {chroma_writer.total_written} 筆（失敗 {chroma_writer.total_errors} 筆），collection 目前總數: {chroma_collection.count()}"
+    )
 
     logger.info("=" * 60)
     logger.info("📊 匯入摘要")

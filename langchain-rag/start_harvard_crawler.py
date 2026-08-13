@@ -5,9 +5,8 @@ Harvard Art Museums爬蟲啟動腳本
 """
 
 import logging
-import sys
-import os
 from datetime import datetime
+
 
 def main():
     """主啟動函數"""
@@ -18,15 +17,12 @@ def main():
     print("🔑 API Key: cfe24845-aa4f-4c93-9d86-f6880440af5f")
     print("=" * 60)
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
     try:
         # 導入相關模塊
         from harvard_art_museums_crawler import HarvardArtMuseumsCrawler, HarvardCrawlerConfig
-        from unified_crawler_manager import UnifiedCrawlerManager, CrawlerConfig
+        from unified_crawler_manager import CrawlerConfig, UnifiedCrawlerManager
 
         print("\n📋 選擇運行模式:")
         print("1. 僅測試Harvard API連接")
@@ -39,13 +35,13 @@ def main():
         if choice == "1":
             print("\n🧪 測試Harvard API連接...")
             from test_harvard_api import test_harvard_api
+
             test_harvard_api()
 
         elif choice == "2":
             print("\n📥 獲取Harvard樣本數據...")
             config = HarvardCrawlerConfig(
-                api_key="cfe24845-aa4f-4c93-9d86-f6880440af5f",
-                max_per_page=10
+                api_key="cfe24845-aa4f-4c93-9d86-f6880440af5f", max_per_page=10
             )
             crawler = HarvardArtMuseumsCrawler(config)
             crawler.get_sample_data()
@@ -62,7 +58,7 @@ def main():
                 output_dir="unified_crawler_data",
                 save_raw_data=True,
                 save_mapped_data=True,
-                generate_neo4j_script=True
+                generate_neo4j_script=True,
             )
 
             manager = UnifiedCrawlerManager(config)
@@ -74,9 +70,9 @@ def main():
             print(f"   🏛️ 總實體數量: {results['total_entities']}")
             print(f"   🔗 總關係數量: {results['total_relationships']}")
             print(f"   ⏰ 開始時間: {results['start_time']}")
-            print(f"   📁 輸出目錄: unified_crawler_data/")
+            print("   📁 輸出目錄: unified_crawler_data/")
 
-            if results['errors']:
+            if results["errors"]:
                 print(f"   ⚠️ 錯誤數量: {len(results['errors'])}")
 
             print("\n📁 生成的文件:")
@@ -85,7 +81,7 @@ def main():
                 "unified_relationships.json - 統一關係數據",
                 "unified_neo4j_import.cypher - Neo4j導入腳本",
                 "crawl_summary.json - 爬取摘要",
-                "harvard/ - Harvard原始數據"
+                "harvard/ - Harvard原始數據",
             ]
             for file_desc in output_files:
                 print(f"   📄 {file_desc}")
@@ -93,6 +89,7 @@ def main():
         elif choice == "4":
             print("\n🏗️ 生成知識圖譜架構...")
             from enhanced_graph_builder import EnhancedArtHistoryGraphBuilder
+
             builder = EnhancedArtHistoryGraphBuilder()
             builder.add_comprehensive_enhanced_data()
             builder.build_enhanced_relationships()
@@ -103,7 +100,7 @@ def main():
             print("❌ 無效選擇")
             return
 
-        print(f"\n🎉 系統運行完成！")
+        print("\n🎉 系統運行完成！")
         print("💡 提示:")
         print("   - 生成的Neo4j腳本可直接導入到Neo4j數據庫")
         print("   - JSON文件包含結構化的藝術史數據")
@@ -117,6 +114,7 @@ def main():
     except Exception as e:
         print(f"❌ 系統錯誤: {e}")
         logging.error(f"系統錯誤: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     main()

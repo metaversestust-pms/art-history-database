@@ -16,7 +16,6 @@ module.exports = async () => {
         await dbManager.closeAll();
 
         console.log('✅ 全局測試清理完成');
-
     } catch (error) {
         console.error('❌ 全局測試清理失敗:', error);
     }
@@ -170,7 +169,6 @@ async function cleanupAllTestData() {
         } else {
             console.log('✅ 沒有發現需要清理的測試資料');
         }
-
     } catch (error) {
         console.error('❌ 清理測試資料失敗:', error);
     }

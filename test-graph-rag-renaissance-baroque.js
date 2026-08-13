@@ -44,7 +44,6 @@ class GraphRAGTester {
             });
 
             return data;
-
         } catch (error) {
             console.log(`   ❌ 失敗: ${error.message}`);
             this.testResults.push({
@@ -63,52 +62,28 @@ class GraphRAGTester {
         console.log('╚═══════════════════════════════════════════════════════════╝');
 
         // 測試1: 查詢Leonardo da Vinci
-        await this.testQuery(
-            'Leonardo da Vinci',
-            '查詢文藝復興大師達芬奇'
-        );
+        await this.testQuery('Leonardo da Vinci', '查詢文藝復興大師達芬奇');
 
         // 測試2: 查詢Renaissance時期
-        await this.testQuery(
-            'Renaissance period artworks',
-            '查詢文藝復興時期作品'
-        );
+        await this.testQuery('Renaissance period artworks', '查詢文藝復興時期作品');
 
         // 測試3: 查詢Baroque時期
-        await this.testQuery(
-            'Baroque paintings',
-            '查詢巴洛克時期繪畫'
-        );
+        await this.testQuery('Baroque paintings', '查詢巴洛克時期繪畫');
 
         // 測試4: 查詢Rembrandt
-        await this.testQuery(
-            'Rembrandt',
-            '查詢巴洛克大師林布蘭'
-        );
+        await this.testQuery('Rembrandt', '查詢巴洛克大師林布蘭');
 
         // 測試5: 查詢Michelangelo
-        await this.testQuery(
-            'Michelangelo sculptures',
-            '查詢米開朗基羅的雕塑'
-        );
+        await this.testQuery('Michelangelo sculptures', '查詢米開朗基羅的雕塑');
 
         // 測試6: 比較性查詢
-        await this.testQuery(
-            'Renaissance artists in Italy',
-            '查詢意大利的文藝復興藝術家'
-        );
+        await this.testQuery('Renaissance artists in Italy', '查詢意大利的文藝復興藝術家');
 
         // 測試7: 查詢特定作品
-        await this.testQuery(
-            'portrait paintings Renaissance',
-            '查詢文藝復興時期的肖像畫'
-        );
+        await this.testQuery('portrait paintings Renaissance', '查詢文藝復興時期的肖像畫');
 
         // 測試8: 查詢Baroque藝術家
-        await this.testQuery(
-            'Peter Paul Rubens',
-            '查詢魯本斯'
-        );
+        await this.testQuery('Peter Paul Rubens', '查詢魯本斯');
 
         // 測試9: 時期比較
         await this.testQuery(
@@ -117,10 +92,7 @@ class GraphRAGTester {
         );
 
         // 測試10: 特定媒材
-        await this.testQuery(
-            'oil paintings Baroque',
-            '查詢巴洛克時期的油畫'
-        );
+        await this.testQuery('oil paintings Baroque', '查詢巴洛克時期的油畫');
 
         this.printSummary();
     }
@@ -130,9 +102,9 @@ class GraphRAGTester {
         console.log('║                      測試總結                              ║');
         console.log('╚═══════════════════════════════════════════════════════════╝');
 
-        const successful = this.testResults.filter(r => r.success).length;
+        const successful = this.testResults.filter((r) => r.success).length;
         const total = this.testResults.length;
-        const successRate = (successful / total * 100).toFixed(1);
+        const successRate = ((successful / total) * 100).toFixed(1);
 
         console.log(`\n📊 總測試數: ${total}`);
         console.log(`✅ 成功: ${successful}`);
@@ -140,16 +112,18 @@ class GraphRAGTester {
         console.log(`📈 成功率: ${successRate}%`);
 
         if (successful > 0) {
-            const avgConfidence = this.testResults
-                .filter(r => r.success)
-                .reduce((sum, r) => sum + r.confidence, 0) / successful;
+            const avgConfidence =
+                this.testResults
+                    .filter((r) => r.success)
+                    .reduce((sum, r) => sum + r.confidence, 0) / successful;
 
-            const avgTime = this.testResults
-                .filter(r => r.success)
-                .reduce((sum, r) => sum + r.processingTime, 0) / successful;
+            const avgTime =
+                this.testResults
+                    .filter((r) => r.success)
+                    .reduce((sum, r) => sum + r.processingTime, 0) / successful;
 
             const totalSources = this.testResults
-                .filter(r => r.success)
+                .filter((r) => r.success)
                 .reduce((sum, r) => sum + r.sourcesCount, 0);
 
             console.log(`\n🎯 平均信心分數: ${avgConfidence.toFixed(3)}`);
@@ -160,10 +134,10 @@ class GraphRAGTester {
         console.log('\n' + '─'.repeat(63));
 
         // 列出失敗的測試
-        const failed = this.testResults.filter(r => !r.success);
+        const failed = this.testResults.filter((r) => !r.success);
         if (failed.length > 0) {
             console.log('\n❌ 失敗的測試:');
-            failed.forEach(r => {
+            failed.forEach((r) => {
                 console.log(`   - ${r.description}: ${r.error}`);
             });
         }
@@ -200,12 +174,12 @@ class GraphRAGTester {
 
             console.log(`\n📊 知識圖譜統計:`);
             console.log(`   節點統計:`);
-            stats.nodes.slice(0, 5).forEach(node => {
+            stats.nodes.slice(0, 5).forEach((node) => {
                 console.log(`     - ${node.type}: ${node.count}`);
             });
 
             console.log(`   關係統計:`);
-            stats.relationships.slice(0, 5).forEach(rel => {
+            stats.relationships.slice(0, 5).forEach((rel) => {
                 console.log(`     - ${rel.type}: ${rel.count}`);
             });
         } catch (error) {

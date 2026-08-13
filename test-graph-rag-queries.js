@@ -14,14 +14,18 @@ async function testGraphRAG(query, description) {
     console.log(`${'='.repeat(80)}\n`);
 
     try {
-        const response = await axios.post(`${RAG_MANAGER_URL}/api/v1/query`, {
-            query: query,
-            model_combination_id: 'llama3.1:8b@graph_only',
-            max_results: 5,
-            include_sources: true
-        }, {
-            timeout: 60000
-        });
+        const response = await axios.post(
+            `${RAG_MANAGER_URL}/api/v1/query`,
+            {
+                query: query,
+                model_combination_id: 'llama3.1:8b@graph_only',
+                max_results: 5,
+                include_sources: true
+            },
+            {
+                timeout: 60000
+            }
+        );
 
         const result = response.data;
 
@@ -37,7 +41,10 @@ async function testGraphRAG(query, description) {
                 console.log(`      分數: ${source.score?.toFixed(3) || 'N/A'}`);
                 console.log(`      內容預覽: ${source.content.substring(0, 150)}...`);
                 if (source.metadata) {
-                    console.log(`      元數據:`, JSON.stringify(source.metadata, null, 2).substring(0, 200));
+                    console.log(
+                        `      元數據:`,
+                        JSON.stringify(source.metadata, null, 2).substring(0, 200)
+                    );
                 }
                 console.log();
             });
@@ -53,7 +60,6 @@ async function testGraphRAG(query, description) {
             sources_count: result.sources.length,
             query: query
         };
-
     } catch (error) {
         console.error(`❌ 查詢失敗: ${error.message}`);
         if (error.response) {
@@ -107,7 +113,7 @@ async function runTests() {
         results.push(result);
 
         // 延遲避免過載
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     // 總結
@@ -115,10 +121,10 @@ async function runTests() {
     console.log('📊 測試總結');
     console.log('='.repeat(80) + '\n');
 
-    const successful = results.filter(r => r.success).length;
-    const withResults = results.filter(r => r.success && r.sources_count > 0).length;
-    const noResults = results.filter(r => r.success && r.sources_count === 0).length;
-    const failed = results.filter(r => !r.success).length;
+    const successful = results.filter((r) => r.success).length;
+    const withResults = results.filter((r) => r.success && r.sources_count > 0).length;
+    const noResults = results.filter((r) => r.success && r.sources_count === 0).length;
+    const failed = results.filter((r) => !r.success).length;
 
     console.log(`總測試數: ${results.length}`);
     console.log(`✅ 成功查詢: ${successful}`);
@@ -128,17 +134,21 @@ async function runTests() {
 
     if (noResults > 0) {
         console.log('⚠️  以下查詢沒有返回結果:');
-        results.filter(r => r.success && r.sources_count === 0).forEach(r => {
-            console.log(`   - ${r.query}`);
-        });
+        results
+            .filter((r) => r.success && r.sources_count === 0)
+            .forEach((r) => {
+                console.log(`   - ${r.query}`);
+            });
         console.log();
     }
 
     if (failed > 0) {
         console.log('❌ 以下查詢失敗:');
-        results.filter(r => !r.success).forEach(r => {
-            console.log(`   - ${r.query}: ${r.error}`);
-        });
+        results
+            .filter((r) => !r.success)
+            .forEach((r) => {
+                console.log(`   - ${r.query}: ${r.error}`);
+            });
         console.log();
     }
 
@@ -152,7 +162,7 @@ async function runTests() {
 }
 
 // 執行測試
-runTests().catch(error => {
+runTests().catch((error) => {
     console.error('❌ 測試執行失敗:', error.message);
     process.exit(1);
 });

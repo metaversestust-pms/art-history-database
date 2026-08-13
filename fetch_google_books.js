@@ -20,7 +20,9 @@ async function fetchGoogleBooksArt() {
             try {
                 console.log(`🔍 搜索: ${query}`);
 
-                const response = await axios.get(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5&langRestrict=zh-TW,en`);
+                const response = await axios.get(
+                    `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5&langRestrict=zh-TW,en`
+                );
 
                 if (response.data.items) {
                     for (const item of response.data.items) {
@@ -47,8 +49,7 @@ async function fetchGoogleBooksArt() {
                 }
 
                 // 避免頻率限制
-                await new Promise(resolve => setTimeout(resolve, 200));
-
+                await new Promise((resolve) => setTimeout(resolve, 200));
             } catch (error) {
                 console.warn(`⚠️ 查詢 '${query}' 失敗: ${error.message}`);
             }
@@ -76,7 +77,6 @@ async function fetchGoogleBooksArt() {
         console.log(`📁 資料保存至: ${filename}`);
 
         return uniqueBooks;
-
     } catch (error) {
         console.error('❌ Google Books爬取失敗:', error.message);
     }

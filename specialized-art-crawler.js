@@ -15,24 +15,54 @@ const BASE_DELAY = 1000; // 1秒延遲
 // 專門藝術主題列表
 const SPECIALIZED_TOPICS = [
     // 亞洲藝術
-    "Chinese painting", "Japanese ukiyo-e", "Korean ceramics", "Islamic calligraphy",
-    "Indian miniature painting", "Southeast Asian sculpture", "Persian art", "Tibetan art",
+    'Chinese painting',
+    'Japanese ukiyo-e',
+    'Korean ceramics',
+    'Islamic calligraphy',
+    'Indian miniature painting',
+    'Southeast Asian sculpture',
+    'Persian art',
+    'Tibetan art',
 
     // 當代與現代
-    "Digital art", "Installation art", "Performance art", "Video art",
-    "Street art", "Conceptual art", "Land art", "Minimal art",
+    'Digital art',
+    'Installation art',
+    'Performance art',
+    'Video art',
+    'Street art',
+    'Conceptual art',
+    'Land art',
+    'Minimal art',
 
     // 建築與設計
-    "Art Deco architecture", "Bauhaus design", "Gothic cathedral", "Islamic architecture",
-    "Traditional Chinese architecture", "Japanese temple", "Modernist architecture", "Sustainable design",
+    'Art Deco architecture',
+    'Bauhaus design',
+    'Gothic cathedral',
+    'Islamic architecture',
+    'Traditional Chinese architecture',
+    'Japanese temple',
+    'Modernist architecture',
+    'Sustainable design',
 
     // 工藝與裝飾藝術
-    "Ceramic art", "Textile art", "Jewelry design", "Furniture design",
-    "Stained glass", "Mosaic art", "Metalwork", "Woodcarving",
+    'Ceramic art',
+    'Textile art',
+    'Jewelry design',
+    'Furniture design',
+    'Stained glass',
+    'Mosaic art',
+    'Metalwork',
+    'Woodcarving',
 
     // 地區特色藝術
-    "African masks", "Aboriginal art", "Pre-Columbian gold", "Oceanic art",
-    "Nordic design", "Eastern European folk art", "Latin American murals", "Mediterranean ceramics"
+    'African masks',
+    'Aboriginal art',
+    'Pre-Columbian gold',
+    'Oceanic art',
+    'Nordic design',
+    'Eastern European folk art',
+    'Latin American murals',
+    'Mediterranean ceramics'
 ];
 
 class SpecializedArtCrawler {
@@ -76,12 +106,13 @@ class SpecializedArtCrawler {
 
             if (response.data && response.data.items) {
                 const items = response.data.items;
-                this.log(`   📊 找到 ${response.data.totalResults} 項結果，收集 ${items.length} 項`);
+                this.log(
+                    `   📊 找到 ${response.data.totalResults} 項結果，收集 ${items.length} 項`
+                );
                 return items;
             }
 
             return [];
-
         } catch (error) {
             this.log(`   ❌ 搜尋失敗: ${error.message}`);
             return [];
@@ -111,7 +142,9 @@ class SpecializedArtCrawler {
             const objectIDs = searchResponse.data.objectIDs.slice(0, limit);
             const items = [];
 
-            this.log(`   🏛️ Met Museum: 找到 ${searchResponse.data.total} 項，獲取 ${objectIDs.length} 項詳細資料`);
+            this.log(
+                `   🏛️ Met Museum: 找到 ${searchResponse.data.total} 項，獲取 ${objectIDs.length} 項詳細資料`
+            );
 
             for (const objectID of objectIDs) {
                 try {
@@ -126,15 +159,13 @@ class SpecializedArtCrawler {
                     }
 
                     // 避免過度請求
-                    await new Promise(resolve => setTimeout(resolve, 200));
-
+                    await new Promise((resolve) => setTimeout(resolve, 200));
                 } catch (error) {
                     continue; // 跳過失敗的物件
                 }
             }
 
             return items;
-
         } catch (error) {
             this.log(`   ❌ Met Museum 搜尋失敗: ${error.message}`);
             return [];
@@ -157,7 +188,7 @@ class SpecializedArtCrawler {
                     country: this.extractCountry(item),
                     language: this.extractLanguage(item),
                     imageUrl: this.extractImageUrl(item),
-                    dataProvider: item.dataProvider && item.dataProvider[0] || '',
+                    dataProvider: (item.dataProvider && item.dataProvider[0]) || '',
                     source: 'Europeana',
                     sourceUrl: item.guid || '',
                     processedAt: new Date().toISOString(),
@@ -170,7 +201,7 @@ class SpecializedArtCrawler {
                     creator: item.artistDisplayName || item.culture || '未知創作者',
                     date: item.objectDate || item.period || '未知年代',
                     type: item.objectName || item.classification || '藝術品',
-                    subject: [item.tags?.map(tag => tag.term) || []].flat().join(', '),
+                    subject: [item.tags?.map((tag) => tag.term) || []].flat().join(', '),
                     description: item.creditLine || '',
                     rights: item.rightsAndReproduction || 'Public Domain',
                     provider: 'Metropolitan Museum of Art',
@@ -189,7 +220,6 @@ class SpecializedArtCrawler {
             }
 
             return null;
-
         } catch (error) {
             this.log(`❌ 處理項目失敗: ${error.message}`);
             return null;
@@ -314,8 +344,7 @@ class SpecializedArtCrawler {
                 }
 
                 // 延遲避免過度請求
-                await new Promise(resolve => setTimeout(resolve, BASE_DELAY));
-
+                await new Promise((resolve) => setTimeout(resolve, BASE_DELAY));
             } catch (error) {
                 this.log(`❌ 主題 "${topic}" 處理失敗: ${error.message}`);
             }
@@ -347,7 +376,6 @@ class SpecializedArtCrawler {
             fs.writeFileSync(filepath, JSON.stringify(data, null, 2), 'utf-8');
             this.log(`💾 進度已保存: ${filepath}`);
             this.log(`📊 目前收集: ${this.collectedItems.length} 項藝術資料`);
-
         } catch (error) {
             this.log(`❌ 保存失敗: ${error.message}`);
         }
@@ -355,7 +383,7 @@ class SpecializedArtCrawler {
 
     printSummary() {
         const duration = (Date.now() - this.startTime) / 1000 / 60;
-        const successRate = (this.successfulQueries / this.totalQueries * 100).toFixed(1);
+        const successRate = ((this.successfulQueries / this.totalQueries) * 100).toFixed(1);
 
         this.log(`\n🎉 專門藝術主題爬取完成！`);
         this.log(`📊 爬取統計:`);
@@ -367,7 +395,7 @@ class SpecializedArtCrawler {
 
         // 按來源統計
         const sourceStats = {};
-        this.collectedItems.forEach(item => {
+        this.collectedItems.forEach((item) => {
             sourceStats[item.source] = (sourceStats[item.source] || 0) + 1;
         });
 

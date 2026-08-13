@@ -12,10 +12,7 @@ const NEO4J_PASSWORD = 'arthistory123';
 async function verifyData() {
     console.log('🔍 驗證Neo4j中的Renaissance和Baroque資料\n');
 
-    const driver = neo4j.driver(
-        NEO4J_URI,
-        neo4j.auth.basic(NEO4J_USER, NEO4J_PASSWORD)
-    );
+    const driver = neo4j.driver(NEO4J_URI, neo4j.auth.basic(NEO4J_USER, NEO4J_PASSWORD));
 
     const session = driver.session();
 
@@ -29,7 +26,7 @@ async function verifyData() {
         `);
 
         console.log('📊 時期統計:');
-        periodResult.records.forEach(record => {
+        periodResult.records.forEach((record) => {
             const period = record.get('period');
             const count = record.get('count').toNumber();
             console.log(`   ${period}: ${count} 件作品`);
@@ -104,7 +101,7 @@ async function verifyData() {
             LIMIT 8
         `);
 
-        networkQuery.records.forEach(record => {
+        networkQuery.records.forEach((record) => {
             const artist = record.get('artist');
             const nationality = record.get('nationality') || '未知';
             const count = record.get('artwork_count').toNumber();
@@ -112,7 +109,6 @@ async function verifyData() {
         });
 
         console.log('\n✅ 驗證完成！資料已成功匯入Neo4j並可供查詢。');
-
     } finally {
         await session.close();
         await driver.close();

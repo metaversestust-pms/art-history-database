@@ -14,7 +14,7 @@ async function testAgents() {
     console.log('🧪 開始Agent功能測試...\n');
 
     const hub = new AgentHub();
-    let testResults = [];
+    const testResults = [];
 
     try {
         // 1. 測試Agent Hub初始化
@@ -39,7 +39,10 @@ async function testAgents() {
                 console.log(`   ${name}: ${agent.status}`);
                 testResults.push({
                     test: `${name} 狀態檢查`,
-                    status: agent.status === 'ready' || agent.status === 'initializing' ? 'pass' : 'fail',
+                    status:
+                        agent.status === 'ready' || agent.status === 'initializing'
+                            ? 'pass'
+                            : 'fail',
                     details: `狀態: ${agent.status}`
                 });
             }
@@ -81,7 +84,9 @@ async function testAgents() {
 
         if (workflowResult && workflowResult.success) {
             console.log('✅ 工作流程執行成功');
-            console.log(`   完成步驟: ${workflowResult.statistics.completedTasks}/${workflowResult.statistics.totalTasks}`);
+            console.log(
+                `   完成步驟: ${workflowResult.statistics.completedTasks}/${workflowResult.statistics.totalTasks}`
+            );
             testResults.push({
                 test: 'processExisting工作流程',
                 status: 'pass',
@@ -122,7 +127,6 @@ async function testAgents() {
             });
         }
         console.log('');
-
     } catch (error) {
         console.error('❌ 測試過程中發生錯誤:', error.message);
         testResults.push({
@@ -142,8 +146,8 @@ async function testAgents() {
     console.log('📊 測試報告');
     console.log('=' * 50);
 
-    const passedTests = testResults.filter(t => t.status === 'pass').length;
-    const failedTests = testResults.filter(t => t.status === 'fail').length;
+    const passedTests = testResults.filter((t) => t.status === 'pass').length;
+    const failedTests = testResults.filter((t) => t.status === 'fail').length;
     const totalTests = testResults.length;
 
     console.log(`總測試數: ${totalTests}`);
@@ -224,7 +228,7 @@ async function createTestData() {
 // 執行測試
 if (require.main === module) {
     testAgents()
-        .then(success => {
+        .then((success) => {
             if (success) {
                 console.log('\n🎉 所有測試通過！');
                 process.exit(0);
@@ -233,7 +237,7 @@ if (require.main === module) {
                 process.exit(1);
             }
         })
-        .catch(error => {
+        .catch((error) => {
             console.error('\n💥 測試執行失敗:', error);
             process.exit(1);
         });

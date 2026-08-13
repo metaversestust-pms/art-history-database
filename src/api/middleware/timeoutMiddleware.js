@@ -12,7 +12,7 @@ const { globalTimeoutHandler, TimeoutError } = require('../../utils/timeoutHandl
  */
 function createTimeoutMiddleware(options = {}) {
     const {
-        timeout = 30000,        // 默認30秒超時
+        timeout = 30000, // 默認30秒超時
         skipSuccessfulClose = true,
         skipAborted = true,
         onTimeout = null,
@@ -61,7 +61,7 @@ function createTimeoutMiddleware(options = {}) {
 
         // 監聽響應完成事件
         const originalEnd = res.end;
-        res.end = function(...args) {
+        res.end = function (...args) {
             // 清理超時定時器
             if (req.timeoutTimer) {
                 clearTimeout(req.timeoutTimer);
@@ -153,10 +153,11 @@ const timeoutMiddleware = {
     }),
 
     // 自定義超時
-    custom: (timeoutMs, message) => createTimeoutMiddleware({
-        timeout: timeoutMs,
-        responseMsg: message
-    })
+    custom: (timeoutMs, message) =>
+        createTimeoutMiddleware({
+            timeout: timeoutMs,
+            responseMsg: message
+        })
 };
 
 /**
@@ -166,10 +167,10 @@ const timeoutMiddleware = {
  * @returns {Function} 裝飾器函數
  */
 function withControllerTimeout(timeoutMs, operationName) {
-    return function(target, propertyName, descriptor) {
+    return function (target, propertyName, descriptor) {
         const originalMethod = descriptor.value;
 
-        descriptor.value = async function(...args) {
+        descriptor.value = async function (...args) {
             const [req, res] = args;
 
             try {

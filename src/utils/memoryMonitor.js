@@ -89,7 +89,7 @@ class MemoryMonitor {
             heap: {
                 used: memUsage.heapUsed,
                 total: memUsage.heapTotal,
-                utilization: (memUsage.heapUsed / memUsage.heapTotal * 100).toFixed(2)
+                utilization: ((memUsage.heapUsed / memUsage.heapTotal) * 100).toFixed(2)
             },
             external: memUsage.external,
             arrayBuffers: memUsage.arrayBuffers,
@@ -166,7 +166,7 @@ class MemoryMonitor {
         }
 
         // 記錄警告
-        alerts.forEach(alert => {
+        alerts.forEach((alert) => {
             if (alert.severity === 'ERROR') {
                 logger.error(`🚨 記憶體警告 [${alert.type}]: ${alert.message}`);
             } else {
@@ -212,7 +212,7 @@ class MemoryMonitor {
         }
 
         // 記錄可疑模式
-        suspiciousPatterns.forEach(pattern => {
+        suspiciousPatterns.forEach((pattern) => {
             logger.warn(`🔍 可能的記憶體洩漏 [${pattern.type}]: ${pattern.message}`);
         });
 
@@ -228,8 +228,8 @@ class MemoryMonitor {
         const trends = {};
         const fields = ['heapUsed', 'external', 'arrayBuffers'];
 
-        fields.forEach(field => {
-            const values = history.map(h => {
+        fields.forEach((field) => {
+            const values = history.map((h) => {
                 if (field === 'heapUsed') return h.heap.used;
                 return h[field];
             });
@@ -238,11 +238,15 @@ class MemoryMonitor {
             const lastValue = values[values.length - 1];
             const change = lastValue - firstValue;
             const timeSpan = history[history.length - 1].timestamp - history[0].timestamp;
-            const growthRate = (change / (timeSpan / 60000)) / (1024 * 1024); // MB per minute
+            const growthRate = change / (timeSpan / 60000) / (1024 * 1024); // MB per minute
 
             trends[field] = {
-                trend: Math.abs(growthRate) < 0.1 ? 'stable' :
-                       growthRate > 0 ? 'increasing' : 'decreasing',
+                trend:
+                    Math.abs(growthRate) < 0.1
+                        ? 'stable'
+                        : growthRate > 0
+                          ? 'increasing'
+                          : 'decreasing',
                 growthRate: Math.abs(growthRate),
                 change: change / (1024 * 1024) // MB
             };
@@ -261,12 +265,15 @@ class MemoryMonitor {
             const history = this.getObjectCountHistory(type);
             if (history.length >= 5) {
                 const recentGrowth = history.slice(-5);
-                const avgGrowth = recentGrowth.reduce((sum, h, i) => {
-                    if (i === 0) return 0;
-                    return sum + (h.count - recentGrowth[i - 1].count);
-                }, 0) / (recentGrowth.length - 1);
+                const avgGrowth =
+                    recentGrowth.reduce((sum, h, i) => {
+                        if (i === 0) return 0;
+                        return sum + (h.count - recentGrowth[i - 1].count);
+                    }, 0) /
+                    (recentGrowth.length - 1);
 
-                if (avgGrowth > 100) { // 每分鐘增長超過100個物件
+                if (avgGrowth > 100) {
+                    // 每分鐘增長超過100個物件
                     suspiciousGrowth.push({
                         type: 'OBJECT_COUNT_LEAK',
                         objectType: type,
@@ -285,8 +292,8 @@ class MemoryMonitor {
      */
     getObjectCountHistory(objectType) {
         return this.memoryHistory
-            .filter(h => h.objectCounts && h.objectCounts.has(objectType))
-            .map(h => ({
+            .filter((h) => h.objectCounts && h.objectCounts.has(objectType))
+            .map((h) => ({
                 timestamp: h.timestamp,
                 count: h.objectCounts.get(objectType)
             }));
@@ -357,19 +364,24 @@ class MemoryMonitor {
      */
     getMemoryReport() {
         const current = this.getCurrentMemoryStats();
-        const trends = this.memoryHistory.length > 1 ?
-            this.analyzeTrends(this.memoryHistory.slice(-10)) : {};
+        const trends =
+            this.memoryHistory.length > 1 ? this.analyzeTrends(this.memoryHistory.slice(-10)) : {};
 
         return {
             current,
             trends,
             history: {
                 dataPoints: this.memoryHistory.length,
-                timeSpan: this.memoryHistory.length > 0 ?
-                    this.memoryHistory[this.memoryHistory.length - 1].timestamp - this.memoryHistory[0].timestamp : 0,
-                maxHeapUsed: Math.max(...this.memoryHistory.map(h => h.heap.used)),
-                minHeapUsed: Math.min(...this.memoryHistory.map(h => h.heap.used)),
-                avgHeapUsed: this.memoryHistory.reduce((sum, h) => sum + h.heap.used, 0) / this.memoryHistory.length
+                timeSpan:
+                    this.memoryHistory.length > 0
+                        ? this.memoryHistory[this.memoryHistory.length - 1].timestamp -
+                          this.memoryHistory[0].timestamp
+                        : 0,
+                maxHeapUsed: Math.max(...this.memoryHistory.map((h) => h.heap.used)),
+                minHeapUsed: Math.min(...this.memoryHistory.map((h) => h.heap.used)),
+                avgHeapUsed:
+                    this.memoryHistory.reduce((sum, h) => sum + h.heap.used, 0) /
+                    this.memoryHistory.length
             },
             monitoring: {
                 isActive: this.isMonitoring,
@@ -394,7 +406,7 @@ class MemoryMonitor {
             heap: {
                 used: `${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`,
                 total: `${Math.round(memUsage.heapTotal / 1024 / 1024)}MB`,
-                utilization: `${(memUsage.heapUsed / memUsage.heapTotal * 100).toFixed(2)}%`
+                utilization: `${((memUsage.heapUsed / memUsage.heapTotal) * 100).toFixed(2)}%`
             },
             external: `${Math.round(memUsage.external / 1024 / 1024)}MB`,
             arrayBuffers: `${Math.round(memUsage.arrayBuffers / 1024 / 1024)}MB`,
@@ -432,7 +444,11 @@ class MemoryMonitor {
         }
 
         // 趨勢建議
-        if (trends.heapUsed && trends.heapUsed.trend === 'increasing' && trends.heapUsed.growthRate > 5) {
+        if (
+            trends.heapUsed &&
+            trends.heapUsed.trend === 'increasing' &&
+            trends.heapUsed.growthRate > 5
+        ) {
             recommendations.push({
                 type: 'MEMORY_LEAK_WARNING',
                 priority: 'HIGH',

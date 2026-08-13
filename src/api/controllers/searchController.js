@@ -30,57 +30,71 @@ class SearchController {
             const cacheKey = `global_${searchText.toLowerCase()}_${searchTypes.join('_')}_${searchLimit}`;
 
             // 使用快取包裝器
-            const results = await cacheManager.wrap(
-                'search',
-                cacheKey,
-                async () => {
-                    const searchResults = {
-                        query: searchText,
-                        results: {}
-                    };
+            const results = await cacheManager.wrap('search', cacheKey, async () => {
+                const searchResults = {
+                    query: searchText,
+                    results: {}
+                };
 
-                    if (searchTypes.includes('artworks')) {
-                        try {
-                            const artworks = await this.artworkModel.search(searchText, searchLimit);
-                            searchResults.results.artworks = {
-                                count: artworks.length,
-                                items: artworks
-                            };
-                        } catch (error) {
-                            searchResults.results.artworks = { count: 0, items: [], error: error.message };
-                        }
+                if (searchTypes.includes('artworks')) {
+                    try {
+                        const artworks = await this.artworkModel.search(searchText, searchLimit);
+                        searchResults.results.artworks = {
+                            count: artworks.length,
+                            items: artworks
+                        };
+                    } catch (error) {
+                        searchResults.results.artworks = {
+                            count: 0,
+                            items: [],
+                            error: error.message
+                        };
                     }
-
-                    if (searchTypes.includes('artists')) {
-                        try {
-                            const artists = await this.artistModel.search(searchText, searchLimit);
-                            searchResults.results.artists = {
-                                count: artists.length,
-                                items: artists
-                            };
-                        } catch (error) {
-                            searchResults.results.artists = { count: 0, items: [], error: error.message };
-                        }
-                    }
-
-                    if (searchTypes.includes('collections')) {
-                        try {
-                            const collections = await this.collectionModel.search(searchText, searchLimit);
-                            searchResults.results.collections = {
-                                count: collections.length,
-                                items: collections
-                            };
-                        } catch (error) {
-                            searchResults.results.collections = { count: 0, items: [], error: error.message };
-                        }
-                    }
-
-                    // 計算總結果數
-                    searchResults.total_count = Object.values(searchResults.results).reduce((sum, category) => sum + category.count, 0);
-
-                    return searchResults;
                 }
-            );
+
+                if (searchTypes.includes('artists')) {
+                    try {
+                        const artists = await this.artistModel.search(searchText, searchLimit);
+                        searchResults.results.artists = {
+                            count: artists.length,
+                            items: artists
+                        };
+                    } catch (error) {
+                        searchResults.results.artists = {
+                            count: 0,
+                            items: [],
+                            error: error.message
+                        };
+                    }
+                }
+
+                if (searchTypes.includes('collections')) {
+                    try {
+                        const collections = await this.collectionModel.search(
+                            searchText,
+                            searchLimit
+                        );
+                        searchResults.results.collections = {
+                            count: collections.length,
+                            items: collections
+                        };
+                    } catch (error) {
+                        searchResults.results.collections = {
+                            count: 0,
+                            items: [],
+                            error: error.message
+                        };
+                    }
+                }
+
+                // 計算總結果數
+                searchResults.total_count = Object.values(searchResults.results).reduce(
+                    (sum, category) => sum + category.count,
+                    0
+                );
+
+                return searchResults;
+            });
 
             return successResponse(res, results);
         } catch (error) {
@@ -129,10 +143,19 @@ class SearchController {
                     results = await this.searchArtistsAdvanced(searchText, filters, searchLimit);
                     break;
                 case 'collections':
-                    results = await this.searchCollectionsAdvanced(searchText, filters, searchLimit);
+                    results = await this.searchCollectionsAdvanced(
+                        searchText,
+                        filters,
+                        searchLimit
+                    );
                     break;
                 default:
-                    return errorResponse(res, 'Invalid search type. Must be: artworks, artists, or collections', null, 400);
+                    return errorResponse(
+                        res,
+                        'Invalid search type. Must be: artworks, artists, or collections',
+                        null,
+                        400
+                    );
             }
 
             return successResponse(res, {
@@ -172,39 +195,48 @@ class SearchController {
 
                     // 基於搜索文字提供建議
                     if (type === 'all' || type === 'titles') {
-                        const artworkTitles = await this.artworkModel.query(`
+                        const artworkTitles = await this.artworkModel.query(
+                            `
                             SELECT DISTINCT title
                             FROM artworks
                             WHERE title ILIKE $1
                             ORDER BY title
                             LIMIT $2
-                        `, [`${searchText}%`, suggestionLimit]);
+                        `,
+                            [`${searchText}%`, suggestionLimit]
+                        );
 
-                        result.suggestions.titles = artworkTitles.rows.map(row => row.title);
+                        result.suggestions.titles = artworkTitles.rows.map((row) => row.title);
                     }
 
                     if (type === 'all' || type === 'artists') {
-                        const artistNames = await this.artistModel.query(`
+                        const artistNames = await this.artistModel.query(
+                            `
                             SELECT DISTINCT name
                             FROM artists
                             WHERE name ILIKE $1
                             ORDER BY name
                             LIMIT $2
-                        `, [`${searchText}%`, suggestionLimit]);
+                        `,
+                            [`${searchText}%`, suggestionLimit]
+                        );
 
-                        result.suggestions.artists = artistNames.rows.map(row => row.name);
+                        result.suggestions.artists = artistNames.rows.map((row) => row.name);
                     }
 
                     if (type === 'all' || type === 'styles') {
-                        const styles = await this.artworkModel.query(`
+                        const styles = await this.artworkModel.query(
+                            `
                             SELECT DISTINCT style
                             FROM artworks
                             WHERE style ILIKE $1 AND style IS NOT NULL
                             ORDER BY style
                             LIMIT $2
-                        `, [`${searchText}%`, suggestionLimit]);
+                        `,
+                            [`${searchText}%`, suggestionLimit]
+                        );
 
-                        result.suggestions.styles = styles.rows.map(row => row.style);
+                        result.suggestions.styles = styles.rows.map((row) => row.style);
                     }
 
                     return result;

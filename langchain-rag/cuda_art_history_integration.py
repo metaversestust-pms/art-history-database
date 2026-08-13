@@ -4,13 +4,13 @@ CUDA增強藝術史資料庫集成模組
 將GPU加速整合到現有RAG系統中
 """
 
-import os
-import sys
 import json
 import logging
+import os
+import sys
 import time
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Dict, List
 
 # 添加當前目錄到路徑
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -21,6 +21,7 @@ try:
 except ImportError as e:
     logging.warning(f"CUDA模組未完全安裝: {e}")
 
+
 class CUDAArtHistoryProcessor:
     """CUDA增強的藝術史數據處理器"""
 
@@ -28,16 +29,16 @@ class CUDAArtHistoryProcessor:
         self.cuda_info = check_cuda_environment()
         self.config = CUDARAGConfig(
             embedding_model="sentence-transformers/all-MiniLM-L6-v2",
-            batch_size=32 if self.cuda_info.get('cuda_available') else 8,
+            batch_size=32 if self.cuda_info.get("cuda_available") else 8,
             top_k=10,
-            similarity_threshold=0.65
+            similarity_threshold=0.65,
         )
         self.rag_system = None
         self.performance_metrics = {
-            'initialization_time': 0,
-            'total_documents_processed': 0,
-            'total_queries': 0,
-            'average_processing_speed': 0
+            "initialization_time": 0,
+            "total_documents_processed": 0,
+            "total_queries": 0,
+            "average_processing_speed": 0,
         }
 
     def initialize_with_harvard_data(self) -> bool:
@@ -47,7 +48,7 @@ class CUDAArtHistoryProcessor:
             start_time = time.time()
 
             # 檢查CUDA RAG系統是否可用
-            if not self.cuda_info.get('cuda_available'):
+            if not self.cuda_info.get("cuda_available"):
                 logging.warning("⚠️ CUDA不可用，某些功能將受限")
                 return False
 
@@ -58,10 +59,10 @@ class CUDAArtHistoryProcessor:
             harvard_documents = self._load_harvard_documents()
             if harvard_documents:
                 self.rag_system.initialize_from_documents(harvard_documents)
-                self.performance_metrics['total_documents_processed'] = len(harvard_documents)
+                self.performance_metrics["total_documents_processed"] = len(harvard_documents)
 
             initialization_time = time.time() - start_time
-            self.performance_metrics['initialization_time'] = initialization_time
+            self.performance_metrics["initialization_time"] = initialization_time
 
             logging.info(f"✅ CUDA系統初始化完成，耗時: {initialization_time:.2f}s")
             return True
@@ -77,7 +78,7 @@ class CUDAArtHistoryProcessor:
             start_time = time.time()
 
             # 檢查CUDA RAG系統是否可用
-            if not self.cuda_info.get('cuda_available'):
+            if not self.cuda_info.get("cuda_available"):
                 logging.warning("⚠️ CUDA不可用，某些功能將受限")
                 return False
 
@@ -87,10 +88,10 @@ class CUDAArtHistoryProcessor:
             # 初始化系統
             if documents:
                 self.rag_system.initialize_from_documents(documents)
-                self.performance_metrics['total_documents_processed'] = len(documents)
+                self.performance_metrics["total_documents_processed"] = len(documents)
 
             initialization_time = time.time() - start_time
-            self.performance_metrics['initialization_time'] = initialization_time
+            self.performance_metrics["initialization_time"] = initialization_time
 
             logging.info(f"✅ CUDA系統初始化完成，耗時: {initialization_time:.2f}s")
             return True
@@ -107,7 +108,7 @@ class CUDAArtHistoryProcessor:
         data_dirs = [
             "expanded_harvard_data",
             "final_expanded_data/harvard",
-            "unified_crawler_data/harvard"
+            "unified_crawler_data/harvard",
         ]
 
         for data_dir in data_dirs:
@@ -124,7 +125,7 @@ class CUDAArtHistoryProcessor:
         # 處理不同類型的文件
         for file_path in Path(data_dir).glob("*.json"):
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 # 根據文件名判斷數據類型
@@ -149,42 +150,47 @@ class CUDAArtHistoryProcessor:
             content_parts = []
 
             # 基本信息
-            if artwork.get('title'):
+            if artwork.get("title"):
                 content_parts.append(f"作品: {artwork['title']}")
 
-            if artwork.get('people'):
-                artists = [p.get('name', '') for p in artwork['people']
-                          if p.get('role') in ['Artist', 'Creator']]
+            if artwork.get("people"):
+                artists = [
+                    p.get("name", "")
+                    for p in artwork["people"]
+                    if p.get("role") in ["Artist", "Creator"]
+                ]
                 if artists:
                     content_parts.append(f"藝術家: {', '.join(artists)}")
 
-            if artwork.get('classification'):
+            if artwork.get("classification"):
                 content_parts.append(f"分類: {artwork['classification']}")
 
-            if artwork.get('medium'):
+            if artwork.get("medium"):
                 content_parts.append(f"媒材: {artwork['medium']}")
 
-            if artwork.get('dated'):
+            if artwork.get("dated"):
                 content_parts.append(f"創作時間: {artwork['dated']}")
 
-            if artwork.get('culture'):
+            if artwork.get("culture"):
                 content_parts.append(f"文化: {artwork['culture']}")
 
-            if artwork.get('description'):
+            if artwork.get("description"):
                 content_parts.append(f"描述: {artwork['description']}")
 
             # 合併內容
             content = ". ".join(content_parts)
 
             if content:
-                documents.append({
-                    "content": content,
-                    "type": "artwork",
-                    "title": artwork.get('title', ''),
-                    "id": artwork.get('id'),
-                    "url": artwork.get('url', ''),
-                    "source": "Harvard Art Museums"
-                })
+                documents.append(
+                    {
+                        "content": content,
+                        "type": "artwork",
+                        "title": artwork.get("title", ""),
+                        "id": artwork.get("id"),
+                        "url": artwork.get("url", ""),
+                        "source": "Harvard Art Museums",
+                    }
+                )
 
         return documents
 
@@ -195,30 +201,32 @@ class CUDAArtHistoryProcessor:
         for person in people:
             content_parts = []
 
-            if person.get('displayname'):
+            if person.get("displayname"):
                 content_parts.append(f"人物: {person['displayname']}")
 
-            if person.get('birthyear') or person.get('deathyear'):
+            if person.get("birthyear") or person.get("deathyear"):
                 years = f"{person.get('birthyear', '?')}-{person.get('deathyear', '?')}"
                 content_parts.append(f"生卒年: {years}")
 
-            if person.get('nationality'):
+            if person.get("nationality"):
                 content_parts.append(f"國籍: {person['nationality']}")
 
-            if person.get('biography'):
+            if person.get("biography"):
                 content_parts.append(f"生平: {person['biography']}")
 
             content = ". ".join(content_parts)
 
             if content:
-                documents.append({
-                    "content": content,
-                    "type": "person",
-                    "name": person.get('displayname', ''),
-                    "id": person.get('id'),
-                    "url": person.get('url', ''),
-                    "source": "Harvard Art Museums"
-                })
+                documents.append(
+                    {
+                        "content": content,
+                        "type": "person",
+                        "name": person.get("displayname", ""),
+                        "id": person.get("id"),
+                        "url": person.get("url", ""),
+                        "source": "Harvard Art Museums",
+                    }
+                )
 
         return documents
 
@@ -229,30 +237,32 @@ class CUDAArtHistoryProcessor:
         for exhibition in exhibitions:
             content_parts = []
 
-            if exhibition.get('title'):
+            if exhibition.get("title"):
                 content_parts.append(f"展覽: {exhibition['title']}")
 
-            if exhibition.get('begindate') or exhibition.get('enddate'):
+            if exhibition.get("begindate") or exhibition.get("enddate"):
                 dates = f"{exhibition.get('begindate', '')}-{exhibition.get('enddate', '')}"
                 content_parts.append(f"展期: {dates}")
 
-            if exhibition.get('venue'):
+            if exhibition.get("venue"):
                 content_parts.append(f"地點: {exhibition['venue']}")
 
-            if exhibition.get('description'):
+            if exhibition.get("description"):
                 content_parts.append(f"描述: {exhibition['description']}")
 
             content = ". ".join(content_parts)
 
             if content:
-                documents.append({
-                    "content": content,
-                    "type": "exhibition",
-                    "title": exhibition.get('title', ''),
-                    "id": exhibition.get('id'),
-                    "url": exhibition.get('url', ''),
-                    "source": "Harvard Art Museums"
-                })
+                documents.append(
+                    {
+                        "content": content,
+                        "type": "exhibition",
+                        "title": exhibition.get("title", ""),
+                        "id": exhibition.get("id"),
+                        "url": exhibition.get("url", ""),
+                        "source": "Harvard Art Museums",
+                    }
+                )
 
         return documents
 
@@ -263,20 +273,17 @@ class CUDAArtHistoryProcessor:
         if mode == "cuda" and self.rag_system:
             # 使用CUDA加速查詢
             result = self.rag_system.query(question)
-            result['mode'] = 'cuda_accelerated'
+            result["mode"] = "cuda_accelerated"
         else:
             # 降級到基本查詢
             result = self._fallback_query(question)
-            result['mode'] = 'cpu_fallback'
+            result["mode"] = "cpu_fallback"
 
         query_time = time.time() - start_time
-        self.performance_metrics['total_queries'] += 1
+        self.performance_metrics["total_queries"] += 1
 
         # 添加性能信息
-        result['performance'].update({
-            'total_query_time': query_time,
-            'cuda_info': self.cuda_info
-        })
+        result["performance"].update({"total_query_time": query_time, "cuda_info": self.cuda_info})
 
         return result
 
@@ -286,20 +293,16 @@ class CUDAArtHistoryProcessor:
             "question": question,
             "answer": "CUDA系統不可用，這是簡化的回答。請檢查GPU環境配置。",
             "sources": [],
-            "performance": {
-                "search_time": 0,
-                "generation_time": 0,
-                "mode": "cpu_fallback"
-            }
+            "performance": {"search_time": 0, "generation_time": 0, "mode": "cpu_fallback"},
         }
 
     def get_system_status(self) -> Dict:
         """獲取系統狀態"""
         status = {
-            "cuda_available": self.cuda_info.get('cuda_available', False),
+            "cuda_available": self.cuda_info.get("cuda_available", False),
             "cuda_info": self.cuda_info,
             "rag_system_ready": self.rag_system is not None,
-            "performance_metrics": self.performance_metrics
+            "performance_metrics": self.performance_metrics,
         }
 
         if self.rag_system:
@@ -313,7 +316,7 @@ class CUDAArtHistoryProcessor:
             test_queries = [
                 "Harvard Art Museums有哪些文藝復興時期的作品？",
                 "告訴我關於梵高的資料",
-                "有哪些重要的藝術展覽？"
+                "有哪些重要的藝術展覽？",
             ]
 
         results = {
@@ -321,7 +324,7 @@ class CUDAArtHistoryProcessor:
             "total_time": 0,
             "average_time": 0,
             "cuda_speedup": 0,
-            "queries_results": []
+            "queries_results": [],
         }
 
         start_time = time.time()
@@ -331,17 +334,16 @@ class CUDAArtHistoryProcessor:
             result = self.enhanced_query(query)
             query_time = time.time() - query_start
 
-            results["queries_results"].append({
-                "query": query,
-                "time": query_time,
-                "mode": result.get('mode', 'unknown')
-            })
+            results["queries_results"].append(
+                {"query": query, "time": query_time, "mode": result.get("mode", "unknown")}
+            )
 
         total_time = time.time() - start_time
         results["total_time"] = total_time
         results["average_time"] = total_time / len(test_queries)
 
         return results
+
 
 def main():
     """主測試函數"""
@@ -356,7 +358,7 @@ def main():
     # 顯示CUDA信息
     status = processor.get_system_status()
     print(f"🔧 CUDA狀態: {status['cuda_available']}")
-    if status['cuda_info'].get('device_name'):
+    if status["cuda_info"].get("device_name"):
         print(f"🎮 GPU: {status['cuda_info']['device_name']}")
         print(f"💾 GPU內存: {status['cuda_info'].get('memory_total_gb', 0):.1f} GB")
 
@@ -376,18 +378,19 @@ def main():
     print(f"📊 找到來源: {len(result.get('sources', []))}")
 
     # 性能基準測試
-    print(f"\n🏃 執行性能基準測試...")
+    print("\n🏃 執行性能基準測試...")
     benchmark = processor.benchmark_performance()
-    print(f"📈 基準結果:")
+    print("📈 基準結果:")
     print(f"   平均查詢時間: {benchmark['average_time']:.3f}s")
     print(f"   總測試時間: {benchmark['total_time']:.3f}s")
 
     # 最終狀態
     final_status = processor.get_system_status()
-    print(f"\n📊 最終系統狀態:")
+    print("\n📊 最終系統狀態:")
     print(f"   處理文檔數: {final_status['performance_metrics']['total_documents_processed']}")
     print(f"   總查詢數: {final_status['performance_metrics']['total_queries']}")
     print(f"   CUDA可用: {final_status['cuda_available']}")
+
 
 if __name__ == "__main__":
     main()

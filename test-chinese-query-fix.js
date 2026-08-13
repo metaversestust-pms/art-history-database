@@ -15,11 +15,15 @@ async function testChineseQuery(query, description) {
     console.log('='.repeat(60));
 
     try {
-        const response = await axios.post(`${RAG_MANAGER_URL}/api/v1/query`, {
-            query: query,
-            model_combination_id: "llama3.1:8b@vector_only",
-            top_k: 5
-        }, { timeout: 60000 });
+        const response = await axios.post(
+            `${RAG_MANAGER_URL}/api/v1/query`,
+            {
+                query: query,
+                model_combination_id: 'llama3.1:8b@vector_only',
+                top_k: 5
+            },
+            { timeout: 60000 }
+        );
 
         const data = response.data;
 
@@ -38,9 +42,10 @@ async function testChineseQuery(query, description) {
         console.log(data.answer.substring(0, 300) + '...');
 
         // 檢查答案品質
-        const hasRelevantInfo = data.answer.length > 100 &&
-                                !data.answer.includes('参照资料中出现') &&
-                                !data.answer.includes('並沒有在您提供的參照資料');
+        const hasRelevantInfo =
+            data.answer.length > 100 &&
+            !data.answer.includes('参照资料中出现') &&
+            !data.answer.includes('並沒有在您提供的參照資料');
 
         console.log(`\n品質評估: ${hasRelevantInfo ? '✅ 找到相關資訊' : '❌ 未找到相關資訊'}`);
 
@@ -49,12 +54,13 @@ async function testChineseQuery(query, description) {
             sourcesCount: data.sources.length,
             answerLength: data.answer.length
         };
-
     } catch (error) {
         console.log(`\n❌ 查詢失敗: ${error.message}`);
         if (error.response) {
             console.log(`狀態碼: ${error.response.status}`);
-            console.log(`錯誤: ${error.response.data?.error || error.response.data?.detail || '未知'}`);
+            console.log(
+                `錯誤: ${error.response.data?.error || error.response.data?.detail || '未知'}`
+            );
         }
         return {
             success: false,
@@ -71,24 +77,24 @@ async function main() {
 
     const tests = [
         {
-            query: "達文西的代表作品有哪些",
-            description: "查詢達文西的作品（中文）"
+            query: '達文西的代表作品有哪些',
+            description: '查詢達文西的作品（中文）'
         },
         {
-            query: "文藝復興時期的著名藝術家",
-            description: "查詢文藝復興藝術家（中文）"
+            query: '文藝復興時期的著名藝術家',
+            description: '查詢文藝復興藝術家（中文）'
         },
         {
-            query: "巴洛克時期的繪畫特點",
-            description: "查詢巴洛克繪畫特點（中文）"
+            query: '巴洛克時期的繪畫特點',
+            description: '查詢巴洛克繪畫特點（中文）'
         },
         {
-            query: "林布蘭的自畫像",
-            description: "查詢林布蘭的作品（中文）"
+            query: '林布蘭的自畫像',
+            description: '查詢林布蘭的作品（中文）'
         },
         {
-            query: "最後的晚餐是誰創作的",
-            description: "查詢名畫作者（中文）"
+            query: '最後的晚餐是誰創作的',
+            description: '查詢名畫作者（中文）'
         }
     ];
 
@@ -102,7 +108,7 @@ async function main() {
         });
 
         // 間隔一下避免請求過快
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     // 打印總結
@@ -110,9 +116,9 @@ async function main() {
     console.log(`║                    測試總結                                ║`);
     console.log(`╚═══════════════════════════════════════════════════════════╝`);
 
-    const successCount = results.filter(r => r.success).length;
+    const successCount = results.filter((r) => r.success).length;
     const totalCount = results.length;
-    const successRate = (successCount / totalCount * 100).toFixed(1);
+    const successRate = ((successCount / totalCount) * 100).toFixed(1);
 
     console.log(`\n總測試數: ${totalCount}`);
     console.log(`成功: ${successCount}`);

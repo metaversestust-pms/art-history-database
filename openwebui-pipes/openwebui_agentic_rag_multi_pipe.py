@@ -30,7 +30,9 @@ class Pipe:
             description="rag-manager-v2 服務位址",
         )
         MAX_RESULTS: int = Field(default=5, description="檢索文件數上限")
-        TIMEOUT: int = Field(default=320, description="請求逾時秒數（Agentic 多輪推理 + 大型模型冷啟動，預設拉長）")
+        TIMEOUT: int = Field(
+            default=320, description="請求逾時秒數（Agentic 多輪推理 + 大型模型冷啟動，預設拉長）"
+        )
         SHOW_SOURCES: bool = Field(default=True, description="是否在回答後附上參考來源")
 
     def __init__(self):
@@ -60,7 +62,8 @@ class Pipe:
 
         if isinstance(user_message, list):
             user_message = " ".join(
-                part.get("text", "") for part in user_message
+                part.get("text", "")
+                for part in user_message
                 if isinstance(part, dict) and part.get("type") == "text"
             )
 

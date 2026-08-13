@@ -14,12 +14,12 @@ class DataQualityMonitor extends EventEmitter {
         this.options = {
             evaluationInterval: options.evaluationInterval || 300000, // 5分鐘評估一次
             alertThresholds: {
-                overall: options.overallThreshold || 0.7,        // 整體品質閾值
+                overall: options.overallThreshold || 0.7, // 整體品質閾值
                 completeness: options.completenessThreshold || 0.8, // 完整性閾值
-                accuracy: options.accuracyThreshold || 0.85,     // 準確性閾值
+                accuracy: options.accuracyThreshold || 0.85, // 準確性閾值
                 consistency: options.consistencyThreshold || 0.9, // 一致性閾值
-                freshness: options.freshnessThreshold || 0.75,   // 時效性閾值
-                validity: options.validityThreshold || 0.8       // 有效性閾值
+                freshness: options.freshnessThreshold || 0.75, // 時效性閾值
+                validity: options.validityThreshold || 0.8 // 有效性閾值
             },
             sampleSize: options.sampleSize || 1000,
             retentionDays: options.retentionDays || 30,
@@ -40,31 +40,46 @@ class DataQualityMonitor extends EventEmitter {
 
         // 品質規則定義
         this.qualityRules = new Map([
-            ['required_fields', {
-                name: '必填欄位檢查',
-                weight: 0.3,
-                evaluate: this.evaluateCompleteness.bind(this)
-            }],
-            ['data_format', {
-                name: '資料格式驗證',
-                weight: 0.2,
-                evaluate: this.evaluateValidity.bind(this)
-            }],
-            ['consistency_check', {
-                name: '一致性檢查',
-                weight: 0.2,
-                evaluate: this.evaluateConsistency.bind(this)
-            }],
-            ['freshness_check', {
-                name: '時效性檢查',
-                weight: 0.15,
-                evaluate: this.evaluateFreshness.bind(this)
-            }],
-            ['accuracy_check', {
-                name: '準確性檢查',
-                weight: 0.15,
-                evaluate: this.evaluateAccuracy.bind(this)
-            }]
+            [
+                'required_fields',
+                {
+                    name: '必填欄位檢查',
+                    weight: 0.3,
+                    evaluate: this.evaluateCompleteness.bind(this)
+                }
+            ],
+            [
+                'data_format',
+                {
+                    name: '資料格式驗證',
+                    weight: 0.2,
+                    evaluate: this.evaluateValidity.bind(this)
+                }
+            ],
+            [
+                'consistency_check',
+                {
+                    name: '一致性檢查',
+                    weight: 0.2,
+                    evaluate: this.evaluateConsistency.bind(this)
+                }
+            ],
+            [
+                'freshness_check',
+                {
+                    name: '時效性檢查',
+                    weight: 0.15,
+                    evaluate: this.evaluateFreshness.bind(this)
+                }
+            ],
+            [
+                'accuracy_check',
+                {
+                    name: '準確性檢查',
+                    weight: 0.15,
+                    evaluate: this.evaluateAccuracy.bind(this)
+                }
+            ]
         ]);
 
         // 監控狀態
@@ -95,7 +110,7 @@ class DataQualityMonitor extends EventEmitter {
 
             // 設定定期評估
             this.monitoringInterval = setInterval(() => {
-                this.performQualityEvaluation().catch(error => {
+                this.performQualityEvaluation().catch((error) => {
                     logger.error('品質評估失敗', { error: error.message });
                 });
             }, this.options.evaluationInterval);
@@ -107,7 +122,6 @@ class DataQualityMonitor extends EventEmitter {
                 evaluationInterval: this.options.evaluationInterval,
                 alertsEnabled: this.options.enableAlerts
             });
-
         } catch (error) {
             logger.error('啟動品質監控失敗', { error: error.message });
             throw error;
@@ -133,7 +147,6 @@ class DataQualityMonitor extends EventEmitter {
             this.emit('monitoringStopped');
 
             logger.info('資料品質監控系統已停止');
-
         } catch (error) {
             logger.error('停止品質監控失敗', { error: error.message });
         }
@@ -198,7 +211,6 @@ class DataQualityMonitor extends EventEmitter {
             });
 
             return qualityScores;
-
         } catch (error) {
             logger.error('品質評估執行失敗', { error: error.message });
             throw error;
@@ -228,7 +240,6 @@ class DataQualityMonitor extends EventEmitter {
             }
 
             return mockSamples;
-
         } catch (error) {
             logger.error('收集資料樣本失敗', { error: error.message });
             return [];
@@ -435,10 +446,15 @@ class DataQualityMonitor extends EventEmitter {
      * 限制指標歷史記錄長度
      */
     limitMetricsHistory() {
-        const maxRecords = Math.floor(this.options.retentionDays * 24 * 60 * 60 * 1000 / this.options.evaluationInterval);
+        const maxRecords = Math.floor(
+            (this.options.retentionDays * 24 * 60 * 60 * 1000) / this.options.evaluationInterval
+        );
 
         for (const key in this.qualityMetrics) {
-            if (Array.isArray(this.qualityMetrics[key]) && this.qualityMetrics[key].length > maxRecords) {
+            if (
+                Array.isArray(this.qualityMetrics[key]) &&
+                this.qualityMetrics[key].length > maxRecords
+            ) {
                 this.qualityMetrics[key] = this.qualityMetrics[key].slice(-maxRecords);
             }
         }
@@ -528,10 +544,10 @@ class DataQualityMonitor extends EventEmitter {
         // 計算趋势
         for (const [key, metrics] of Object.entries(this.qualityMetrics)) {
             if (Array.isArray(metrics)) {
-                const recentMetrics = metrics.filter(m => m.timestamp.getTime() > cutoffTime);
+                const recentMetrics = metrics.filter((m) => m.timestamp.getTime() > cutoffTime);
 
                 if (recentMetrics.length > 0) {
-                    const values = recentMetrics.map(m => m.value);
+                    const values = recentMetrics.map((m) => m.value);
                     report.trends[key] = {
                         average: values.reduce((sum, v) => sum + v, 0) / values.length,
                         min: Math.min(...values),
@@ -605,7 +621,7 @@ class DataQualityMonitor extends EventEmitter {
             }
         }
 
-        return issues.sort((a, b) => (b.impact * (1 - b.score)) - (a.impact * (1 - a.score)));
+        return issues.sort((a, b) => b.impact * (1 - b.score) - a.impact * (1 - a.score));
     }
 
     /**
@@ -654,7 +670,10 @@ class DataQualityMonitor extends EventEmitter {
             })),
             alertThresholds: this.options.alertThresholds,
             metricsCount: Object.keys(this.qualityMetrics).reduce((sum, key) => {
-                return sum + (Array.isArray(this.qualityMetrics[key]) ? this.qualityMetrics[key].length : 0);
+                return (
+                    sum +
+                    (Array.isArray(this.qualityMetrics[key]) ? this.qualityMetrics[key].length : 0)
+                );
             }, 0)
         };
     }

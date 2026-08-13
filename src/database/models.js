@@ -17,7 +17,7 @@ const pool = new Pool({
     port: process.env.DB_PORT || 5432,
     max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 2000
 });
 
 // 基礎模型類
@@ -40,11 +40,7 @@ class BaseModel {
         })();
 
         // 使用全域超時處理器包裝查詢
-        return globalTimeoutHandler.withDatabaseTimeout(
-            queryPromise,
-            operationName,
-            timeout
-        );
+        return globalTimeoutHandler.withDatabaseTimeout(queryPromise, operationName, timeout);
     }
 
     async findById(id) {
@@ -263,11 +259,13 @@ class Artwork extends BaseModel {
     }
 
     async addTags(artworkId, tagIds, assignedBy = 'system') {
-        const values = tagIds.map(tagId => [uuidv4(), artworkId, tagId, 1.0, assignedBy]);
-        const placeholders = values.map((_, index) => {
-            const base = index * 5;
-            return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
-        }).join(', ');
+        const values = tagIds.map((tagId) => [uuidv4(), artworkId, tagId, 1.0, assignedBy]);
+        const placeholders = values
+            .map((_, index) => {
+                const base = index * 5;
+                return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+            })
+            .join(', ');
 
         const query = `
             INSERT INTO artwork_tags (id, artwork_id, tag_id, relevance_score, assigned_by)
@@ -470,10 +468,12 @@ class DocumentVector extends BaseModel {
         if (documents.length === 0) return [];
 
         const fields = Object.keys(documents[0]);
-        const placeholderRows = documents.map((_, index) => {
-            const offset = index * fields.length;
-            return `(${fields.map((_, fieldIndex) => `$${offset + fieldIndex + 1}`).join(', ')})`;
-        }).join(', ');
+        const placeholderRows = documents
+            .map((_, index) => {
+                const offset = index * fields.length;
+                return `(${fields.map((_, fieldIndex) => `$${offset + fieldIndex + 1}`).join(', ')})`;
+            })
+            .join(', ');
 
         const query = `
             INSERT INTO ${this.tableName} (${fields.join(', ')})
@@ -481,7 +481,7 @@ class DocumentVector extends BaseModel {
             RETURNING *
         `;
 
-        const values = documents.flatMap(doc => fields.map(field => doc[field]));
+        const values = documents.flatMap((doc) => fields.map((field) => doc[field]));
         const result = await this.query(query, values);
         return result.rows;
     }

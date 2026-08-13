@@ -15,14 +15,18 @@ async function testRAGStrategy(strategy, query, description) {
     console.log(`${'='.repeat(80)}\n`);
 
     try {
-        const response = await axios.post(`${RAG_MANAGER_URL}/api/v1/query`, {
-            query: query,
-            model_combination_id: `llama3.1:8b@${strategy}`,
-            max_results: 3,
-            include_sources: true
-        }, {
-            timeout: 60000
-        });
+        const response = await axios.post(
+            `${RAG_MANAGER_URL}/api/v1/query`,
+            {
+                query: query,
+                model_combination_id: `llama3.1:8b@${strategy}`,
+                max_results: 3,
+                include_sources: true
+            },
+            {
+                timeout: 60000
+            }
+        );
 
         const result = response.data;
 
@@ -34,7 +38,9 @@ async function testRAGStrategy(strategy, query, description) {
         if (result.sources && result.sources.length > 0) {
             console.log(`\n📖 檢索結果:\n`);
             result.sources.forEach((source, i) => {
-                console.log(`  [${i + 1}] ${source.source} (分數: ${source.score?.toFixed(3) || 'N/A'})`);
+                console.log(
+                    `  [${i + 1}] ${source.source} (分數: ${source.score?.toFixed(3) || 'N/A'})`
+                );
                 console.log(`      ${source.content.substring(0, 80)}...`);
             });
 
@@ -50,7 +56,6 @@ async function testRAGStrategy(strategy, query, description) {
             retrieval_time: result.retrieval_time_ms,
             query: query
         };
-
     } catch (error) {
         console.error(`❌ 查詢失敗: ${error.message}`);
         if (error.response) {
@@ -99,7 +104,7 @@ async function runTests() {
         results.push(result);
 
         // 延遲避免過載
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     // 總結
@@ -108,7 +113,7 @@ async function runTests() {
     console.log('='.repeat(80) + '\n');
 
     const byStrategy = {};
-    results.forEach(r => {
+    results.forEach((r) => {
         if (!byStrategy[r.strategy]) {
             byStrategy[r.strategy] = { success: 0, failed: 0, withResults: 0, noResults: 0 };
         }
@@ -125,15 +130,18 @@ async function runTests() {
     });
 
     console.log('各策略測試結果:\n');
-    Object.keys(byStrategy).forEach(strategy => {
+    Object.keys(byStrategy).forEach((strategy) => {
         const stats = byStrategy[strategy];
-        const status = stats.success > 0 && stats.withResults > 0 ? '✅' : (stats.failed > 0 ? '❌' : '⚠️ ');
+        const status =
+            stats.success > 0 && stats.withResults > 0 ? '✅' : stats.failed > 0 ? '❌' : '⚠️ ';
         console.log(`${status} ${strategy}:`);
-        console.log(`   成功: ${stats.success}, 有結果: ${stats.withResults}, 無結果: ${stats.noResults}, 失敗: ${stats.failed}`);
+        console.log(
+            `   成功: ${stats.success}, 有結果: ${stats.withResults}, 無結果: ${stats.noResults}, 失敗: ${stats.failed}`
+        );
     });
 
-    const allSuccess = results.every(r => r.success);
-    const allWithResults = results.every(r => r.success && r.sources_count > 0);
+    const allSuccess = results.every((r) => r.success);
+    const allWithResults = results.every((r) => r.success && r.sources_count > 0);
 
     console.log('\n總結:');
     if (allWithResults) {
@@ -146,7 +154,7 @@ async function runTests() {
 }
 
 // 執行測試
-runTests().catch(error => {
+runTests().catch((error) => {
     console.error('❌ 測試執行失敗:', error.message);
     process.exit(1);
 });

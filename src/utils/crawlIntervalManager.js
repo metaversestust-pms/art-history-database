@@ -35,57 +35,57 @@ class CrawlIntervalManager extends EventEmitter {
         this.defaultIntervals = {
             museums: {
                 met: {
-                    baseInterval: 3600000,        // 1 hour
-                    minInterval: 1800000,         // 30 minutes
-                    maxInterval: 86400000,        // 24 hours
-                    rateLimit: 1000,              // 1 second between requests
-                    burstLimit: 10,               // Max 10 requests in burst
+                    baseInterval: 3600000, // 1 hour
+                    minInterval: 1800000, // 30 minutes
+                    maxInterval: 86400000, // 24 hours
+                    rateLimit: 1000, // 1 second between requests
+                    burstLimit: 10, // Max 10 requests in burst
                     adaptiveEnabled: true,
                     priority: 'high'
                 },
                 louvre: {
-                    baseInterval: 7200000,        // 2 hours
-                    minInterval: 3600000,         // 1 hour
-                    maxInterval: 172800000,       // 48 hours
-                    rateLimit: 2000,              // 2 seconds between requests
+                    baseInterval: 7200000, // 2 hours
+                    minInterval: 3600000, // 1 hour
+                    maxInterval: 172800000, // 48 hours
+                    rateLimit: 2000, // 2 seconds between requests
                     burstLimit: 5,
                     adaptiveEnabled: true,
                     priority: 'medium'
                 },
                 british: {
-                    baseInterval: 10800000,       // 3 hours
-                    minInterval: 3600000,         // 1 hour
-                    maxInterval: 259200000,       // 72 hours
-                    rateLimit: 1500,              // 1.5 seconds
+                    baseInterval: 10800000, // 3 hours
+                    minInterval: 3600000, // 1 hour
+                    maxInterval: 259200000, // 72 hours
+                    rateLimit: 1500, // 1.5 seconds
                     burstLimit: 8,
                     adaptiveEnabled: true,
                     priority: 'medium'
                 },
                 europeana: {
-                    baseInterval: 14400000,       // 4 hours
-                    minInterval: 7200000,         // 2 hours
-                    maxInterval: 86400000,        // 24 hours
-                    rateLimit: 1000,              // 1 second (API)
-                    burstLimit: 100,              // Higher limit for API
+                    baseInterval: 14400000, // 4 hours
+                    minInterval: 7200000, // 2 hours
+                    maxInterval: 86400000, // 24 hours
+                    rateLimit: 1000, // 1 second (API)
+                    burstLimit: 100, // Higher limit for API
                     adaptiveEnabled: true,
                     priority: 'high'
                 }
             },
             academic: {
                 jstor: {
-                    baseInterval: 43200000,       // 12 hours
-                    minInterval: 21600000,        // 6 hours
-                    maxInterval: 604800000,       // 1 week
-                    rateLimit: 3000,              // 3 seconds (respectful)
+                    baseInterval: 43200000, // 12 hours
+                    minInterval: 21600000, // 6 hours
+                    maxInterval: 604800000, // 1 week
+                    rateLimit: 3000, // 3 seconds (respectful)
                     burstLimit: 3,
                     adaptiveEnabled: true,
                     priority: 'low'
                 },
                 academia: {
-                    baseInterval: 21600000,       // 6 hours
-                    minInterval: 10800000,        // 3 hours
-                    maxInterval: 172800000,       // 48 hours
-                    rateLimit: 2000,              // 2 seconds
+                    baseInterval: 21600000, // 6 hours
+                    minInterval: 10800000, // 3 hours
+                    maxInterval: 172800000, // 48 hours
+                    rateLimit: 2000, // 2 seconds
                     burstLimit: 5,
                     adaptiveEnabled: true,
                     priority: 'low'
@@ -126,7 +126,6 @@ class CrawlIntervalManager extends EventEmitter {
 
             logger.info('CrawlIntervalManager 初始化成功');
             this.emit('initialized');
-
         } catch (error) {
             logger.error('CrawlIntervalManager 初始化失敗', error);
             throw error;
@@ -164,7 +163,6 @@ class CrawlIntervalManager extends EventEmitter {
 
             // 從環境變數或配置管理器覆蓋
             await this.loadEnvironmentOverrides();
-
         } catch (error) {
             logger.error('載入爬取間隔配置失敗', error);
             throw error;
@@ -366,13 +364,15 @@ class CrawlIntervalManager extends EventEmitter {
         const sourceKey = `${category}.${source}`;
         const config = this.intervalConfigs.get(sourceKey);
 
-        return config ? {
-            rateLimit: config.rateLimit,
-            burstLimit: config.burstLimit
-        } : {
-            rateLimit: 2000,
-            burstLimit: 5
-        };
+        return config
+            ? {
+                  rateLimit: config.rateLimit,
+                  burstLimit: config.burstLimit
+              }
+            : {
+                  rateLimit: 2000,
+                  burstLimit: 5
+              };
     }
 
     /**
@@ -445,16 +445,19 @@ class CrawlIntervalManager extends EventEmitter {
         let totalWeight = 0;
 
         // 成功率
-        const successRate = stats.totalRequests > 0 ?
-            stats.successfulRequests / stats.totalRequests : 0;
-        const successScore = Math.min(successRate / this.performanceMetrics.successRate.threshold, 1);
+        const successRate =
+            stats.totalRequests > 0 ? stats.successfulRequests / stats.totalRequests : 0;
+        const successScore = Math.min(
+            successRate / this.performanceMetrics.successRate.threshold,
+            1
+        );
         score += successScore * this.performanceMetrics.successRate.weight;
         totalWeight += this.performanceMetrics.successRate.weight;
 
         // 響應時間
         if (stats.averageResponseTime > 0) {
             const responseScore = Math.max(
-                1 - (stats.averageResponseTime / this.performanceMetrics.responseTime.threshold),
+                1 - stats.averageResponseTime / this.performanceMetrics.responseTime.threshold,
                 0
             );
             score += responseScore * this.performanceMetrics.responseTime.weight;
@@ -462,12 +465,8 @@ class CrawlIntervalManager extends EventEmitter {
         }
 
         // 錯誤率
-        const errorRate = stats.totalRequests > 0 ?
-            stats.failedRequests / stats.totalRequests : 0;
-        const errorScore = Math.max(
-            1 - (errorRate / this.performanceMetrics.errorRate.threshold),
-            0
-        );
+        const errorRate = stats.totalRequests > 0 ? stats.failedRequests / stats.totalRequests : 0;
+        const errorScore = Math.max(1 - errorRate / this.performanceMetrics.errorRate.threshold, 0);
         score += errorScore * this.performanceMetrics.errorRate.weight;
         totalWeight += this.performanceMetrics.errorRate.weight;
 
@@ -532,24 +531,15 @@ class CrawlIntervalManager extends EventEmitter {
         // 基於性能分數調整
         if (stats.performanceScore > 0.9 && config.priority === 'high') {
             // 性能很好，可以增加頻率
-            newInterval = Math.max(
-                config.minInterval,
-                currentInterval * 0.9
-            );
+            newInterval = Math.max(config.minInterval, currentInterval * 0.9);
             adjustmentReason = 'high_performance';
         } else if (stats.performanceScore < 0.5) {
             // 性能不佳，減少頻率
-            newInterval = Math.min(
-                config.maxInterval,
-                currentInterval * 1.5
-            );
+            newInterval = Math.min(config.maxInterval, currentInterval * 1.5);
             adjustmentReason = 'low_performance';
         } else if (stats.consecutiveFailures >= 3) {
             // 連續失敗，大幅減少頻率
-            newInterval = Math.min(
-                config.maxInterval,
-                currentInterval * 2
-            );
+            newInterval = Math.min(config.maxInterval, currentInterval * 2);
             adjustmentReason = 'consecutive_failures';
         }
 
@@ -609,16 +599,20 @@ class CrawlIntervalManager extends EventEmitter {
 
         return {
             ...config,
-            statistics: stats ? {
-                totalRequests: stats.totalRequests,
-                successRate: stats.totalRequests > 0 ?
-                    (stats.successfulRequests / stats.totalRequests) : 0,
-                averageResponseTime: Math.round(stats.averageResponseTime),
-                performanceScore: Math.round(stats.performanceScore * 100) / 100,
-                lastSuccess: stats.lastSuccessTime,
-                lastFailure: stats.lastFailureTime,
-                consecutiveFailures: stats.consecutiveFailures
-            } : null
+            statistics: stats
+                ? {
+                      totalRequests: stats.totalRequests,
+                      successRate:
+                          stats.totalRequests > 0
+                              ? stats.successfulRequests / stats.totalRequests
+                              : 0,
+                      averageResponseTime: Math.round(stats.averageResponseTime),
+                      performanceScore: Math.round(stats.performanceScore * 100) / 100,
+                      lastSuccess: stats.lastSuccessTime,
+                      lastFailure: stats.lastFailureTime,
+                      consecutiveFailures: stats.consecutiveFailures
+                  }
+                : null
         };
     }
 
@@ -668,11 +662,15 @@ class CrawlIntervalManager extends EventEmitter {
             totalSources: this.intervalConfigs.size,
             activeSources: activeSourcesCount,
             totalRequests,
-            successRate: totalRequests > 0 ? (totalSuccessful / totalRequests) : 0,
-            errorRate: totalRequests > 0 ? (totalFailed / totalRequests) : 0,
-            averageResponseTime: Math.round(totalResponseTime / Math.max(this.intervalConfigs.size, 1)),
-            averagePerformanceScore: activeSourcesCount > 0 ?
-                Math.round((avgPerformanceScore / activeSourcesCount) * 100) / 100 : 0,
+            successRate: totalRequests > 0 ? totalSuccessful / totalRequests : 0,
+            errorRate: totalRequests > 0 ? totalFailed / totalRequests : 0,
+            averageResponseTime: Math.round(
+                totalResponseTime / Math.max(this.intervalConfigs.size, 1)
+            ),
+            averagePerformanceScore:
+                activeSourcesCount > 0
+                    ? Math.round((avgPerformanceScore / activeSourcesCount) * 100) / 100
+                    : 0,
             performanceHistorySize: this.performanceHistory.length,
             lastUpdate: new Date()
         };
@@ -711,7 +709,6 @@ class CrawlIntervalManager extends EventEmitter {
                 file: this.options.configFile,
                 sourcesCount: Object.keys(configToSave).length
             });
-
         } catch (error) {
             logger.error('保存爬取間隔配置失敗', {
                 file: this.options.configFile,
@@ -770,7 +767,7 @@ class CrawlIntervalManager extends EventEmitter {
 
         // 保存最終配置
         if (this.options.persistConfig) {
-            this.saveConfiguration().catch(error => {
+            this.saveConfiguration().catch((error) => {
                 logger.error('最終保存配置失敗', error);
             });
         }

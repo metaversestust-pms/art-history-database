@@ -260,7 +260,7 @@ class RateLimitManager extends EventEmitter {
         const windowStart = now - window.windowSize;
 
         // 清理過期請求
-        window.requests = window.requests.filter(time => time > windowStart);
+        window.requests = window.requests.filter((time) => time > windowStart);
 
         if (window.requests.length < window.maxRequests) {
             return { allowed: true, waitTime: 0 };
@@ -289,7 +289,7 @@ class RateLimitManager extends EventEmitter {
         // 計算當前並發請求數（假設平均響應時間為估算基準）
         const avgResponseTime = stats.averageResponseTime || 1000;
         const concurrentRequests = history.filter(
-            req => (now - req.startTime) < avgResponseTime && !req.completed
+            (req) => now - req.startTime < avgResponseTime && !req.completed
         ).length;
 
         if (concurrentRequests < config.maxConcurrency) {
@@ -370,12 +370,12 @@ class RateLimitManager extends EventEmitter {
         // 找到最近的未完成請求
         const recentRequest = history
             .reverse()
-            .find(req => !req.completed && (now - req.startTime) < 60000);
+            .find((req) => !req.completed && now - req.startTime < 60000);
 
         if (recentRequest) {
             recentRequest.completed = true;
             recentRequest.success = success;
-            recentRequest.responseTime = responseTime || (now - recentRequest.startTime);
+            recentRequest.responseTime = responseTime || now - recentRequest.startTime;
             recentRequest.statusCode = statusCode;
         }
 
@@ -386,15 +386,16 @@ class RateLimitManager extends EventEmitter {
         }
 
         // 更新平均響應時間
-        const actualResponseTime = responseTime || (recentRequest ? recentRequest.responseTime : 1000);
-        stats.averageResponseTime = stats.averageResponseTime === 0
-            ? actualResponseTime
-            : (stats.averageResponseTime * 0.9 + actualResponseTime * 0.1);
+        const actualResponseTime =
+            responseTime || (recentRequest ? recentRequest.responseTime : 1000);
+        stats.averageResponseTime =
+            stats.averageResponseTime === 0
+                ? actualResponseTime
+                : stats.averageResponseTime * 0.9 + actualResponseTime * 0.1;
 
         // 更新成功率
-        stats.successRate = stats.totalRequests > 0
-            ? stats.successfulRequests / stats.totalRequests
-            : 1.0;
+        stats.successRate =
+            stats.totalRequests > 0 ? stats.successfulRequests / stats.totalRequests : 1.0;
 
         // 檢查是否需要觸發退避
         this.checkAndTriggerBackoff(source, success, statusCode);
@@ -502,10 +503,11 @@ class RateLimitManager extends EventEmitter {
         const timeSinceLastSuccess = now - stats.lastSuccessTime;
 
         // 如果成功率高且響應時間正常，可以適度提高速率
-        if (stats.successRate > this.options.recoveryThreshold &&
+        if (
+            stats.successRate > this.options.recoveryThreshold &&
             timeSinceLastSuccess < 60000 &&
-            stats.averageResponseTime < 3000) {
-
+            stats.averageResponseTime < 3000
+        ) {
             const newRateLimit = Math.min(
                 config.rateLimit * 1.1,
                 this.options.defaultRateLimit * 2
@@ -525,10 +527,7 @@ class RateLimitManager extends EventEmitter {
         }
         // 如果成功率低，降低速率
         else if (stats.successRate < 0.7) {
-            const newRateLimit = Math.max(
-                stats.currentRateLimit * 0.8,
-                config.rateLimit * 0.3
-            );
+            const newRateLimit = Math.max(stats.currentRateLimit * 0.8, config.rateLimit * 0.3);
 
             if (newRateLimit < stats.currentRateLimit) {
                 stats.currentRateLimit = newRateLimit;
@@ -575,7 +574,8 @@ class RateLimitManager extends EventEmitter {
 
             // 檢查長時間無活動的資料源
             const timeSinceLastRequest = Date.now() - stats.lastRequestTime;
-            if (timeSinceLastRequest > 300000) { // 5分鐘無活動
+            if (timeSinceLastRequest > 300000) {
+                // 5分鐘無活動
                 // 重置退避狀態
                 const backoff = this.backoffState.get(source);
                 if (backoff && backoff.active) {

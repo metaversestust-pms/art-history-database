@@ -75,10 +75,7 @@ const logger = winston.createLogger({
             level: 'info',
             maxsize: 50 * 1024 * 1024,
             maxFiles: 5,
-            format: winston.format.combine(
-                winston.format.label({ label: 'AGENT' }),
-                logFormat
-            ),
+            format: winston.format.combine(winston.format.label({ label: 'AGENT' }), logFormat),
             // 只記錄包含agent相關的日誌
             filter: (info) => {
                 return info.module && info.module.toLowerCase().includes('agent');
@@ -91,10 +88,7 @@ const logger = winston.createLogger({
             level: 'debug',
             maxsize: 30 * 1024 * 1024,
             maxFiles: 3,
-            format: winston.format.combine(
-                winston.format.label({ label: 'DB' }),
-                logFormat
-            ),
+            format: winston.format.combine(winston.format.label({ label: 'DB' }), logFormat),
             filter: (info) => {
                 return info.module && info.module.toLowerCase().includes('database');
             }
@@ -121,10 +115,12 @@ const logger = winston.createLogger({
 
 // 開發環境添加控制台輸出
 if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
-        format: consoleFormat,
-        level: process.env.LOG_LEVEL || 'debug'
-    }));
+    logger.add(
+        new winston.transports.Console({
+            format: consoleFormat,
+            level: process.env.LOG_LEVEL || 'debug'
+        })
+    );
 }
 
 // 創建專用的日誌器工廠
@@ -136,7 +132,12 @@ class LoggerFactory {
             warn: (message, meta = {}) => logger.warn(message, { module, ...meta }),
             error: (message, error = null, meta = {}) => {
                 if (error instanceof Error) {
-                    logger.error(message, { module, error: error.message, stack: error.stack, ...meta });
+                    logger.error(message, {
+                        module,
+                        error: error.message,
+                        stack: error.stack,
+                        ...meta
+                    });
                 } else {
                     logger.error(message, { module, error, ...meta });
                 }

@@ -9,11 +9,26 @@ const fs = require('fs/promises');
 const path = require('path');
 
 const SEARCH_QUERIES = [
-    'Renaissance painting', 'Baroque sculpture', 'Impressionism', 'Post-Impressionism',
-    'American art', 'Modern art', 'Contemporary art', 'Ancient Egyptian art',
-    'Ancient Greek art', 'Asian art', 'Islamic art', 'African art',
-    'Photography', 'Textile', 'Decorative arts', 'Prints and drawings',
-    'Medieval art', 'Surrealism', 'Cubism', 'Japanese art'
+    'Renaissance painting',
+    'Baroque sculpture',
+    'Impressionism',
+    'Post-Impressionism',
+    'American art',
+    'Modern art',
+    'Contemporary art',
+    'Ancient Egyptian art',
+    'Ancient Greek art',
+    'Asian art',
+    'Islamic art',
+    'African art',
+    'Photography',
+    'Textile',
+    'Decorative arts',
+    'Prints and drawings',
+    'Medieval art',
+    'Surrealism',
+    'Cubism',
+    'Japanese art'
 ];
 
 class ArtInstituteChicagoCrawler {
@@ -22,7 +37,8 @@ class ArtInstituteChicagoCrawler {
         this.outputDir = path.join(__dirname, 'data', 'raw', 'art_institute_chicago');
         this.collectedData = [];
         this.perQueryLimit = 15;
-        this.fields = 'id,title,artist_display,date_display,medium_display,department_title,place_of_origin,description,image_id,is_public_domain,api_link';
+        this.fields =
+            'id,title,artist_display,date_display,medium_display,department_title,place_of_origin,description,image_id,is_public_domain,api_link';
     }
 
     async ensureOutputDir() {
@@ -81,7 +97,9 @@ class ArtInstituteChicagoCrawler {
             department: item.department_title || null,
             culture: item.place_of_origin || null,
             description: item.description || null,
-            imageUrl: item.image_id ? `https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg` : null,
+            imageUrl: item.image_id
+                ? `https://www.artic.edu/iiif/2/${item.image_id}/full/843,/0/default.jpg`
+                : null,
             isPublicDomain: item.is_public_domain || false,
             objectURL: `https://www.artic.edu/artworks/${item.id}`,
             source: 'Art Institute of Chicago',
@@ -100,7 +118,7 @@ class ArtInstituteChicagoCrawler {
             for (const item of items) {
                 this.collectedData.push(this.normalizeItem(item));
             }
-            await new Promise(resolve => setTimeout(resolve, 800));
+            await new Promise((resolve) => setTimeout(resolve, 800));
         }
 
         console.log(`\n🎉 收集完成！總共收集了 ${this.collectedData.length} 件藝術品`);
@@ -117,10 +135,12 @@ class ArtInstituteChicagoCrawler {
         const filePath = path.join(this.outputDir, filename);
 
         await fs.writeFile(filePath, JSON.stringify(this.collectedData, null, 2), 'utf8');
-        const avgScore = this.collectedData.reduce((sum, a) => sum + a.qualityScore, 0) / this.collectedData.length;
+        const avgScore =
+            this.collectedData.reduce((sum, a) => sum + a.qualityScore, 0) /
+            this.collectedData.length;
         console.log(`💾 資料已保存到: ${filePath}`);
         console.log(`📊 總作品數: ${this.collectedData.length}`);
-        console.log(`📊 有圖片的作品: ${this.collectedData.filter(a => a.imageUrl).length}`);
+        console.log(`📊 有圖片的作品: ${this.collectedData.filter((a) => a.imageUrl).length}`);
         console.log(`⭐ 平均品質分數: ${avgScore.toFixed(2)}/100`);
 
         return filePath;

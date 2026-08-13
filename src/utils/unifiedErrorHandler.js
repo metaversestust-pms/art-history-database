@@ -152,7 +152,6 @@ class UnifiedErrorHandler extends EventEmitter {
                 });
 
                 return result;
-
             } catch (error) {
                 await this.processError(error, context, attempt, operationId);
 
@@ -168,7 +167,9 @@ class UnifiedErrorHandler extends EventEmitter {
                     await this.delay(retryDelay);
                 }
 
-                console.warn(`⚠️ [${this.agentId}] ${context} 失敗，智能重試 ${attempt + 1}/${maxRetries}: ${error.message}`);
+                console.warn(
+                    `⚠️ [${this.agentId}] ${context} 失敗，智能重試 ${attempt + 1}/${maxRetries}: ${error.message}`
+                );
 
                 // 指數退避
                 if (this.options.exponentialBackoff) {
@@ -384,7 +385,9 @@ class UnifiedErrorHandler extends EventEmitter {
         if (this.circuitBreaker.failures >= this.options.circuitBreakerThreshold) {
             this.circuitBreaker.state = 'OPEN';
             this.metrics.circuitBreakerTrips++;
-            console.warn(`🚨 [${this.agentId}] Circuit breaker OPENED after ${this.circuitBreaker.failures} failures`);
+            console.warn(
+                `🚨 [${this.agentId}] Circuit breaker OPENED after ${this.circuitBreaker.failures} failures`
+            );
 
             this.emit('circuitBreakerOpened', {
                 agentId: this.agentId,
@@ -407,8 +410,8 @@ class UnifiedErrorHandler extends EventEmitter {
         }
 
         // 計算錯誤率（過去1小時）
-        const recentErrors = this.errors.filter(e =>
-            now - new Date(e.timestamp).getTime() < 60 * 60 * 1000
+        const recentErrors = this.errors.filter(
+            (e) => now - new Date(e.timestamp).getTime() < 60 * 60 * 1000
         ).length;
 
         this.metrics.errorRate = recentErrors;
@@ -419,8 +422,8 @@ class UnifiedErrorHandler extends EventEmitter {
      * 檢查警報條件
      */
     async checkAlertConditions() {
-        const recentErrors = this.errors.filter(e =>
-            Date.now() - new Date(e.timestamp).getTime() < 10 * 60 * 1000 // 過去10分鐘
+        const recentErrors = this.errors.filter(
+            (e) => Date.now() - new Date(e.timestamp).getTime() < 10 * 60 * 1000 // 過去10分鐘
         ).length;
 
         if (recentErrors >= this.options.alertThreshold && !this.alertSent) {
@@ -434,9 +437,12 @@ class UnifiedErrorHandler extends EventEmitter {
             });
 
             // 30分鐘後重置警報狀態
-            setTimeout(() => {
-                this.alertSent = false;
-            }, 30 * 60 * 1000);
+            setTimeout(
+                () => {
+                    this.alertSent = false;
+                },
+                30 * 60 * 1000
+            );
         }
     }
 
@@ -445,7 +451,7 @@ class UnifiedErrorHandler extends EventEmitter {
      */
     getTopErrorPatterns(limit = 10) {
         return Array.from(this.errorPatterns.entries())
-            .sort(([,a], [,b]) => b.count - a.count)
+            .sort(([, a], [, b]) => b.count - a.count)
             .slice(0, limit)
             .map(([pattern, data]) => ({
                 pattern,
@@ -462,8 +468,8 @@ class UnifiedErrorHandler extends EventEmitter {
         const now = Date.now();
         const last24h = 24 * 60 * 60 * 1000;
 
-        const recentErrors = this.errors.filter(e =>
-            now - new Date(e.timestamp).getTime() < last24h
+        const recentErrors = this.errors.filter(
+            (e) => now - new Date(e.timestamp).getTime() < last24h
         );
 
         return {
@@ -473,7 +479,7 @@ class UnifiedErrorHandler extends EventEmitter {
             metrics: { ...this.metrics },
             last24Hours: {
                 totalErrors: recentErrors.length,
-                criticalErrors: recentErrors.filter(e => e.severity === 'critical').length,
+                criticalErrors: recentErrors.filter((e) => e.severity === 'critical').length,
                 topPatterns: this.getTopErrorPatterns(3)
             },
             recommendations: this.generateRecommendations()
@@ -507,9 +513,12 @@ class UnifiedErrorHandler extends EventEmitter {
      */
     setupCleanupTimer() {
         // 每小時清理一次舊數據
-        setInterval(() => {
-            this.cleanup();
-        }, 60 * 60 * 1000);
+        setInterval(
+            () => {
+                this.cleanup();
+            },
+            60 * 60 * 1000
+        );
     }
 
     /**
@@ -519,9 +528,7 @@ class UnifiedErrorHandler extends EventEmitter {
         const cutoff = Date.now() - maxAge;
 
         // 清理錯誤記錄
-        this.errors = this.errors.filter(error =>
-            new Date(error.timestamp).getTime() > cutoff
-        );
+        this.errors = this.errors.filter((error) => new Date(error.timestamp).getTime() > cutoff);
 
         // 清理錯誤模式
         for (const [pattern, data] of this.errorPatterns.entries()) {
@@ -600,7 +607,7 @@ class UnifiedErrorHandler extends EventEmitter {
     }
 
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     getErrorStats() {

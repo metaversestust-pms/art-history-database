@@ -90,7 +90,10 @@ class ArtHistoryAgentTrigger {
                 console.log(JSON.stringify(response.data.data, null, 2));
 
                 if (response.data.metadata) {
-                    colorLog(`\n📈 元數據: 執行時間 ${response.data.metadata.executionTime}`, 'magenta');
+                    colorLog(
+                        `\n📈 元數據: 執行時間 ${response.data.metadata.executionTime}`,
+                        'magenta'
+                    );
                 }
             }
 
@@ -98,7 +101,10 @@ class ArtHistoryAgentTrigger {
         } catch (error) {
             colorLog(`❌ ${agentType} Agent 執行失敗:`, 'red');
             if (error.response) {
-                colorLog(`   HTTP ${error.response.status}: ${error.response.data.message || error.response.statusText}`, 'red');
+                colorLog(
+                    `   HTTP ${error.response.status}: ${error.response.data.message || error.response.statusText}`,
+                    'red'
+                );
             } else {
                 colorLog(`   錯誤: ${error.message}`, 'red');
             }
@@ -138,8 +144,8 @@ class ArtHistoryAgentTrigger {
                 if (summary.failed > 0) {
                     colorLog(`\n⚠️  失敗的任務:`, 'yellow');
                     response.data.data.results
-                        .filter(result => !result.success)
-                        .forEach(result => {
+                        .filter((result) => !result.success)
+                        .forEach((result) => {
                             colorLog(`   - ${result.taskId}: ${result.error}`, 'red');
                         });
                 }
@@ -211,7 +217,7 @@ class ArtHistoryAgentTrigger {
             try {
                 colorLog(`\n📋 場景: ${scenario.name}`, 'bright');
                 await this.triggerAgent(scenario.agentType, scenario.parameters);
-                await new Promise(resolve => setTimeout(resolve, 1000)); // 短暫延遲
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // 短暫延遲
             } catch (error) {
                 colorLog(`   跳過場景: ${scenario.name}`, 'yellow');
             }
@@ -249,7 +255,6 @@ class ArtHistoryAgentTrigger {
             }
 
             colorLog('\n🎉 自動化工作流程完成!', 'green');
-
         } catch (error) {
             colorLog('\n❌ 自動化工作流程失敗', 'red');
             throw error;
@@ -317,10 +322,22 @@ async function main() {
             colorLog('\n📖 使用說明:', 'yellow');
             colorLog('  node art-history-automation.js test        # 執行所有測試場景', 'cyan');
             colorLog('  node art-history-automation.js workflow    # 執行自動化工作流程', 'cyan');
-            colorLog('  node art-history-automation.js crawler [keywords...]  # 執行爬蟲Agent', 'cyan');
-            colorLog('  node art-history-automation.js metadata <title>       # 執行元數據提取', 'cyan');
-            colorLog('  node art-history-automation.js classify <title>       # 執行分類Agent', 'cyan');
-            colorLog('  node art-history-automation.js translate <text>       # 執行翻譯Agent', 'cyan');
+            colorLog(
+                '  node art-history-automation.js crawler [keywords...]  # 執行爬蟲Agent',
+                'cyan'
+            );
+            colorLog(
+                '  node art-history-automation.js metadata <title>       # 執行元數據提取',
+                'cyan'
+            );
+            colorLog(
+                '  node art-history-automation.js classify <title>       # 執行分類Agent',
+                'cyan'
+            );
+            colorLog(
+                '  node art-history-automation.js translate <text>       # 執行翻譯Agent',
+                'cyan'
+            );
             colorLog('  node art-history-automation.js help        # 顯示此說明', 'cyan');
             break;
     }
@@ -343,7 +360,7 @@ process.on('uncaughtException', (error) => {
 
 // 執行主函數
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         colorLog('\n💥 腳本執行錯誤:', 'red');
         colorLog(error.message, 'red');
         process.exit(1);
