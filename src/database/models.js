@@ -94,8 +94,14 @@ class BaseModel {
 
     // 基礎搜索方法 - 子類應該重寫此方法以適應不同的表結構
     async search(searchText, limit = 50) {
-        // 預設簡單的名稱搜索，適用於大多數表
-        const query = `SELECT * FROM ${this.tableName} WHERE name ILIKE $1 LIMIT $2`;
+        // 預設簡單的名稱搜索，適用於大多數表。
+        // 兩側都套 unaccent()：資料中的姓名多保有原文變音符號（Cézanne、Müller），
+        // 但使用者通常以 ASCII 輸入（Cezanne）。不做正規化就永遠查不到。
+        const query = `
+            SELECT * FROM ${this.tableName}
+            WHERE unaccent(name) ILIKE unaccent($1)
+            LIMIT $2
+        `;
         const result = await this.query(query, [`%${searchText}%`, limit]);
         return result.rows;
     }
@@ -126,8 +132,9 @@ class Artist extends BaseModel {
     async findByName(name) {
         const query = `
             SELECT * FROM ${this.tableName}
-            WHERE name ILIKE $1 OR name_variants::text ILIKE $1
-            ORDER BY similarity(name, $1) DESC
+            WHERE unaccent(name) ILIKE unaccent($1)
+               OR unaccent(name_variants::text) ILIKE unaccent($1)
+            ORDER BY similarity(unaccent(name), unaccent($1)) DESC
         `;
         const result = await this.query(query, [`%${name}%`]);
         return result.rows;
@@ -165,10 +172,10 @@ class Artist extends BaseModel {
     async search(searchText, limit = 50) {
         const query = `
             SELECT * FROM ${this.tableName}
-            WHERE name ILIKE $1
-                OR biography ILIKE $1
-                OR nationality ILIKE $1
-                OR art_movement ILIKE $1
+            WHERE unaccent(name) ILIKE unaccent($1)
+                OR unaccent(biography) ILIKE unaccent($1)
+                OR unaccent(nationality) ILIKE unaccent($1)
+                OR unaccent(art_movement) ILIKE unaccent($1)
             ORDER BY name
             LIMIT $2
         `;
@@ -287,11 +294,11 @@ class Artwork extends BaseModel {
             SELECT a.*, ar.name as artist_name
             FROM ${this.tableName} a
             LEFT JOIN artists ar ON a.artist_id = ar.id
-            WHERE a.title ILIKE $1
-                OR a.description ILIKE $1
-                OR a.style ILIKE $1
-                OR a.medium ILIKE $1
-                OR ar.name ILIKE $1
+            WHERE unaccent(a.title) ILIKE unaccent($1)
+                OR unaccent(a.description) ILIKE unaccent($1)
+                OR unaccent(a.style) ILIKE unaccent($1)
+                OR unaccent(a.medium) ILIKE unaccent($1)
+                OR unaccent(ar.name) ILIKE unaccent($1)
             ORDER BY a.creation_year DESC
             LIMIT $2
         `;
@@ -395,8 +402,11 @@ class Collection extends BaseModel {
             LEFT JOIN institutions i ON c.institution_id = i.id
             LEFT JOIN artworks a ON c.artwork_id = a.id
             LEFT JOIN artists ar ON a.artist_id = ar.id
-            WHERE c.accession_number ILIKE $1 OR c.notes ILIKE $1
-                  OR i.name ILIKE $1 OR a.title ILIKE $1 OR ar.name ILIKE $1
+            WHERE unaccent(c.accession_number) ILIKE unaccent($1)
+                  OR unaccent(c.notes) ILIKE unaccent($1)
+                  OR unaccent(i.name) ILIKE unaccent($1)
+                  OR unaccent(a.title) ILIKE unaccent($1)
+                  OR unaccent(ar.name) ILIKE unaccent($1)
             ORDER BY c.acquisition_date DESC
             LIMIT $2
         `;
