@@ -1,0 +1,53 @@
+🔬 A/B 測試：scaling_factor 優化
+════════════════════════════════════════════════════════════
+測試查詢數: 25
+測試 scaling_factor 值: 5, 10, 15, 20, 25, 30
+
+⚠️  注意：此測試需要手動修改伺服器中的 scaling_factor 值
+   當前只測試伺服器中設定的值
+
+
+測試 scaling_factor = 20
+────────────────────────────────────────────────────────────
+  ❌ 查詢失敗: 達文西的作品 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 米開朗基羅的雕塑 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 拉斐爾的繪畫 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 林布蘭的作品 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: Leonardo da Vinci artworks - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 蒙娜麗莎 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 最後的晚餐 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 大衛像 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 創世紀 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 雅典學院 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 維納斯的誕生 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 夜巡 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 文藝復興時期的繪畫 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 巴洛克風格 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 文藝復興雕塑 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: Renaissance art - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: Baroque paintings - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 油畫作品 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 大理石雕塑 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 壁畫 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 宗教題材的藝術作品 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 肖像畫 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 神話題材 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 羅浮宮收藏的作品 - connect ECONNREFUSED 127.0.0.1:8008
+  ❌ 查詢失敗: 梵蒂岡博物館 - connect ECONNREFUSED 127.0.0.1:8008
+  查詢總數: 0
+  平均信心分數: NaN
+  平均最高分數: NaN
+  平均最低分數: NaN
+  分數分布:
+    0.0-0.2:   0 (  NaN%) 
+    0.2-0.4:   0 (  NaN%) 
+    0.4-0.6:   0 (  NaN%) 
+    0.6-0.8:   0 (  NaN%) 
+    0.8-1.0:   0 (  NaN%) 
+
+
+📊 詳細結果已保存到: ab-test-results.json
+
+
+💡 建議:
+   ✓ 當前 scaling_factor 值合理

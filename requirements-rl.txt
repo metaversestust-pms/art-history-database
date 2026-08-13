@@ -1,0 +1,36 @@
+# RL-Agentic RAG 依賴包
+
+# PyTorch (選擇適合您系統的版本)
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Reinforcement Learning
+stable-baselines3[extra]>=2.0.0
+gymnasium>=0.28.0
+
+# 訓練工具
+tensorboard>=2.13.0
+mlflow>=2.5.0
+
+# NLP 和 Embeddings
+sentence-transformers>=2.2.0
+transformers>=4.30.0
+
+# 數據處理
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Redis (經驗回放緩衝池持久化)
+redis>=4.5.0
+
+# 工具
+tqdm>=4.65.0
+pyyaml>=6.0
+
+# 可視化
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# 現有系統依賴（如果還沒有）
+neo4j>=5.9.0
+chromadb>=0.4.0

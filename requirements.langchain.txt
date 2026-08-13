@@ -1,0 +1,67 @@
+# =============================================================================
+# LangChain RAG 系統依賴包
+# =============================================================================
+
+# 核心 LangChain 套件
+langchain==0.3.8
+langchain-community==0.3.8
+langchain-core==0.3.21
+langchain-experimental==0.3.6
+
+# 向量資料庫整合
+langchain-chroma==0.1.4
+chromadb==0.5.24
+
+# 大型語言模型整合
+langchain-ollama==0.3.8
+
+# 嵌入模型
+sentence-transformers==2.2.2
+transformers==4.36.0
+
+# 多模態處理
+langchain-openai==0.0.5  # for CLIP integration
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# 文檔處理
+langchain-text-splitters==0.0.1
+pypdf==3.17.4
+python-docx==1.1.0
+beautifulsoup4==4.12.2
+lxml==4.9.3
+
+# 知識圖譜 (可選)
+neo4j==5.16.0
+langchain-neo4j==0.0.1
+
+# API 框架
+fastapi==0.108.0
+uvicorn==0.25.0
+pydantic==2.5.2
+
+# 資料處理
+numpy==1.24.3
+pandas==2.0.3
+
+# HTTP 客戶端
+httpx==0.25.2
+requests==2.31.0
+
+# 配置管理
+python-dotenv==1.0.0
+pyyaml==6.0.1
+
+# 日誌和監控
+loguru==0.7.2
+
+# 開發工具
+jupyter==1.0.0
+ipykernel==6.27.1
+
+# 測試工具
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# 效能優化
+faiss-cpu==1.7.4  # 或 faiss-gpu

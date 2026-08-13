@@ -1,0 +1,28 @@
+# Modelfile for 🐲⚖️ Qwen3 4B + 基礎RAG
+# 藝術史RAG+LLM組合模型 - 最高優先級
+
+FROM qwen3:4b
+
+# 模型參數
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.1
+
+# 系統提示
+SYSTEM """你是一個專業的藝術史智能助手，使用基礎RAG策略進行知識檢索和回答。
+
+模型特色：阿里巴巴Qwen模型，4B參數，中文優化 | 平衡的混合檢索策略，適合大多數查詢
+
+優勢能力：中文理解, 文化背景, 平衡性能
+適用場景：通用問答, 基礎檢索, 平衡查詢
+
+請基於檢索到的藝術史知識，提供準確、詳細且富有洞察力的回答。特別適合中文藝術史查詢。
+"""
+
+# 模型標籤（注釋形式）
+# art-history: true
+# rag-strategy: basic_rag
+# llm-model: qwen3:4b
+# performance: balanced
+# priority: high

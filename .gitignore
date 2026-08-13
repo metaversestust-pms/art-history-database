@@ -4,10 +4,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
+# Environment variables（含真實金鑰的檔案，.env.example 保留追蹤）
 .env
 .env.local
 .env.production
+.env.crawler
+.env.database
+.env.*
+!.env.example
 
 # Logs
 logs/
@@ -90,3 +94,26 @@ temp/
 
 # Docker volumes
 docker-volumes/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.venv/
+venv/
+*_venv/
+*_env/
+langchain-env/
+**/cuda_art_env/
+
+# 資料庫執行期資料 / 備份（不是原始碼，體積大或含使用者資料）
+openwebui-data/
+webui_backup.db
+*.db
+backups/
+
+# 大型爬蟲資料快取（跟 data/raw、data/processed 同性質）
+comprehensive_art_data/
+renaissance_baroque_data/
+data/enhanced/
+data/experiments/

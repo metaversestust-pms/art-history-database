@@ -1,0 +1,15 @@
+# =============================================================================
+# CUDA ML Service - Ultra Minimal Requirements
+# =============================================================================
+
+# Web Framework (essential for service)
+flask==3.0.0
+flask-cors==4.0.0
+
+# Basic utilities
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Minimal ML (no CUDA dependencies)
+numpy==1.24.3
+scikit-learn==1.3.0

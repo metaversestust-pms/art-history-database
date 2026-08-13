@@ -1,0 +1,212 @@
+╔═══════════════════════════════════════════════════════════╗
+║          中文查詢修復驗證測試                              ║
+║   測試多語言翻譯功能是否正常工作                            ║
+╚═══════════════════════════════════════════════════════════╝
+
+============================================================
+測試: 查詢達文西的作品（中文）
+查詢: "達文西的代表作品有哪些"
+============================================================
+
+✅ 查詢成功
+答案長度: 181 字符
+來源數量: 5
+
+📚 檢索到的來源:
+1. Leonardo Da Vinci
+   藝術家: None
+   相關度: 17.1%
+2. Leonardo da Vinci
+   藝術家: None
+   相關度: 13.8%
+3. The Last Supper, after Leonardo da Vinci
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: 13.3%
+4. The Immaculate Conception
+   藝術家: Guido Reni
+   相關度: 8.1%
+5. The Coronation of the Virgin
+   藝術家: Annibale Carracci
+   相關度: 7.1%
+
+💬 答案摘要:
+根據我收集到的資訊，我們知道Leonardo da Vinci是一位文藝復興時期的偉大藝術家。他最著名的作品之一是《最後的晚餐》（The Last Supper）。它是一幅壁畫，描繪了耶穌和他的十二位門徒在最後的一次聚會中。
+
+此外，我們也知道Leonardo da Vinci還曾設計許多各種藝術品，例如機器、建筑等，但是我找不到任何確切的數據來支持這些說法。...
+
+品質評估: ✅ 找到相關資訊
+
+============================================================
+測試: 查詢文藝復興藝術家（中文）
+查詢: "文藝復興時期的著名藝術家"
+============================================================
+
+✅ 查詢成功
+答案長度: 232 字符
+來源數量: 5
+
+📚 檢索到的來源:
+1. tableau ; La renaissance des arts en France
+   藝術家: None
+   相關度: 5.7%
+2. tableau ; La Renaissance, figure allégorique
+   藝術家: None
+   相關度: 5.1%
+3. La Sculpture baroque espagnole , présentation par Georges Pillement, biographies et bibliographie par Nadine Daniloff
+   藝術家: None
+   相關度: 1.8%
+4. Apotheose der Renaissance
+   藝術家: None
+   相關度: 1.6%
+5. zu Michelangelo: Schlafender Cupido. New York, Metropolitan Museum. Antike Plastik
+   藝術家: None
+   相關度: 0.6%
+
+💬 答案摘要:
+根據您提供的文檔，我們可以找到與文藝復興時期有關的著名藝術家。
+
+* 文檔 2 中提到了一幅名為 "La Renaissance, figure allégorique" 的畫作，這代表了文藝復興精神。
+* 文檔 5 提到了一個題目 "zu Michelangelo: Schlafender Cupido"，表明這幅作品是由米開朗琪羅（Michelangelo）創作的。
+
+因此，我們可以確定米開朗琪羅（Michelangelo）是文藝復興時期的一位著名藝術家。...
+
+品質評估: ✅ 找到相關資訊
+
+============================================================
+測試: 查詢巴洛克繪畫特點（中文）
+查詢: "巴洛克時期的繪畫特點"
+============================================================
+
+✅ 查詢成功
+答案長度: 521 字符
+來源數量: 5
+
+📚 檢索到的來源:
+1. A Baroque Ceiling
+   藝術家: Anonymous, Italian, 18th century
+   相關度: 8.1%
+2. Baroque architecture and sculpture in Italy
+   藝術家: None
+   相關度: 7.6%
+3. High Baroque frame
+   藝術家: Unknown Artist
+   相關度: 6.1%
+4. Musette Baroque
+   藝術家: Unknown
+   相關度: 3.2%
+5. Baroque imperial figures
+   藝術家: None
+   相關度: 2.8%
+
+💬 答案摘要:
+基於上述參考資料，我們可以得出以下結論：
+
+雖然文檔中未直接提到 Baroque 畫畫的特徵，但根據各個文檔中的描述，我們可以推測一些共同點。
+
+*   文檔 1 描述了一幅 Baroque 風格的天花板圖案，使用 pen 和 ink 和灰色水墨。這使我們聯想到 Baroque 畫畫可能涉及複雜的線條和陰影效果。
+*   文檔 2 提到 Baroque 建築和雕塑在義大利的表現，它們經常富有裝飾性，並具有濃郁的細節。這個描述也可能與 Baroque 畫畫的特徵相關聯。
+*   文檔 3 和文檔 4 提到一些 Baroque 風格的家具和裝飾品，這些作品也顯示出對精雕細琢和裝飾的重視。這個風格在...
+
+品質評估: ✅ 找到相關資訊
+
+============================================================
+測試: 查詢林布蘭的作品（中文）
+查詢: "林布蘭的自畫像"
+============================================================
+
+✅ 查詢成功
+答案長度: 121 字符
+來源數量: 5
+
+📚 檢索到的來源:
+1. Man in a Turban
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: 2.1%
+2. Self-Portrait
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: 1.7%
+3. Portrait of a Woman
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: 0.6%
+4. Flora
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: -2.0%
+5. The Last Supper, after Leonardo da Vinci
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: -6.5%
+
+💬 答案摘要:
+根據提供的文檔資訊，我們可以知道：
+
+1. Rembrandt於1660年創作了一幅名為《Self-Portrait》的油畫，這幅作品是由Rembrandt本人繪製的一個自畫像。
+
+這是我們對用戶問題的回答。如果你還有其他問題，可以隨時詢問。...
+
+品質評估: ✅ 找到相關資訊
+
+============================================================
+測試: 查詢名畫作者（中文）
+查詢: "最後的晚餐是誰創作的"
+============================================================
+
+✅ 查詢成功
+答案長度: 349 字符
+來源數量: 5
+
+📚 檢索到的來源:
+1. The Last Supper, after Leonardo da Vinci
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: 30.8%
+2. The Last Supper, after Leonardo da Vinci
+   藝術家: Rembrandt (Rembrandt van Rijn)
+   相關度: 17.1%
+3. The Supper at Emmaus
+   藝術家: Velázquez (Diego Rodríguez de Silva y Velázquez)
+   相關度: 10.4%
+4. Design for a Crucifix with the Virgin Mary, Saint Mary Magdalen, and Saint John
+   藝術家: Polidoro da Caravaggio
+   相關度: 9.9%
+5. The Last Supper
+   藝術家: Netherlandish (Antwerp Mannerist) Painters
+   相關度: 6.3%
+
+💬 答案摘要:
+根據參考資料，我們可以發現以下幾個版本關於 The Last Supper 的來源：
+
+1. 文檔 1：這件作品是 Leonardo da Vinci 的原作，由 Rembrandt 以紅墨水繪製，時間為 1634-35 年。
+2. 文檔 2：與文檔 1 相同，這件作品也是由 Rembrandt 以紅墨水繪製，時間為 1634-35 年。
+3. 文檔 5：這件作品是由 Netherlandish (Antwerp Mannerist) Painters 的畫家以油漆的木板制作的，時間為 1515-20 年。
+
+因此，我們可以確定這些版本都與 The Last Supper 有關。但如果要問誰作...
+
+品質評估: ✅ 找到相關資訊
+
+
+╔═══════════════════════════════════════════════════════════╗
+║                    測試總結                                ║
+╚═══════════════════════════════════════════════════════════╝
+
+總測試數: 5
+成功: 5
+失敗: 0
+成功率: 100.0%
+
+詳細結果:
+✅ 1. 查詢達文西的作品（中文）
+      來源: 5個, 答案: 181字
+✅ 2. 查詢文藝復興藝術家（中文）
+      來源: 5個, 答案: 232字
+✅ 3. 查詢巴洛克繪畫特點（中文）
+      來源: 5個, 答案: 521字
+✅ 4. 查詢林布蘭的作品（中文）
+      來源: 5個, 答案: 121字
+✅ 5. 查詢名畫作者（中文）
+      來源: 5個, 答案: 349字
+
+🎉 測試通過！中文查詢功能已修復！
+
+提示: 用戶現在可以在OpenWebUI中使用中文查詢
+訪問: http://localhost:8080
+
+===============================================================
+
