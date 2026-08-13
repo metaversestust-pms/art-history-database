@@ -61,10 +61,14 @@ class ConfigManager extends EventEmitter {
         this.validators.set('string', (value, schema) => {
             const str = String(value);
             if (schema.minLength && str.length < schema.minLength) {
-                throw new Error(`String length ${str.length} is less than minimum ${schema.minLength}`);
+                throw new Error(
+                    `String length ${str.length} is less than minimum ${schema.minLength}`
+                );
             }
             if (schema.maxLength && str.length > schema.maxLength) {
-                throw new Error(`String length ${str.length} is greater than maximum ${schema.maxLength}`);
+                throw new Error(
+                    `String length ${str.length} is greater than maximum ${schema.maxLength}`
+                );
             }
             if (schema.pattern && !new RegExp(schema.pattern).test(str)) {
                 throw new Error(`String "${str}" does not match pattern ${schema.pattern}`);
@@ -87,7 +91,9 @@ class ConfigManager extends EventEmitter {
                 throw new Error('Enum schema must have values array');
             }
             if (!schema.values.includes(value)) {
-                throw new Error(`Value "${value}" is not in allowed values: ${schema.values.join(', ')}`);
+                throw new Error(
+                    `Value "${value}" is not in allowed values: ${schema.values.join(', ')}`
+                );
             }
             return value;
         });
@@ -97,7 +103,9 @@ class ConfigManager extends EventEmitter {
             try {
                 const url = new URL(value);
                 if (schema.protocols && !schema.protocols.includes(url.protocol.slice(0, -1))) {
-                    throw new Error(`Protocol "${url.protocol}" is not in allowed protocols: ${schema.protocols.join(', ')}`);
+                    throw new Error(
+                        `Protocol "${url.protocol}" is not in allowed protocols: ${schema.protocols.join(', ')}`
+                    );
                 }
                 return value;
             } catch (error) {
@@ -111,13 +119,16 @@ class ConfigManager extends EventEmitter {
             if (schema.mustExist && !fs.existsSync(resolvedPath)) {
                 throw new Error(`Path does not exist: ${resolvedPath}`);
             }
-            if (schema.type === 'directory' && fs.existsSync(resolvedPath)) {
+            // 注意：限定用 schema.pathType 而非 schema.type。schema.type 必須維持
+            // 'path' 才能被上面的 validators.get(schemaValue.type) 派工到本驗證器；
+            // 兩者共用同一個鍵會導致 schema 出現重複鍵，後者覆蓋前者、驗證整個失效。
+            if (schema.pathType === 'directory' && fs.existsSync(resolvedPath)) {
                 const stat = fs.statSync(resolvedPath);
                 if (!stat.isDirectory()) {
                     throw new Error(`Path is not a directory: ${resolvedPath}`);
                 }
             }
-            if (schema.type === 'file' && fs.existsSync(resolvedPath)) {
+            if (schema.pathType === 'file' && fs.existsSync(resolvedPath)) {
                 const stat = fs.statSync(resolvedPath);
                 if (!stat.isFile()) {
                     throw new Error(`Path is not a file: ${resolvedPath}`);
@@ -144,17 +155,21 @@ class ConfigManager extends EventEmitter {
             // 4. 載入配置模式
             this.loadConfigurationSchema();
 
-            // 5. 驗證配置
+            // 5. 處理配置繼承和覆蓋
+            //
+            // 必須在驗證之前執行。原本的順序是先驗證再覆蓋，導致 config/production.js
+            // 裡的 '${JWT_SECRET}' 這類佔位符是以字面值（13 個字元）送去驗證，
+            // 必定觸發 minLength 32 而失敗 —— 環境變數永遠沒有機會取代它，
+            // production 設定因此完全無法載入。驗證的對象應該是套用覆蓋後的最終設定。
+            this.processConfigurationOverrides();
+
+            // 6. 驗證最終生效的配置
             if (this.options.enableValidation) {
                 this.validateConfiguration();
             }
 
-            // 6. 處理配置繼承和覆蓋
-            this.processConfigurationOverrides();
-
             console.log(`✅ 配置管理器初始化完成 (環境: ${this.options.environment})`);
             this.emit('configLoaded', this.config);
-
         } catch (error) {
             console.error(`❌ 配置載入失敗: ${error.message}`);
             throw error;
@@ -180,7 +195,7 @@ class ConfigManager extends EventEmitter {
                     const envVars = this.parseEnvironmentFile(envContent);
 
                     Object.entries(envVars).forEach(([key, value]) => {
-                        if (!process.env.hasOwnProperty(key)) {
+                        if (!Object.hasOwn(process.env, key)) {
                             process.env[key] = value;
                         }
                     });
@@ -212,8 +227,10 @@ class ConfigManager extends EventEmitter {
                 let [, key, value] = match;
 
                 // 移除引號
-                if ((value.startsWith('"') && value.endsWith('"')) ||
-                    (value.startsWith("'") && value.endsWith("'"))) {
+                if (
+                    (value.startsWith('"') && value.endsWith('"')) ||
+                    (value.startsWith("'") && value.endsWith("'"))
+                ) {
                     value = value.slice(1, -1);
                 }
 
@@ -262,7 +279,11 @@ class ConfigManager extends EventEmitter {
      * 載入環境特定配置
      */
     loadEnvironmentConfiguration() {
-        const envConfigPath = path.resolve(process.cwd(), 'config', `${this.options.environment}.js`);
+        const envConfigPath = path.resolve(
+            process.cwd(),
+            'config',
+            `${this.options.environment}.js`
+        );
         if (fs.existsSync(envConfigPath)) {
             try {
                 // 清除 require cache
@@ -329,7 +350,9 @@ class ConfigManager extends EventEmitter {
                         config[key] = validator(configValue, schemaValue);
                     }
                 } catch (error) {
-                    throw new Error(`Configuration validation failed for ${fullPath}: ${error.message}`);
+                    throw new Error(
+                        `Configuration validation failed for ${fullPath}: ${error.message}`
+                    );
                 }
             }
 
@@ -401,7 +424,7 @@ class ConfigManager extends EventEmitter {
             `.env.${this.options.environment}`
         ];
 
-        filesToWatch.forEach(filePath => {
+        filesToWatch.forEach((filePath) => {
             if (fs.existsSync(filePath)) {
                 const watcher = fs.watchFile(filePath, { interval: 1000 }, () => {
                     console.log(`📁 配置文件變更: ${filePath}`);
@@ -470,7 +493,7 @@ class ConfigManager extends EventEmitter {
         let current = obj;
 
         for (const key of keys) {
-            if (current === null || current === undefined || !current.hasOwnProperty(key)) {
+            if (current === null || current === undefined || !Object.hasOwn(current, key)) {
                 return undefined;
             }
             current = current[key];

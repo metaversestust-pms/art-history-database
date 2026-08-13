@@ -23,7 +23,7 @@ class MetadataExtractorAgent extends EventEmitter {
             confidenceThreshold: parseFloat(process.env.METADATA_CONFIDENCE_THRESHOLD) || 0.85,
             dublinCoreValidation: process.env.DUBLIN_CORE_VALIDATION === 'true',
             batchSize: 50,
-            maxFileSize: 100 * 1024 * 1024, // 100MB
+            maxFileSize: 100 * 1024 * 1024 // 100MB
         };
 
         // 元數據映射和規範
@@ -60,16 +60,16 @@ class MetadataExtractorAgent extends EventEmitter {
         this.cleaningRules = {
             // 日期格式標準化
             datePatterns: [
-                /(\d{4})-(\d{2})-(\d{2})/,  // YYYY-MM-DD
-                /(\d{4})\/(\d{2})\/(\d{2})/,  // YYYY/MM/DD
-                /(\d{4})\s*-\s*(\d{4})/,      // YYYY-YYYY (範圍)
-                /ca?\.\s*(\d{4})/,           // ca. YYYY
-                /(\d{4})\s*(CE|AD|BC|BCE)/i   // YYYY CE/AD/BC/BCE
+                /(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
+                /(\d{4})\/(\d{2})\/(\d{2})/, // YYYY/MM/DD
+                /(\d{4})\s*-\s*(\d{4})/, // YYYY-YYYY (範圍)
+                /ca?\.\s*(\d{4})/, // ca. YYYY
+                /(\d{4})\s*(CE|AD|BC|BCE)/i // YYYY CE/AD/BC/BCE
             ],
             // 人名標準化
             artistPatterns: [
                 /^(.*?),\s*(\w+\.?\s*\w*\.?)$/, // Last, First M.
-                /^(.*?)\s*\(([^)]+)\)$/,        // Name (dates)
+                /^(.*?)\s*\(([^)]+)\)$/, // Name (dates)
                 /^(.*?),?\s*(\d{4})\s*[-–]\s*(\d{4})?/ // Name, year-year
             ],
             // 維度標準化
@@ -90,7 +90,7 @@ class MetadataExtractorAgent extends EventEmitter {
         this.outputDir = process.env.DATA_PROCESSED_DIR || './data/processed';
 
         // 初始化錯誤處理器
-        this.errorHandler = new ErrorHandler(this.id, {
+        this.errorHandler = new UnifiedErrorHandler(this.id, {
             maxRetries: 3,
             retryDelay: 2000,
             logErrors: true,
@@ -120,7 +120,6 @@ class MetadataExtractorAgent extends EventEmitter {
             this.status = 'ready';
             console.log('✅ Metadata Extractor Agent 初始化完成');
             this.emit('initialized');
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ Metadata Extractor Agent 初始化失敗:', error.message);
@@ -207,7 +206,6 @@ class MetadataExtractorAgent extends EventEmitter {
             });
 
             return results;
-
         } catch (error) {
             this.status = 'error';
             console.error('❌ 元數據提取任務失敗:', error.message);
@@ -226,14 +224,17 @@ class MetadataExtractorAgent extends EventEmitter {
             const sourceDir = path.join(this.inputDir, source);
 
             try {
-                const dirExists = await fs.access(sourceDir).then(() => true).catch(() => false);
+                const dirExists = await fs
+                    .access(sourceDir)
+                    .then(() => true)
+                    .catch(() => false);
                 if (!dirExists) {
                     console.warn(`⚠️ 資料夾不存在: ${sourceDir}`);
                     continue;
                 }
 
                 const dirFiles = await fs.readdir(sourceDir);
-                const jsonFiles = dirFiles.filter(f => f.endsWith('.json'));
+                const jsonFiles = dirFiles.filter((f) => f.endsWith('.json'));
 
                 for (const file of jsonFiles) {
                     const filePath = path.join(sourceDir, file);
@@ -269,7 +270,9 @@ class MetadataExtractorAgent extends EventEmitter {
         for (let i = 0; i < files.length; i += this.config.batchSize) {
             const batch = files.slice(i, i + this.config.batchSize);
 
-            console.log(`🔄 處理批次 ${Math.floor(i/this.config.batchSize) + 1}/${Math.ceil(files.length/this.config.batchSize)}`);
+            console.log(
+                `🔄 處理批次 ${Math.floor(i / this.config.batchSize) + 1}/${Math.ceil(files.length / this.config.batchSize)}`
+            );
 
             for (const file of batch) {
                 try {
@@ -297,51 +300,54 @@ class MetadataExtractorAgent extends EventEmitter {
     async processFile(file, outputFormat, includeValidation) {
         console.log(`📝 處理文件: ${file.filename}`);
 
-        return await this.errorHandler.wrapAsync(async () => {
-            // 讀取原始數據
-            const rawData = await fs.readFile(file.path, 'utf8');
-            const jsonData = JSON.parse(rawData);
+        return await this.errorHandler.wrapAsync(
+            async () => {
+                // 讀取原始數據
+                const rawData = await fs.readFile(file.path, 'utf8');
+                const jsonData = JSON.parse(rawData);
 
-            if (!Array.isArray(jsonData)) {
-                throw new Error('數據格式錯誤：期望數組格式');
-            }
-
-            // 並行處理每個記錄 - 使用性能優化器
-            const processedRecords = await this.performanceOptimizer.processParallel(
-                jsonData,
-                async (record) => {
-                    const extractedMetadata = await this.extractMetadata(record);
-
-                    if (includeValidation) {
-                        const validationResult = await this.validateMetadata(extractedMetadata);
-                        extractedMetadata._validation = validationResult;
-                    }
-
-                    return extractedMetadata;
-                },
-                {
-                    concurrency: Math.min(4, jsonData.length),
-                    enableProgress: false
+                if (!Array.isArray(jsonData)) {
+                    throw new Error('數據格式錯誤：期望數組格式');
                 }
-            );
 
-            // 保存處理後的數據
-            const outputFilename = `processed_${file.filename}`;
-            const outputPath = path.join(this.outputDir, 'metadata', outputFilename);
+                // 並行處理每個記錄 - 使用性能優化器
+                const processedRecords = await this.performanceOptimizer.processParallel(
+                    jsonData,
+                    async (record) => {
+                        const extractedMetadata = await this.extractMetadata(record);
 
-            await fs.writeFile(outputPath, JSON.stringify(processedRecords, null, 2), 'utf8');
+                        if (includeValidation) {
+                            const validationResult = await this.validateMetadata(extractedMetadata);
+                            extractedMetadata._validation = validationResult;
+                        }
 
-            console.log(`💾 處理完成: ${outputFilename} (${processedRecords.length} 記錄)`);
+                        return extractedMetadata;
+                    },
+                    {
+                        concurrency: Math.min(4, jsonData.length),
+                        enableProgress: false
+                    }
+                );
 
-            return {
-                inputFile: file.filename,
-                outputFile: outputFilename,
-                recordsProcessed: processedRecords.length,
-                outputPath: outputPath,
-                processedAt: new Date().toISOString()
-            };
+                // 保存處理後的數據
+                const outputFilename = `processed_${file.filename}`;
+                const outputPath = path.join(this.outputDir, 'metadata', outputFilename);
 
-        }, `處理文件 ${file.filename}`, { maxRetries: 2 });
+                await fs.writeFile(outputPath, JSON.stringify(processedRecords, null, 2), 'utf8');
+
+                console.log(`💾 處理完成: ${outputFilename} (${processedRecords.length} 記錄)`);
+
+                return {
+                    inputFile: file.filename,
+                    outputFile: outputFilename,
+                    recordsProcessed: processedRecords.length,
+                    outputPath: outputPath,
+                    processedAt: new Date().toISOString()
+                };
+            },
+            `處理文件 ${file.filename}`,
+            { maxRetries: 2 }
+        );
     }
 
     /**
@@ -513,11 +519,14 @@ class MetadataExtractorAgent extends EventEmitter {
         if (!subjects) return null;
 
         if (Array.isArray(subjects)) {
-            return subjects.map(s => s.toString().trim().toLowerCase());
+            return subjects.map((s) => s.toString().trim().toLowerCase());
         }
 
         if (typeof subjects === 'string') {
-            return subjects.split(/[,;]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+            return subjects
+                .split(/[,;]/)
+                .map((s) => s.trim().toLowerCase())
+                .filter(Boolean);
         }
 
         return [subjects.toString().trim().toLowerCase()];
@@ -579,8 +588,18 @@ class MetadataExtractorAgent extends EventEmitter {
 
         const materials = [];
         const commonMaterials = [
-            'oil', 'canvas', 'wood', 'paper', 'bronze', 'marble',
-            'tempera', 'fresco', 'watercolor', 'ink', 'gold', 'silver'
+            'oil',
+            'canvas',
+            'wood',
+            'paper',
+            'bronze',
+            'marble',
+            'tempera',
+            'fresco',
+            'watercolor',
+            'ink',
+            'gold',
+            'silver'
         ];
 
         const text = mediumText.toLowerCase();
@@ -645,7 +664,9 @@ class MetadataExtractorAgent extends EventEmitter {
 
         // 置信度檢查
         if (metadata._confidence < this.config.confidenceThreshold) {
-            validation.warnings.push(`置信度低於閾值: ${metadata._confidence} < ${this.config.confidenceThreshold}`);
+            validation.warnings.push(
+                `置信度低於閾值: ${metadata._confidence} < ${this.config.confidenceThreshold}`
+            );
         }
 
         // 日期格式驗證
@@ -656,8 +677,7 @@ class MetadataExtractorAgent extends EventEmitter {
             }
         }
 
-        validation.score = validation.isValid ?
-            (validation.warnings.length > 0 ? 0.8 : 1.0) : 0.0;
+        validation.score = validation.isValid ? (validation.warnings.length > 0 ? 0.8 : 1.0) : 0.0;
 
         return validation;
     }
@@ -672,13 +692,13 @@ class MetadataExtractorAgent extends EventEmitter {
 
         // 檢查基本格式
         const basicPatterns = [
-            /^\d{4}$/,                    // YYYY
-            /^\d{4}-\d{4}$/,              // YYYY-YYYY
-            /^\d{4}-\d{2}-\d{2}$/,        // YYYY-MM-DD
-            /^ca?\.\s*\d{4}$/             // ca. YYYY
+            /^\d{4}$/, // YYYY
+            /^\d{4}-\d{4}$/, // YYYY-YYYY
+            /^\d{4}-\d{2}-\d{2}$/, // YYYY-MM-DD
+            /^ca?\.\s*\d{4}$/ // ca. YYYY
         ];
 
-        return basicPatterns.some(pattern => pattern.test(dateStr));
+        return basicPatterns.some((pattern) => pattern.test(dateStr));
     }
 
     /**
@@ -708,13 +728,18 @@ class MetadataExtractorAgent extends EventEmitter {
             processing: {
                 totalFiles: this.completedTasks.length,
                 totalErrors: this.errors.length,
-                successRate: this.completedTasks.length / (this.completedTasks.length + this.errors.length)
+                successRate:
+                    this.completedTasks.length / (this.completedTasks.length + this.errors.length)
             },
             timestamp: new Date().toISOString(),
             configuration: this.config
         };
 
-        const reportPath = path.join(this.outputDir, 'reports', `metadata_extraction_report_${Date.now()}.json`);
+        const reportPath = path.join(
+            this.outputDir,
+            'reports',
+            `metadata_extraction_report_${Date.now()}.json`
+        );
         await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
 
         console.log(`📊 處理報告已生成: ${reportPath}`);

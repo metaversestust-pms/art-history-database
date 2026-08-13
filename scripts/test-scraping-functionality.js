@@ -42,7 +42,6 @@ class ScrapingFunctionalityTester {
 
             // 6. 生成測試報告
             this.generateReport();
-
         } catch (error) {
             console.error('❌ 測試過程中發生錯誤:', error);
             process.exit(1);
@@ -81,14 +80,14 @@ class ScrapingFunctionalityTester {
                     hasContent: response.data.length > 1000
                 };
 
-                console.log(`✅ 基礎爬取成功 - 狀態: ${response.status}, 內容長度: ${response.data.length}`);
+                console.log(
+                    `✅ 基礎爬取成功 - 狀態: ${response.status}, 內容長度: ${response.data.length}`
+                );
                 console.log(`   頁面標題: ${title.trim()}`);
                 console.log(`   找到連結: ${links} 個`);
-
             } else {
                 throw new Error(`HTTP ${response.status}`);
             }
-
         } catch (error) {
             console.log(`❌ 基礎爬取失敗: ${error.message}`);
             this.results.basicScraping = {
@@ -142,14 +141,12 @@ class ScrapingFunctionalityTester {
             console.log(`   頁面標題: ${title}`);
             console.log(`   內容長度: ${bodyContent.length}`);
             console.log(`   圖片數量: ${images.length}`);
-
         } catch (error) {
             console.log(`❌ 動態爬取失敗: ${error.message}`);
             this.results.dynamicScraping = {
                 status: 'failed',
                 error: error.message
             };
-
         } finally {
             if (browser) {
                 await browser.close();
@@ -196,8 +193,8 @@ class ScrapingFunctionalityTester {
 
                 if (response.status === 200) {
                     const data = response.data;
-                    const hasExpectedFields = api.expectedFields.some(field =>
-                        data.hasOwnProperty(field)
+                    const hasExpectedFields = api.expectedFields.some((field) =>
+                        Object.hasOwn(data, field)
                     );
 
                     const result = {
@@ -210,12 +207,12 @@ class ScrapingFunctionalityTester {
                     };
 
                     apiResults.push(result);
-                    console.log(`   ✅ ${api.name} - 狀態: ${response.status}, 數據大小: ${result.dataSize}bytes`);
-
+                    console.log(
+                        `   ✅ ${api.name} - 狀態: ${response.status}, 數據大小: ${result.dataSize}bytes`
+                    );
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
-
             } catch (error) {
                 const result = {
                     name: api.name,
@@ -230,7 +227,7 @@ class ScrapingFunctionalityTester {
 
         this.results.museumAPIs = {
             totalTested: apiTests.length,
-            successful: apiResults.filter(r => r.status === 'success').length,
+            successful: apiResults.filter((r) => r.status === 'success').length,
             results: apiResults
         };
     }
@@ -253,17 +250,13 @@ class ScrapingFunctionalityTester {
             // 讀取 Agent 代碼並檢查結構
             const agentCode = fs.readFileSync(agentPath, 'utf-8');
 
-            const hasRequiredMethods = [
-                'initialize',
-                'startCrawling',
-                'processData'
-            ].every(method => agentCode.includes(method));
+            const hasRequiredMethods = ['initialize', 'startCrawling', 'processData'].every(
+                (method) => agentCode.includes(method)
+            );
 
-            const hasRequiredImports = [
-                'axios',
-                'cheerio',
-                'playwright'
-            ].every(lib => agentCode.includes(lib));
+            const hasRequiredImports = ['axios', 'cheerio', 'playwright'].every((lib) =>
+                agentCode.includes(lib)
+            );
 
             this.results.webCrawlerAgent = {
                 status: 'available',
@@ -278,7 +271,6 @@ class ScrapingFunctionalityTester {
             console.log(`   檔案大小: ${agentCode.length}bytes`);
             console.log(`   必要方法: ${hasRequiredMethods ? '完整' : '缺失'}`);
             console.log(`   必要匯入: ${hasRequiredImports ? '完整' : '缺失'}`);
-
         } catch (error) {
             console.log(`❌ Web Crawler Agent 測試失敗: ${error.message}`);
             this.results.webCrawlerAgent = {
@@ -327,7 +319,6 @@ class ScrapingFunctionalityTester {
             console.log(`   資料驗證: ${isValidData ? '通過' : '失敗'}`);
             console.log(`   資料清理: ${cleanedData ? '成功' : '失敗'}`);
             console.log(`   資料結構化: ${structuredData ? '成功' : '失敗'}`);
-
         } catch (error) {
             console.log(`❌ 資料處理測試失敗: ${error.message}`);
             this.results.dataProcessing = {
@@ -342,7 +333,7 @@ class ScrapingFunctionalityTester {
      */
     validateArtworkData(data) {
         const requiredFields = ['title', 'source', 'url'];
-        return requiredFields.every(field => data[field] && data[field].trim().length > 0);
+        return requiredFields.every((field) => data[field] && data[field].trim().length > 0);
     }
 
     /**
@@ -401,7 +392,7 @@ class ScrapingFunctionalityTester {
         let successCount = 0;
 
         // 計算成功率
-        Object.values(this.results).forEach(result => {
+        Object.values(this.results).forEach((result) => {
             if (result && (result.status === 'success' || result.status === 'available')) {
                 successCount++;
             }
@@ -413,7 +404,9 @@ class ScrapingFunctionalityTester {
         console.log(`   總測試項目: ${totalTests}`);
         console.log(`   成功項目: ${successCount}`);
         console.log(`   成功率: ${successRate}%`);
-        console.log(`   整體狀態: ${successRate >= 80 ? '✅ 良好' : successRate >= 60 ? '⚠️ 需改善' : '❌ 有問題'}`);
+        console.log(
+            `   整體狀態: ${successRate >= 80 ? '✅ 良好' : successRate >= 60 ? '⚠️ 需改善' : '❌ 有問題'}`
+        );
 
         // 詳細結果
         console.log('\n📋 詳細測試結果:');
@@ -454,7 +447,7 @@ class ScrapingFunctionalityTester {
             console.log(`   成功連接: ${apis.successful}`);
             console.log(`   成功率: ${Math.round((apis.successful / apis.totalTested) * 100)}%`);
 
-            apis.results.forEach(api => {
+            apis.results.forEach((api) => {
                 const status = api.status === 'success' ? '✅' : '❌';
                 console.log(`   ${status} ${api.name}`);
             });
@@ -466,7 +459,9 @@ class ScrapingFunctionalityTester {
             const agent = this.results.webCrawlerAgent;
             console.log(`   狀態: ${agent.status === 'available' ? '✅ 可用' : '❌ 不可用'}`);
             if (agent.status === 'available') {
-                console.log(`   代碼完整性: ${agent.hasRequiredMethods && agent.hasRequiredImports ? '✅ 完整' : '⚠️ 不完整'}`);
+                console.log(
+                    `   代碼完整性: ${agent.hasRequiredMethods && agent.hasRequiredImports ? '✅ 完整' : '⚠️ 不完整'}`
+                );
             }
         }
 
@@ -535,9 +530,12 @@ class ScrapingFunctionalityTester {
     generateNextSteps() {
         const steps = [];
 
-        const successRate = Object.values(this.results).filter(r =>
-            r && (r.status === 'success' || r.status === 'available')
-        ).length / Object.keys(this.results).length * 100;
+        const successRate =
+            (Object.values(this.results).filter(
+                (r) => r && (r.status === 'success' || r.status === 'available')
+            ).length /
+                Object.keys(this.results).length) *
+            100;
 
         if (successRate >= 80) {
             steps.push('🚀 啟動完整資料爬取流程');

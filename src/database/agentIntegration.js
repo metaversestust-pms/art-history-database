@@ -131,20 +131,25 @@ class AgentDatabaseBridge extends EventEmitter {
             for (const item of crawlerResults) {
                 try {
                     switch (item.type) {
-                        case 'artist':
+                        case 'artist': {
                             const artist = await this.artistModel.createArtist(item.data);
                             results.artists.push(artist);
                             break;
+                        }
 
-                        case 'artwork':
+                        case 'artwork': {
                             const artwork = await this.artworkModel.createArtwork(item.data);
                             results.artworks.push(artwork);
                             break;
+                        }
 
-                        case 'institution':
-                            const institution = await this.institutionModel.createInstitution(item.data);
+                        case 'institution': {
+                            const institution = await this.institutionModel.createInstitution(
+                                item.data
+                            );
                             results.institutions.push(institution);
                             break;
+                        }
 
                         default:
                             throw new Error(`未知的資料類型: ${item.type}`);
@@ -200,14 +205,8 @@ class AgentDatabaseBridge extends EventEmitter {
             const results = [];
 
             for (const result of summarizationResults) {
-                const {
-                    content_id,
-                    content_type,
-                    title,
-                    summary,
-                    translations,
-                    embedding
-                } = result;
+                const { content_id, content_type, title, summary, translations, embedding } =
+                    result;
 
                 // 創建向量文檔
                 const docData = {
@@ -323,11 +322,7 @@ class AgentDatabaseBridge extends EventEmitter {
     // 搜索相似作品（用於RAG檢索）
     async searchSimilarArtworks(queryEmbedding, limit = 10) {
         try {
-            return await this.documentVectorModel.semanticSearch(
-                queryEmbedding,
-                'artwork',
-                limit
-            );
+            return await this.documentVectorModel.semanticSearch(queryEmbedding, 'artwork', limit);
         } catch (error) {
             this.logger.error('搜索相似作品時出錯:', error);
             throw error;

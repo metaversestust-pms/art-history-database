@@ -15,21 +15,18 @@ class ArtistController {
     // 獲取所有藝術家
     async getAllArtists(req, res) {
         try {
-            console.log('📊 開始獲取藝術家列表...');
+            const page = parseInt(req.query.page) || 1;
+            const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+            const offset = (page - 1) * limit;
 
-            // 暫時回傳測試數據以確保API工作
-            const testData = [
-                { id: '1', name: '測試藝術家', nationality: '台灣', created_at: new Date() }
-            ];
+            const artists = await this.artistModel.findAll(limit, offset);
 
-            console.log('📊 回傳測試資料');
-            return successResponse(res, testData, {
-                page: 1,
-                limit: 20,
-                total: testData.length
+            return successResponse(res, artists, {
+                page,
+                limit,
+                total: artists.length
             });
         } catch (error) {
-            console.error('❌ 獲取藝術家失敗:', error);
             return errorResponse(res, 'Failed to fetch artists', error.message);
         }
     }
@@ -45,14 +42,17 @@ class ArtistController {
             }
 
             // 獲取該藝術家的作品統計
-            const artworkStats = await this.artworkModel.query(`
+            const artworkStats = await this.artworkModel.query(
+                `
                 SELECT
                     COUNT(*) as total_artworks,
                     MIN(creation_year) as earliest_work,
                     MAX(creation_year) as latest_work
                 FROM artworks
                 WHERE artist_id = $1
-            `, [id]);
+            `,
+                [id]
+            );
 
             artist.artwork_statistics = artworkStats.rows[0];
 
@@ -125,7 +125,12 @@ class ArtistController {
             );
 
             if (parseInt(relatedArtworks.rows[0].count) > 0) {
-                return errorResponse(res, 'Cannot delete artist with associated artworks', null, 409);
+                return errorResponse(
+                    res,
+                    'Cannot delete artist with associated artworks',
+                    null,
+                    409
+                );
             }
 
             await this.artistModel.delete(id);

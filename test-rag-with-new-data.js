@@ -43,12 +43,13 @@ class RAGIntegrationTester {
 
     log(message, type = 'info') {
         const timestamp = new Date().toLocaleTimeString();
-        const prefix = {
-            'info': '📋',
-            'success': '✅',
-            'error': '❌',
-            'warning': '⚠️'
-        }[type] || '📋';
+        const prefix =
+            {
+                info: '📋',
+                success: '✅',
+                error: '❌',
+                warning: '⚠️'
+            }[type] || '📋';
 
         console.log(`[${timestamp}] ${prefix} ${message}`);
     }
@@ -93,9 +94,11 @@ class RAGIntegrationTester {
             error: null
         };
 
-        try {
-            const startTime = Date.now();
+        // 宣告在 try 之外：catch 區塊也要用它計算 response_time，
+        // 否則例外路徑會拋 ReferenceError 而蓋掉真正的錯誤。
+        const startTime = Date.now();
 
+        try {
             const response = await axios.post(
                 `${this.ragManagerUrl}/api/v1/query`,
                 {
@@ -120,18 +123,21 @@ class RAGIntegrationTester {
             // 檢查關鍵詞匹配
             const answerLower = data.answer.toLowerCase();
             const sourcesText = data.sources
-                ? data.sources.map(s => s.content).join(' ').toLowerCase()
+                ? data.sources
+                      .map((s) => s.content)
+                      .join(' ')
+                      .toLowerCase()
                 : '';
 
-            testResult.keyword_match = expectedKeywords.some(keyword =>
-                answerLower.includes(keyword.toLowerCase()) ||
-                sourcesText.includes(keyword.toLowerCase())
+            testResult.keyword_match = expectedKeywords.some(
+                (keyword) =>
+                    answerLower.includes(keyword.toLowerCase()) ||
+                    sourcesText.includes(keyword.toLowerCase())
             );
 
             // 判斷成功
-            testResult.success = testResult.has_answer &&
-                                 testResult.has_sources &&
-                                 testResult.keyword_match;
+            testResult.success =
+                testResult.has_answer && testResult.has_sources && testResult.keyword_match;
 
             // 日誌輸出
             this.log(`  回答長度: ${data.answer.length} 字符`, 'info');
@@ -152,7 +158,6 @@ class RAGIntegrationTester {
                 const preview = data.answer.substring(0, 150);
                 this.log(`  回答預覽: ${preview}...`, 'info');
             }
-
         } catch (error) {
             testResult.error = error.message;
             testResult.response_time = Date.now() - startTime;
@@ -185,12 +190,7 @@ class RAGIntegrationTester {
         for (const testCase of this.testQueries) {
             for (const strategy of testCase.strategies) {
                 const modelId = `${primaryModel}@${strategy}`;
-                await this.testQuery(
-                    testCase.query,
-                    modelId,
-                    strategy,
-                    testCase.expectedKeywords
-                );
+                await this.testQuery(testCase.query, modelId, strategy, testCase.expectedKeywords);
 
                 // 測試之間延遲
                 await this.delay(2000);
@@ -199,7 +199,7 @@ class RAGIntegrationTester {
     }
 
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     printSummary() {
@@ -209,17 +209,21 @@ class RAGIntegrationTester {
 
         this.log(`總測試數: ${this.results.total_tests}`, 'info');
         this.log(`通過: ${this.results.passed_tests}`, 'success');
-        this.log(`失敗: ${this.results.failed_tests}`, this.results.failed_tests > 0 ? 'error' : 'info');
+        this.log(
+            `失敗: ${this.results.failed_tests}`,
+            this.results.failed_tests > 0 ? 'error' : 'info'
+        );
 
-        const successRate = this.results.total_tests > 0
-            ? (this.results.passed_tests / this.results.total_tests * 100).toFixed(1)
-            : 0;
+        const successRate =
+            this.results.total_tests > 0
+                ? ((this.results.passed_tests / this.results.total_tests) * 100).toFixed(1)
+                : 0;
 
         this.log(`成功率: ${successRate}%`, successRate >= 70 ? 'success' : 'warning');
 
         // 按策略統計
         const strategyStats = {};
-        this.results.tests.forEach(test => {
+        this.results.tests.forEach((test) => {
             if (!strategyStats[test.strategy]) {
                 strategyStats[test.strategy] = { total: 0, passed: 0 };
             }
@@ -231,15 +235,18 @@ class RAGIntegrationTester {
 
         this.log('\n策略表現:', 'info');
         Object.entries(strategyStats).forEach(([strategy, stats]) => {
-            const rate = (stats.passed / stats.total * 100).toFixed(0);
-            this.log(`  ${strategy}: ${stats.passed}/${stats.total} (${rate}%)`,
-                     stats.passed === stats.total ? 'success' : 'warning');
+            const rate = ((stats.passed / stats.total) * 100).toFixed(0);
+            this.log(
+                `  ${strategy}: ${stats.passed}/${stats.total} (${rate}%)`,
+                stats.passed === stats.total ? 'success' : 'warning'
+            );
         });
 
         // 平均響應時間
-        const avgResponseTime = this.results.tests
-            .filter(t => t.response_time > 0)
-            .reduce((sum, t) => sum + t.response_time, 0) / this.results.tests.length;
+        const avgResponseTime =
+            this.results.tests
+                .filter((t) => t.response_time > 0)
+                .reduce((sum, t) => sum + t.response_time, 0) / this.results.tests.length;
 
         this.log(`\n平均響應時間: ${avgResponseTime.toFixed(0)}ms`, 'info');
 
@@ -253,11 +260,7 @@ class RAGIntegrationTester {
         const summaryPath = path.join(__dirname, 'rag-integration-test-results.json');
 
         try {
-            await fs.writeFile(
-                summaryPath,
-                JSON.stringify(this.results, null, 2),
-                'utf-8'
-            );
+            await fs.writeFile(summaryPath, JSON.stringify(this.results, null, 2), 'utf-8');
             this.log(`測試結果已保存到: ${summaryPath}`, 'success');
         } catch (error) {
             this.log(`保存測試結果失敗: ${error.message}`, 'error');
@@ -272,7 +275,6 @@ class RAGIntegrationTester {
 
             // 根據測試結果決定退出碼
             process.exit(this.results.failed_tests > 0 ? 1 : 0);
-
         } catch (error) {
             this.log(`測試執行失敗: ${error.message}`, 'error');
             this.log(error.stack, 'error');
@@ -284,7 +286,7 @@ class RAGIntegrationTester {
 // 執行測試
 if (require.main === module) {
     const tester = new RAGIntegrationTester();
-    tester.run().catch(error => {
+    tester.run().catch((error) => {
         console.error('致命錯誤:', error);
         process.exit(1);
     });

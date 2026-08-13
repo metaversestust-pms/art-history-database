@@ -38,7 +38,7 @@ class AdvancedErrorHandler extends EventEmitter {
             // 日誌配置
             logLevel: options.logLevel || 'info',
             logPath: options.logPath || './logs/errors',
-            rotateLogsDaily: options.rotateLogsDaily !== false,
+            rotateLogsDaily: options.rotateLogsDaily !== false
         };
 
         // 錯誤狀態管理
@@ -101,7 +101,8 @@ class AdvancedErrorHandler extends EventEmitter {
             baseDelay: 1000,
             strategy: 'linearBackoff',
             autoRecover: async (error, context) => {
-                if (error.status === 429) { // Rate limiting
+                if (error.status === 429) {
+                    // Rate limiting
                     const retryAfter = error.headers?.['retry-after'] || 60;
                     logger.info(`API速率限制，等待 ${retryAfter} 秒`);
                     await this.delay(retryAfter * 1000);
@@ -167,7 +168,9 @@ class AdvancedErrorHandler extends EventEmitter {
 
         // 檢查斷路器狀態
         if (!this.canExecute()) {
-            const error = new Error(`Circuit breaker is ${this.circuitBreaker.state}. Operation rejected.`);
+            const error = new Error(
+                `Circuit breaker is ${this.circuitBreaker.state}. Operation rejected.`
+            );
             error.circuitBreakerState = this.circuitBreaker.state;
             throw error;
         }
@@ -189,7 +192,6 @@ class AdvancedErrorHandler extends EventEmitter {
                 // 操作成功
                 this.handleSuccess(operationId, startTime, attempt);
                 return result;
-
             } catch (error) {
                 lastError = error;
                 attempt++;
@@ -456,7 +458,7 @@ class AdvancedErrorHandler extends EventEmitter {
      * 計算重試延遲
      */
     calculateRetryDelay(strategy, attempt, error) {
-        let delay = strategy.baseDelay || this.options.baseDelay;
+        const delay = strategy.baseDelay || this.options.baseDelay;
 
         switch (strategy.strategy) {
             case 'immediate':
@@ -474,13 +476,14 @@ class AdvancedErrorHandler extends EventEmitter {
                     this.options.maxDelay
                 );
 
-            case 'exponentialBackoffWithJitter':
+            case 'exponentialBackoffWithJitter': {
                 const expDelay = Math.min(
                     delay * Math.pow(this.options.backoffMultiplier, attempt),
                     this.options.maxDelay
                 );
                 const jitter = expDelay * this.options.jitterMax * Math.random();
                 return expDelay + jitter;
+            }
 
             case 'noRetry':
                 return -1; // 表示不重試
@@ -540,9 +543,10 @@ class AdvancedErrorHandler extends EventEmitter {
             return;
         }
 
-        const recentErrors = Array.from(this.errorRegistry.values())
-            .filter(e => Date.now() - new Date(e.timestamp).getTime() < 600000) // 10分鐘內
-            .length;
+        const recentErrors = Array.from(this.errorRegistry.values()).filter(
+            (e) => Date.now() - new Date(e.timestamp).getTime() < 600000
+        ) // 10分鐘內
+        .length;
 
         if (recentErrors >= this.options.alertThreshold) {
             this.triggerAlert(recentErrors);
@@ -610,12 +614,14 @@ class AdvancedErrorHandler extends EventEmitter {
         const now = Date.now();
         const last24Hours = 24 * 60 * 60 * 1000;
 
-        const recentErrors = Array.from(this.errorRegistry.values())
-            .filter(e => now - new Date(e.timestamp).getTime() < last24Hours);
+        const recentErrors = Array.from(this.errorRegistry.values()).filter(
+            (e) => now - new Date(e.timestamp).getTime() < last24Hours
+        );
 
-        const errorRate = this.metrics.totalOperations > 0
-            ? (this.metrics.totalFailures / this.metrics.totalOperations) * 100
-            : 0;
+        const errorRate =
+            this.metrics.totalOperations > 0
+                ? (this.metrics.totalFailures / this.metrics.totalOperations) * 100
+                : 0;
 
         const status = this.determineHealthStatus(errorRate, recentErrors.length);
 
@@ -653,9 +659,10 @@ class AdvancedErrorHandler extends EventEmitter {
      */
     generateHealthRecommendations() {
         const recommendations = [];
-        const errorRate = this.metrics.totalOperations > 0
-            ? (this.metrics.totalFailures / this.metrics.totalOperations) * 100
-            : 0;
+        const errorRate =
+            this.metrics.totalOperations > 0
+                ? (this.metrics.totalFailures / this.metrics.totalOperations) * 100
+                : 0;
 
         if (errorRate > 30) {
             recommendations.push('錯誤率過高，建議檢查系統配置');
@@ -682,7 +689,7 @@ class AdvancedErrorHandler extends EventEmitter {
      */
     getTopErrorPatterns(limit = 10) {
         return Array.from(this.errorPatterns.entries())
-            .sort(([,a], [,b]) => b.count - a.count)
+            .sort(([, a], [, b]) => b.count - a.count)
             .slice(0, limit)
             .map(([pattern, data]) => ({
                 pattern,
@@ -733,7 +740,7 @@ class AdvancedErrorHandler extends EventEmitter {
     }
 
     updateAverage(current, newValue, count) {
-        return ((current * (count - 1)) + newValue) / count;
+        return (current * (count - 1) + newValue) / count;
     }
 
     createEnhancedError(originalError, context, attempts) {
@@ -752,7 +759,7 @@ class AdvancedErrorHandler extends EventEmitter {
     }
 
     async delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     async handleMissingFileError(error) {

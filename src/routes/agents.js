@@ -4,6 +4,8 @@
  */
 
 const express = require('express');
+const fs = require('fs/promises');
+const path = require('path');
 const router = express.Router();
 const AgentHub = require('../agent-hub');
 
@@ -104,10 +106,9 @@ router.post('/workflows/:workflowName/execute', async (req, res) => {
         });
 
         // 在背景執行工作流程
-        executionPromise.catch(error => {
+        executionPromise.catch((error) => {
             console.error(`❌ 工作流程 ${workflowName} 執行失敗:`, error.message);
         });
-
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -334,7 +335,7 @@ async function getDataFlowStatus() {
 async function getDirectoryStats(dirPath) {
     try {
         const files = await fs.readdir(dirPath);
-        const jsonFiles = files.filter(f => f.endsWith('.json'));
+        const jsonFiles = files.filter((f) => f.endsWith('.json'));
 
         let totalSize = 0;
         for (const file of files) {

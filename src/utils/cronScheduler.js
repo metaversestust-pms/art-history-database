@@ -90,7 +90,6 @@ class CronScheduler extends EventEmitter {
             });
 
             this.emit('schedulerInitialized');
-
         } catch (error) {
             logger.error('CronScheduler初始化失敗', error);
             throw error;
@@ -150,14 +149,18 @@ class CronScheduler extends EventEmitter {
             };
 
             // 建立 cron 任務
-            const cronTask = cron.schedule(cronExpression, async () => {
-                if (jobConfig.enabled && this.isRunning) {
-                    await this.executeScheduledTask(jobConfig);
+            const cronTask = cron.schedule(
+                cronExpression,
+                async () => {
+                    if (jobConfig.enabled && this.isRunning) {
+                        await this.executeScheduledTask(jobConfig);
+                    }
+                },
+                {
+                    scheduled: false,
+                    timezone: this.options.timezone
                 }
-            }, {
-                scheduled: false,
-                timezone: this.options.timezone
-            });
+            );
 
             // 註冊任務
             this.scheduledJobs.set(id, cronTask);
@@ -185,7 +188,6 @@ class CronScheduler extends EventEmitter {
 
             this.emit('scheduleCreated', jobConfig);
             return jobConfig;
-
         } catch (error) {
             logger.error('建立排程任務失敗', {
                 scheduleId: scheduleConfig.id,
@@ -273,7 +275,6 @@ class CronScheduler extends EventEmitter {
                 result,
                 duration: executionTime
             });
-
         } catch (error) {
             // 記錄失敗執行
             const executionTime = Date.now() - startTime;
@@ -350,12 +351,7 @@ class CronScheduler extends EventEmitter {
      * 網頁爬取任務
      */
     async executeWebCrawlingTask(params) {
-        const {
-            targetUrls = [],
-            crawlDepth = 1,
-            respectRobotsTxt = true,
-            batchSize = 10
-        } = params;
+        const { targetUrls = [], crawlDepth = 1, respectRobotsTxt = true, batchSize = 10 } = params;
 
         logger.info('執行網頁爬取任務', {
             targetUrls: targetUrls.length,
@@ -385,8 +381,8 @@ class CronScheduler extends EventEmitter {
 
         return {
             taskType: 'web_crawling',
-            scheduledTasks: results.filter(r => r.status === 'scheduled').length,
-            failedTasks: results.filter(r => r.status === 'failed').length,
+            scheduledTasks: results.filter((r) => r.status === 'scheduled').length,
+            failedTasks: results.filter((r) => r.status === 'failed').length,
             results
         };
     }
@@ -395,11 +391,7 @@ class CronScheduler extends EventEmitter {
      * 資料清理任務
      */
     async executeDataCleanupTask(params) {
-        const {
-            cleanupType = 'expired_data',
-            retentionDays = 30,
-            dryRun = false
-        } = params;
+        const { cleanupType = 'expired_data', retentionDays = 30, dryRun = false } = params;
 
         logger.info('執行資料清理任務', {
             cleanupType,
@@ -408,7 +400,7 @@ class CronScheduler extends EventEmitter {
         });
 
         // 模擬資料清理邏輯
-        const cutoffDate = new Date(Date.now() - (retentionDays * 24 * 60 * 60 * 1000));
+        const cutoffDate = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
         let cleanedRecords = 0;
         if (!dryRun) {
@@ -429,11 +421,7 @@ class CronScheduler extends EventEmitter {
      * 中繼資料提取任務
      */
     async executeMetadataExtractionTask(params) {
-        const {
-            sourceType = 'artwork',
-            batchSize = 50,
-            extractionRules = []
-        } = params;
+        const { sourceType = 'artwork', batchSize = 50, extractionRules = [] } = params;
 
         logger.info('執行中繼資料提取任務', {
             sourceType,
@@ -500,11 +488,7 @@ class CronScheduler extends EventEmitter {
      * 備份任務
      */
     async executeBackupTask(params) {
-        const {
-            backupType = 'incremental',
-            includeImages = true,
-            compressionLevel = 6
-        } = params;
+        const { backupType = 'incremental', includeImages = true, compressionLevel = 6 } = params;
 
         logger.info('執行備份任務', {
             backupType,
@@ -576,10 +560,7 @@ class CronScheduler extends EventEmitter {
      * 分析任務
      */
     async executeAnalyticsTask(params) {
-        const {
-            analysisType = 'usage_stats',
-            timeRange = '24h'
-        } = params;
+        const { analysisType = 'usage_stats', timeRange = '24h' } = params;
 
         logger.info('執行分析任務', {
             analysisType,
@@ -762,16 +743,20 @@ class CronScheduler extends EventEmitter {
      * 設定系統健康檢查
      */
     async setupHealthCheck() {
-        this.healthCheckJob = cron.schedule('*/5 * * * *', async () => {
-            try {
-                await this.performSystemHealthCheck();
-            } catch (error) {
-                logger.error('系統健康檢查失敗', error);
+        this.healthCheckJob = cron.schedule(
+            '*/5 * * * *',
+            async () => {
+                try {
+                    await this.performSystemHealthCheck();
+                } catch (error) {
+                    logger.error('系統健康檢查失敗', error);
+                }
+            },
+            {
+                scheduled: false,
+                timezone: this.options.timezone
             }
-        }, {
-            scheduled: false,
-            timezone: this.options.timezone
-        });
+        );
 
         this.healthCheckJob.start();
         logger.info('系統健康檢查已設定 (每5分鐘)');
@@ -786,7 +771,8 @@ class CronScheduler extends EventEmitter {
             scheduler: {
                 isRunning: this.isRunning,
                 totalSchedules: this.scheduledJobs.size,
-                activeSchedules: Array.from(this.jobConfigs.values()).filter(job => job.enabled).length
+                activeSchedules: Array.from(this.jobConfigs.values()).filter((job) => job.enabled)
+                    .length
             },
             taskScheduler: this.taskScheduler.getStatus(),
             errorHandler: this.errorHandler.generateHealthReport()
@@ -825,20 +811,20 @@ class CronScheduler extends EventEmitter {
      * 帶超時的執行
      */
     async executeWithTimeout(taskExecutor, timeout) {
-        return new Promise(async (resolve, reject) => {
-            const timeoutId = setTimeout(() => {
+        // 用 Promise.race 而非 async 的 Promise executor：後者若在 try 之前拋錯，
+        // 例外會被靜默吞掉而永遠不 resolve/reject。
+        let timeoutId;
+        const timeoutPromise = new Promise((_resolve, reject) => {
+            timeoutId = setTimeout(() => {
                 reject(new Error(`任務執行超時 (${timeout}ms)`));
             }, timeout);
-
-            try {
-                const result = await taskExecutor();
-                clearTimeout(timeoutId);
-                resolve(result);
-            } catch (error) {
-                clearTimeout(timeoutId);
-                reject(error);
-            }
         });
+
+        try {
+            return await Promise.race([taskExecutor(), timeoutPromise]);
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 
     /**
@@ -947,7 +933,7 @@ class CronScheduler extends EventEmitter {
      * 輔助函數：睡眠
      */
     sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 }
 

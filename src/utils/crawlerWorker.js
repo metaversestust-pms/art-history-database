@@ -161,7 +161,6 @@ class CrawlerWorker {
                 executionTime: executionTime,
                 resultCount: result?.items?.length || 0
             });
-
         } catch (error) {
             const executionTime = Date.now() - startTime;
 
@@ -178,7 +177,6 @@ class CrawlerWorker {
                 error: error.message,
                 workerId: this.workerId
             });
-
         } finally {
             this.currentTask = null;
             this.isProcessing = false;
@@ -230,7 +228,6 @@ class CrawlerWorker {
                     crawledAt: new Date().toISOString()
                 }
             };
-
         }, '執行API任務');
     }
 
@@ -264,8 +261,9 @@ class CrawlerWorker {
 
                 // 提取圖片URL
                 if (selectors.image) {
-                    const imageUrl = $(element).find(selectors.image).attr('src') ||
-                                   $(element).find(selectors.image).attr('data-src');
+                    const imageUrl =
+                        $(element).find(selectors.image).attr('src') ||
+                        $(element).find(selectors.image).attr('data-src');
                     if (imageUrl) {
                         item.imageUrl = this.resolveUrl(imageUrl, url);
                     }
@@ -305,7 +303,6 @@ class CrawlerWorker {
                     crawledAt: new Date().toISOString()
                 }
             };
-
         }, '執行爬取任務');
     }
 
@@ -358,7 +355,6 @@ class CrawlerWorker {
                     crawledAt: new Date().toISOString()
                 }
             };
-
         }, '執行RSS任務');
     }
 
@@ -393,7 +389,7 @@ class CrawlerWorker {
 
         if (data.objectIDs && Array.isArray(data.objectIDs)) {
             // 搜索結果
-            data.objectIDs.slice(0, config.maxItems || 50).forEach(objectID => {
+            data.objectIDs.slice(0, config.maxItems || 50).forEach((objectID) => {
                 items.push({
                     objectID,
                     source: 'met',
@@ -431,16 +427,22 @@ class CrawlerWorker {
         const items = [];
 
         if (data.items && Array.isArray(data.items)) {
-            data.items.forEach(item => {
+            data.items.forEach((item) => {
                 const processedItem = {
                     id: item.id,
                     title: this.getLocalizedText(item.title),
-                    creator: this.getLocalizedText(item.dcCreator) ||
-                            this.getLocalizedText(item.dcContributor) || 'Unknown',
-                    date: this.getLocalizedText(item.dcDate) ||
-                          this.getLocalizedText(item.year) || '',
-                    type: this.getLocalizedText(item.type) ||
-                          this.getLocalizedText(item.dcType) || '',
+                    creator:
+                        this.getLocalizedText(item.dcCreator) ||
+                        this.getLocalizedText(item.dcContributor) ||
+                        'Unknown',
+                    date:
+                        this.getLocalizedText(item.dcDate) ||
+                        this.getLocalizedText(item.year) ||
+                        '',
+                    type:
+                        this.getLocalizedText(item.type) ||
+                        this.getLocalizedText(item.dcType) ||
+                        '',
                     description: this.getLocalizedText(item.dcDescription) || '',
                     rights: this.getLocalizedText(item.rights) || '',
                     dataProvider: this.getLocalizedText(item.dataProvider) || '',
@@ -449,7 +451,9 @@ class CrawlerWorker {
                     thumbnail: item.edmPreview?.[0] || '',
                     url: `https://www.europeana.eu/item${item.id}`,
                     source: 'europeana',
-                    type: 'cultural_heritage'
+                    // 原本這裡也叫 type，會覆蓋掉上面從 item.type/dcType 抽出的值，
+                    // 導致每筆紀錄的 type 都變成常數。改名保留兩者。
+                    category: 'cultural_heritage'
                 };
 
                 items.push(processedItem);
@@ -467,11 +471,14 @@ class CrawlerWorker {
         if (typeof textObj === 'string') return textObj;
         if (Array.isArray(textObj)) return textObj[0] || '';
 
-        return textObj.en?.[0] ||
-               textObj.de?.[0] ||
-               textObj.fr?.[0] ||
-               textObj.it?.[0] ||
-               Object.values(textObj)[0]?.[0] || '';
+        return (
+            textObj.en?.[0] ||
+            textObj.de?.[0] ||
+            textObj.fr?.[0] ||
+            textObj.it?.[0] ||
+            Object.values(textObj)[0]?.[0] ||
+            ''
+        );
     }
 
     /**
@@ -479,9 +486,9 @@ class CrawlerWorker {
      */
     async postProcessItems(items, config) {
         // 清理和標準化數據
-        return items.map(item => {
+        return items.map((item) => {
             // 清理HTML標籤
-            Object.keys(item).forEach(key => {
+            Object.keys(item).forEach((key) => {
                 if (typeof item[key] === 'string') {
                     item[key] = this.cleanHtml(item[key]);
                 }
@@ -502,8 +509,8 @@ class CrawlerWorker {
         if (!text) return '';
         return text
             .replace(/<[^>]*>/g, '') // 移除HTML標籤
-            .replace(/\s+/g, ' ')    // 合併多個空白字符
-            .trim();                 // 移除前後空白
+            .replace(/\s+/g, ' ') // 合併多個空白字符
+            .trim(); // 移除前後空白
     }
 
     /**

@@ -39,10 +39,19 @@ class CachePreloader {
      * 註冊常用數據預載任務
      */
     registerCommonTasks() {
+        // 注意：dbManager 沒有 getConnection() —— 正確介面是 getPostgresPool()
+        // （回傳 pg Pool，可直接 .query()；未連線時會拋錯，由預載任務的
+        // try/catch 記錄後跳過）。原本的 SQL 也引用了不存在的結構
+        // （collection_artworks 表、c.featured、artworks.status），
+        // 已對齊 database_schema.sql 的實際欄位。
+
         // 預載熱門藝術家
-        this.registerTask('artist', 'popular_artists', async () => {
-            const pgClient = dbManager.getConnection('postgres');
-            const result = await pgClient.query(`
+        this.registerTask(
+            'artist',
+            'popular_artists',
+            async () => {
+                const pool = dbManager.getPostgresPool();
+                const result = await pool.query(`
                 SELECT a.*, COUNT(aw.id) as artwork_count
                 FROM artists a
                 LEFT JOIN artworks aw ON a.id = aw.artist_id
@@ -50,61 +59,88 @@ class CachePreloader {
                 ORDER BY artwork_count DESC
                 LIMIT 20
             `);
-            return result.rows;
-        }, { priority: 10, ttl: 14400 }); // 4小時
+                return result.rows;
+            },
+            { priority: 10, ttl: 14400 }
+        ); // 4小時
 
-        // 預載熱門收藏
-        this.registerTask('collection', 'featured_collections', async () => {
-            const pgClient = dbManager.getConnection('postgres');
-            const result = await pgClient.query(`
-                SELECT c.*, COUNT(ca.artwork_id) as artwork_count
+        // 預載最新館藏（schema 無 featured 概念，以最新入藏代替）
+        this.registerTask(
+            'collection',
+            'featured_collections',
+            async () => {
+                const pool = dbManager.getPostgresPool();
+                const result = await pool.query(`
+                SELECT c.*, i.name AS institution_name
                 FROM collections c
-                LEFT JOIN collection_artworks ca ON c.id = ca.collection_id
-                WHERE c.featured = true
-                GROUP BY c.id
+                LEFT JOIN institutions i ON c.institution_id = i.id
                 ORDER BY c.created_at DESC
                 LIMIT 10
             `);
-            return result.rows;
-        }, { priority: 8, ttl: 10800 }); // 3小時
+                return result.rows;
+            },
+            { priority: 8, ttl: 10800 }
+        ); // 3小時
 
         // 預載最新藝術作品
-        this.registerTask('artwork', 'recent_artworks', async () => {
-            const pgClient = dbManager.getConnection('postgres');
-            const result = await pgClient.query(`
+        this.registerTask(
+            'artwork',
+            'recent_artworks',
+            async () => {
+                const pool = dbManager.getPostgresPool();
+                const result = await pool.query(`
                 SELECT * FROM artworks
-                WHERE status = 'active'
                 ORDER BY created_at DESC
                 LIMIT 50
             `);
-            return result.rows;
-        }, { priority: 9, ttl: 3600 }); // 1小時
+                return result.rows;
+            },
+            { priority: 9, ttl: 3600 }
+        ); // 1小時
 
         // 預載系統統計
-        this.registerTask('metadata', 'system_stats', async () => {
-            const pgClient = dbManager.getConnection('postgres');
-            const [artistCount, artworkCount, collectionCount] = await Promise.all([
-                pgClient.query('SELECT COUNT(*) FROM artists'),
-                pgClient.query('SELECT COUNT(*) FROM artworks WHERE status = \'active\''),
-                pgClient.query('SELECT COUNT(*) FROM collections')
-            ]);
+        this.registerTask(
+            'metadata',
+            'system_stats',
+            async () => {
+                const pool = dbManager.getPostgresPool();
+                const [artistCount, artworkCount, collectionCount] = await Promise.all([
+                    pool.query('SELECT COUNT(*) FROM artists'),
+                    pool.query('SELECT COUNT(*) FROM artworks'),
+                    pool.query('SELECT COUNT(*) FROM collections')
+                ]);
 
-            return {
-                artists: parseInt(artistCount.rows[0].count),
-                artworks: parseInt(artworkCount.rows[0].count),
-                collections: parseInt(collectionCount.rows[0].count),
-                lastUpdated: new Date().toISOString()
-            };
-        }, { priority: 5, ttl: 1800 }); // 30分鐘
+                return {
+                    artists: parseInt(artistCount.rows[0].count),
+                    artworks: parseInt(artworkCount.rows[0].count),
+                    collections: parseInt(collectionCount.rows[0].count),
+                    lastUpdated: new Date().toISOString()
+                };
+            },
+            { priority: 5, ttl: 1800 }
+        ); // 30分鐘
 
         // 預載搜索建議
-        this.registerTask('search', 'popular_terms', async () => {
-            // 從日誌或統計表中獲取熱門搜索詞
-            return [
-                'Van Gogh', 'Picasso', 'Monet', 'Da Vinci', 'Rembrandt',
-                'impressionism', 'abstract art', 'renaissance', 'baroque', 'modern art'
-            ];
-        }, { priority: 6, ttl: 7200 }); // 2小時
+        this.registerTask(
+            'search',
+            'popular_terms',
+            async () => {
+                // 從日誌或統計表中獲取熱門搜索詞
+                return [
+                    'Van Gogh',
+                    'Picasso',
+                    'Monet',
+                    'Da Vinci',
+                    'Rembrandt',
+                    'impressionism',
+                    'abstract art',
+                    'renaissance',
+                    'baroque',
+                    'modern art'
+                ];
+            },
+            { priority: 6, ttl: 7200 }
+        ); // 2小時
     }
 
     /**
@@ -135,7 +171,7 @@ class CachePreloader {
             const batchSize = 5;
             for (let i = 0; i < sortedTasks.length; i += batchSize) {
                 const batch = sortedTasks.slice(i, i + batchSize);
-                await Promise.all(batch.map(task => this.executeTask(task)));
+                await Promise.all(batch.map((task) => this.executeTask(task)));
 
                 // 短暫延遲，避免系統負載過高
                 if (i + batchSize < sortedTasks.length) {
@@ -146,8 +182,9 @@ class CachePreloader {
             this.preloadStats.endTime = Date.now();
             const duration = (this.preloadStats.endTime - this.preloadStats.startTime) / 1000;
 
-            logger.info(`✅ 快取預載完成，耗時 ${duration.toFixed(2)}s，成功 ${this.preloadStats.completed}/${this.preloadStats.total}`);
-
+            logger.info(
+                `✅ 快取預載完成，耗時 ${duration.toFixed(2)}s，成功 ${this.preloadStats.completed}/${this.preloadStats.total}`
+            );
         } catch (error) {
             logger.error('快取預載失敗:', error);
         } finally {
@@ -161,7 +198,7 @@ class CachePreloader {
     async executeTask(task) {
         try {
             // 檢查預載條件
-            if (task.condition && !await task.condition()) {
+            if (task.condition && !(await task.condition())) {
                 logger.debug(`跳過預載任務: ${task.category}:${task.identifier} (條件不滿足)`);
                 return;
             }
@@ -193,7 +230,6 @@ class CachePreloader {
                 this.preloadStats.failed++;
                 logger.warn(`⚠️ 預載失敗: ${task.category}:${task.identifier} (無數據)`);
             }
-
         } catch (error) {
             this.preloadStats.failed++;
             logger.error(`❌ 預載失敗: ${task.category}:${task.identifier}`, error);
@@ -217,21 +253,25 @@ class CachePreloader {
      * 延遲函數
      */
     delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     /**
      * 獲取預載統計
      */
     getStats() {
-        const duration = this.preloadStats.endTime && this.preloadStats.startTime ?
-            (this.preloadStats.endTime - this.preloadStats.startTime) / 1000 : null;
+        const duration =
+            this.preloadStats.endTime && this.preloadStats.startTime
+                ? (this.preloadStats.endTime - this.preloadStats.startTime) / 1000
+                : null;
 
         return {
             ...this.preloadStats,
             duration: duration ? `${duration.toFixed(2)}s` : 'N/A',
-            successRate: this.preloadStats.total > 0 ?
-                `${((this.preloadStats.completed / this.preloadStats.total) * 100).toFixed(2)}%` : '0%',
+            successRate:
+                this.preloadStats.total > 0
+                    ? `${((this.preloadStats.completed / this.preloadStats.total) * 100).toFixed(2)}%`
+                    : '0%',
             isRunning: this.isPreloading,
             totalTasks: this.preloadTasks.length
         };
@@ -248,7 +288,7 @@ class CachePreloader {
             logger.info('🔄 開始定期預載...');
 
             // 只預載高優先級的任務
-            const highPriorityTasks = this.preloadTasks.filter(task => task.priority >= 8);
+            const highPriorityTasks = this.preloadTasks.filter((task) => task.priority >= 8);
 
             for (const task of highPriorityTasks) {
                 try {

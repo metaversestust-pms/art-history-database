@@ -53,7 +53,6 @@ class EnhancedAgentTester {
 
             // 數據完整性測試
             await this.runDataIntegrityTests();
-
         } catch (error) {
             await this.errorHandler.handleError(error, '整體測試執行');
             this.addTestResult('整體測試執行', 'fail', error.message);
@@ -85,16 +84,13 @@ class EnhancedAgentTester {
      */
     async testDirectoryStructure() {
         await this.errorHandler.wrapAsync(async () => {
-            const requiredDirs = [
-                'src',
-                'agents',
-                'data/raw',
-                'data/processed',
-                'logs'
-            ];
+            const requiredDirs = ['src', 'agents', 'data/raw', 'data/processed', 'logs'];
 
             for (const dir of requiredDirs) {
-                const exists = await fs.access(dir).then(() => true).catch(() => false);
+                const exists = await fs
+                    .access(dir)
+                    .then(() => true)
+                    .catch(() => false);
                 if (!exists) {
                     await fs.mkdir(dir, { recursive: true });
                 }
@@ -132,12 +128,9 @@ class EnhancedAgentTester {
      */
     async testConfiguration() {
         await this.errorHandler.wrapAsync(async () => {
-            const requiredEnvVars = [
-                'DATA_RAW_DIR',
-                'DATA_PROCESSED_DIR'
-            ];
+            const requiredEnvVars = ['DATA_RAW_DIR', 'DATA_PROCESSED_DIR'];
 
-            let missingVars = [];
+            const missingVars = [];
             for (const envVar of requiredEnvVars) {
                 if (!process.env[envVar]) {
                     missingVars.push(envVar);
@@ -160,9 +153,17 @@ class EnhancedAgentTester {
 
         const agents = [
             { name: 'WebCrawler', class: WebCrawlerAgent, id: 'web-crawler-agent' },
-            { name: 'MetadataExtractor', class: MetadataExtractorAgent, id: 'metadata-extractor-agent' },
+            {
+                name: 'MetadataExtractor',
+                class: MetadataExtractorAgent,
+                id: 'metadata-extractor-agent'
+            },
             { name: 'Classification', class: ClassificationAgent, id: 'classification-agent' },
-            { name: 'SummarizationTranslation', class: SummarizationTranslationAgent, id: 'summarization-translation-agent' }
+            {
+                name: 'SummarizationTranslation',
+                class: SummarizationTranslationAgent,
+                id: 'summarization-translation-agent'
+            }
         ];
 
         for (const agentInfo of agents) {
@@ -201,7 +202,6 @@ class EnhancedAgentTester {
             await agent.stop();
 
             this.addTestResult(`${agentInfo.name} Agent`, 'pass', '初始化和基本功能測試通過');
-
         }, `${agentInfo.name} Agent測試`);
     }
 
@@ -210,7 +210,7 @@ class EnhancedAgentTester {
      */
     async testAgentSpecificFeatures(agent, agentName) {
         switch (agentName) {
-            case 'MetadataExtractor':
+            case 'MetadataExtractor': {
                 const testRecord = {
                     title: 'Test Artwork',
                     artist: 'Test Artist',
@@ -222,39 +222,43 @@ class EnhancedAgentTester {
                     throw new Error('元數據提取結果不完整');
                 }
                 break;
+            }
 
-            case 'Classification':
+            case 'Classification': {
                 const testArtwork = {
                     'dc:title': 'Test Painting',
                     'dc:creator': 'Test Artist',
                     'dc:date': '1500',
-                    '_source': 'enhanced_test'
+                    _source: 'enhanced_test'
                 };
                 const classResult = await agent.classifyArtwork(testArtwork, ['period']);
                 if (!classResult._classifications || !classResult._classifications.period) {
                     throw new Error('分類結果不完整');
                 }
                 break;
+            }
 
-            case 'SummarizationTranslation':
+            case 'SummarizationTranslation': {
                 const testSummaryRecord = {
                     'dc:title': 'Test Artwork',
                     'dc:description': 'A test artwork for summary generation',
-                    '_source': 'enhanced_test'
+                    _source: 'enhanced_test'
                 };
                 const summary = await agent.generateSummary(testSummaryRecord, 'artwork');
                 if (!summary.text || summary.text.length === 0) {
                     throw new Error('摘要生成失敗');
                 }
                 break;
+            }
 
-            case 'WebCrawler':
+            case 'WebCrawler': {
                 // WebCrawler 只測試狀態，避免實際網絡請求
                 const config = agent.getStatus().config;
                 if (!config || typeof config.maxConcurrentRequests !== 'number') {
                     throw new Error('WebCrawler配置不正確');
                 }
                 break;
+            }
         }
     }
 
@@ -287,7 +291,9 @@ class EnhancedAgentTester {
             }
 
             if (Object.keys(status.agents).length !== 4) {
-                throw new Error(`Agent數量不正確: 期望 4, 實際 ${Object.keys(status.agents).length}`);
+                throw new Error(
+                    `Agent數量不正確: 期望 4, 實際 ${Object.keys(status.agents).length}`
+                );
             }
 
             // 驗證每個Agent狀態
@@ -300,7 +306,6 @@ class EnhancedAgentTester {
             await hub.stop();
 
             this.addTestResult('Agent Hub整合', 'pass', '4個Agent成功初始化並整合');
-
         }, 'Agent Hub整合測試');
     }
 
@@ -308,43 +313,52 @@ class EnhancedAgentTester {
      * 測試工作流程執行
      */
     async testWorkflowExecution() {
-        await this.errorHandler.wrapAsync(async () => {
-            // 確保測試數據存在
-            await this.createEnhancedTestData();
+        await this.errorHandler.wrapAsync(
+            async () => {
+                // 確保測試數據存在
+                await this.createEnhancedTestData();
 
-            const hub = new AgentHub();
-            await hub.initialize();
+                const hub = new AgentHub();
+                await hub.initialize();
 
-            // 測試 processExisting 工作流程
-            const result = await hub.executeWorkflow('processExisting', {
-                metadataExtractor: {
-                    inputSources: ['museums'],
-                    includeValidation: true
-                },
-                classification: {
-                    classificationTypes: ['period', 'style'],
-                    generateReports: false // 避免額外文件I/O
-                },
-                summarizationTranslation: {
-                    targetLanguages: ['zh-TW'],
-                    generateSummaries: true,
-                    generateTranslations: false
+                // 測試 processExisting 工作流程
+                const result = await hub.executeWorkflow('processExisting', {
+                    metadataExtractor: {
+                        inputSources: ['museums'],
+                        includeValidation: true
+                    },
+                    classification: {
+                        classificationTypes: ['period', 'style'],
+                        generateReports: false // 避免額外文件I/O
+                    },
+                    summarizationTranslation: {
+                        targetLanguages: ['zh-TW'],
+                        generateSummaries: true,
+                        generateTranslations: false
+                    }
+                });
+
+                if (!result.success) {
+                    throw new Error('工作流程執行失敗');
                 }
-            });
 
-            if (!result.success) {
-                throw new Error('工作流程執行失敗');
-            }
+                if (result.statistics.completedTasks !== result.statistics.totalTasks) {
+                    throw new Error(
+                        `工作流程未完全完成: ${result.statistics.completedTasks}/${result.statistics.totalTasks}`
+                    );
+                }
 
-            if (result.statistics.completedTasks !== result.statistics.totalTasks) {
-                throw new Error(`工作流程未完全完成: ${result.statistics.completedTasks}/${result.statistics.totalTasks}`);
-            }
+                await hub.stop();
 
-            await hub.stop();
-
-            this.addTestResult('工作流程執行', 'pass', `${result.statistics.completedTasks}/${result.statistics.totalTasks} 步驟成功`);
-
-        }, '工作流程執行測試', { maxRetries: 1 });
+                this.addTestResult(
+                    '工作流程執行',
+                    'pass',
+                    `${result.statistics.completedTasks}/${result.statistics.totalTasks} 步驟成功`
+                );
+            },
+            '工作流程執行測試',
+            { maxRetries: 1 }
+        );
     }
 
     /**
@@ -373,7 +387,6 @@ class EnhancedAgentTester {
             await hub.stop();
 
             this.addTestResult('自定義工作流程', 'pass', '自定義工作流程創建成功');
-
         }, '自定義工作流程測試');
     }
 
@@ -421,7 +434,6 @@ class EnhancedAgentTester {
             await agent.stop();
 
             this.addTestResult('無效數據處理', 'pass', '各種無效數據情況處理正常');
-
         }, '無效數據處理測試');
     }
 
@@ -434,20 +446,23 @@ class EnhancedAgentTester {
             const testErrorHandler = new ErrorHandler('recovery-test');
 
             let attempts = 0;
-            const result = await testErrorHandler.wrapAsync(async () => {
-                attempts++;
-                if (attempts < 2) {
-                    throw new Error('模擬錯誤');
-                }
-                return 'success';
-            }, '恢復測試', { maxRetries: 2 });
+            const result = await testErrorHandler.wrapAsync(
+                async () => {
+                    attempts++;
+                    if (attempts < 2) {
+                        throw new Error('模擬錯誤');
+                    }
+                    return 'success';
+                },
+                '恢復測試',
+                { maxRetries: 2 }
+            );
 
             if (result !== 'success' || attempts !== 2) {
                 throw new Error('錯誤恢復機制測試失敗');
             }
 
             this.addTestResult('恢復機制', 'pass', '錯誤重試和恢復機制正常運作');
-
         }, '恢復機制測試');
     }
 
@@ -481,7 +496,7 @@ class EnhancedAgentTester {
 
             const startTime = Date.now();
             const results = await Promise.all(
-                testData.map(record => agent.extractMetadata(record))
+                testData.map((record) => agent.extractMetadata(record))
             );
             const endTime = Date.now();
 
@@ -492,15 +507,18 @@ class EnhancedAgentTester {
                 throw new Error('批量處理結果數量不正確');
             }
 
-            if (processingTime > 30000) { // 30秒限制
+            if (processingTime > 30000) {
+                // 30秒限制
                 throw new Error(`處理時間過長: ${processingTime}ms`);
             }
 
             await agent.stop();
 
-            this.addTestResult('批量處理性能', 'pass',
-                `處理${testData.length}項耗時${processingTime}ms (${itemsPerSecond.toFixed(2)}項/秒)`);
-
+            this.addTestResult(
+                '批量處理性能',
+                'pass',
+                `處理${testData.length}項耗時${processingTime}ms (${itemsPerSecond.toFixed(2)}項/秒)`
+            );
         }, '批量處理性能測試');
     }
 
@@ -519,7 +537,7 @@ class EnhancedAgentTester {
                 await agent.classifyArtwork({
                     'dc:title': `Memory Test ${i}`,
                     'dc:creator': 'Test Artist',
-                    '_source': 'memory_test'
+                    _source: 'memory_test'
                 });
             }
 
@@ -534,9 +552,11 @@ class EnhancedAgentTester {
                 throw new Error(`記憶體使用過多: ${memoryIncreaseMB.toFixed(2)}MB`);
             }
 
-            this.addTestResult('記憶體使用', 'pass',
-                `記憶體增長: ${memoryIncreaseMB.toFixed(2)}MB`);
-
+            this.addTestResult(
+                '記憶體使用',
+                'pass',
+                `記憶體增長: ${memoryIncreaseMB.toFixed(2)}MB`
+            );
         }, '記憶體使用測試');
     }
 
@@ -573,15 +593,17 @@ class EnhancedAgentTester {
             // 驗證必要字段
             const requiredFields = ['_id', '_extractedAt', '_confidence'];
             for (const field of requiredFields) {
-                if (!result.hasOwnProperty(field)) {
+                if (!Object.hasOwn(result, field)) {
                     throw new Error(`缺少必要字段: ${field}`);
                 }
             }
 
             // 驗證數據類型和範圍
-            if (typeof result._confidence !== 'number' ||
+            if (
+                typeof result._confidence !== 'number' ||
                 result._confidence < 0 ||
-                result._confidence > 1) {
+                result._confidence > 1
+            ) {
                 throw new Error('置信度值不在有效範圍內');
             }
 
@@ -592,7 +614,6 @@ class EnhancedAgentTester {
             await agent.stop();
 
             this.addTestResult('數據完整性', 'pass', '所有必要字段存在且格式正確');
-
         }, '數據完整性測試');
     }
 
@@ -609,7 +630,7 @@ class EnhancedAgentTester {
                 'dc:creator': 'Vincent van Gogh',
                 'dc:date': '1889',
                 'dc:description': 'Post-impressionist painting',
-                '_source': 'consistency_test'
+                _source: 'consistency_test'
             };
 
             // 多次分類同一作品
@@ -628,7 +649,6 @@ class EnhancedAgentTester {
             await agent.stop();
 
             this.addTestResult('分類一致性', 'pass', '多次分類結果保持一致');
-
         }, '分類一致性測試');
     }
 
@@ -704,8 +724,8 @@ class EnhancedAgentTester {
      * 生成最終報告
      */
     async generateFinalReport() {
-        const passedTests = this.testResults.filter(t => t.status === 'pass').length;
-        const failedTests = this.testResults.filter(t => t.status === 'fail').length;
+        const passedTests = this.testResults.filter((t) => t.status === 'pass').length;
+        const failedTests = this.testResults.filter((t) => t.status === 'fail').length;
         const totalTests = this.testResults.length;
         const successRate = Math.round((passedTests / totalTests) * 100);
 
@@ -750,8 +770,9 @@ class EnhancedAgentTester {
 if (require.main === module) {
     const tester = new EnhancedAgentTester();
 
-    tester.runAllTests()
-        .then(success => {
+    tester
+        .runAllTests()
+        .then((success) => {
             if (success) {
                 console.log('\n🎉 Enhanced測試達到90%+成功率！');
                 process.exit(0);
@@ -760,7 +781,7 @@ if (require.main === module) {
                 process.exit(1);
             }
         })
-        .catch(error => {
+        .catch((error) => {
             console.error('\n💥 測試執行失敗:', error);
             process.exit(1);
         });

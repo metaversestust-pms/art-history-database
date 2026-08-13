@@ -29,7 +29,9 @@ class HarvardIntegrationTester {
             details: details
         };
 
-        console.log(`${level === 'ERROR' ? '❌' : level === 'WARN' ? '⚠️' : level === 'PASS' ? '✅' : 'ℹ️'} ${message}`);
+        console.log(
+            `${level === 'ERROR' ? '❌' : level === 'WARN' ? '⚠️' : level === 'PASS' ? '✅' : 'ℹ️'} ${message}`
+        );
 
         this.testResults.tests.push(logEntry);
 
@@ -65,7 +67,10 @@ class HarvardIntegrationTester {
 
             // 檢查搜索分類
             if (crawler.artHistoryClassifications.length >= 10) {
-                this.log('PASS', `藝術史分類完整: ${crawler.artHistoryClassifications.length} 個分類`);
+                this.log(
+                    'PASS',
+                    `藝術史分類完整: ${crawler.artHistoryClassifications.length} 個分類`
+                );
             } else {
                 this.log('WARN', '藝術史分類數量較少');
             }
@@ -83,7 +88,6 @@ class HarvardIntegrationTester {
             } else {
                 this.log('WARN', '著名藝術家列表較短');
             }
-
         } catch (error) {
             this.log('ERROR', 'API 文檔檢查失敗', error.message);
         }
@@ -127,7 +131,6 @@ class HarvardIntegrationTester {
                     this.log('WARN', `無效API Key錯誤處理: ${error.message}`);
                 }
             }
-
         } catch (error) {
             this.log('ERROR', 'API 認證測試失敗', error.message);
         }
@@ -142,39 +145,47 @@ class HarvardIntegrationTester {
             // 測試資料物件處理
             const sampleHarvardObject = {
                 id: 123456,
-                objectnumber: "2019.123",
-                title: "The Starry Night",
-                classification: "Paintings",
+                objectnumber: '2019.123',
+                title: 'The Starry Night',
+                classification: 'Paintings',
                 people: [
                     {
-                        name: "Vincent van Gogh",
-                        role: "Artist",
-                        culture: "Dutch",
-                        displaydate: "1853-1890"
+                        name: 'Vincent van Gogh',
+                        role: 'Artist',
+                        culture: 'Dutch',
+                        displaydate: '1853-1890'
                     }
                 ],
-                culture: "Dutch",
-                period: "Post-Impressionist",
-                century: "19th century",
-                dated: "1889",
-                medium: "Oil on canvas",
-                dimensions: "73.7 cm × 92.1 cm",
-                description: "A famous painting depicting a swirling night sky",
-                primaryimageurl: "https://example.com/starry-night.jpg",
-                accessionyear: "2019",
-                department: "European and American Art"
+                culture: 'Dutch',
+                period: 'Post-Impressionist',
+                century: '19th century',
+                dated: '1889',
+                medium: 'Oil on canvas',
+                dimensions: '73.7 cm × 92.1 cm',
+                description: 'A famous painting depicting a swirling night sky',
+                primaryimageurl: 'https://example.com/starry-night.jpg',
+                accessionyear: '2019',
+                department: 'European and American Art'
             };
 
             this.log('INFO', '處理樣本Harvard物件');
 
-            const processedObject = await crawler.processObject(sampleHarvardObject, "test query");
+            const processedObject = await crawler.processObject(sampleHarvardObject, 'test query');
 
             if (processedObject) {
                 this.log('PASS', '成功處理Harvard物件');
 
                 // 檢查必要欄位
-                const requiredFields = ['harvardId', 'title', 'source', 'qualityScore', 'artHistoryCategories'];
-                const missingFields = requiredFields.filter(field => !processedObject.hasOwnProperty(field));
+                const requiredFields = [
+                    'harvardId',
+                    'title',
+                    'source',
+                    'qualityScore',
+                    'artHistoryCategories'
+                ];
+                const missingFields = requiredFields.filter(
+                    (field) => !Object.hasOwn(processedObject, field)
+                );
 
                 if (missingFields.length === 0) {
                     this.log('PASS', '物件結構完整，包含所有必要欄位');
@@ -191,7 +202,10 @@ class HarvardIntegrationTester {
 
                 // 檢查分類
                 if (processedObject.artHistoryCategories.length > 0) {
-                    this.log('PASS', `自動分類成功: ${processedObject.artHistoryCategories.length} 個類別`);
+                    this.log(
+                        'PASS',
+                        `自動分類成功: ${processedObject.artHistoryCategories.length} 個類別`
+                    );
                 } else {
                     this.log('WARN', '沒有生成藝術史分類');
                 }
@@ -202,11 +216,9 @@ class HarvardIntegrationTester {
                 } else {
                     this.log('WARN', '沒有提取到藝術家資訊');
                 }
-
             } else {
                 this.log('ERROR', '物件處理失敗');
             }
-
         } catch (error) {
             this.log('ERROR', '資料處理測試失敗', error.message);
         }
@@ -220,33 +232,33 @@ class HarvardIntegrationTester {
 
             // 高品質物件
             const highQualityObject = {
-                title: "Mona Lisa Study",
-                people: [{ name: "Leonardo da Vinci" }],
-                dated: "1503-1519",
-                medium: "Oil on poplar panel",
-                primaryimageurl: "https://example.com/mona-lisa.jpg",
-                images: [{ url: "image1.jpg" }, { url: "image2.jpg" }],
-                description: "A detailed study of the famous Mona Lisa painting...",
+                title: 'Mona Lisa Study',
+                people: [{ name: 'Leonardo da Vinci' }],
+                dated: '1503-1519',
+                medium: 'Oil on poplar panel',
+                primaryimageurl: 'https://example.com/mona-lisa.jpg',
+                images: [{ url: 'image1.jpg' }, { url: 'image2.jpg' }],
+                description: 'A detailed study of the famous Mona Lisa painting...',
                 commentary: "This work represents da Vinci's mastery...",
-                provenance: "Acquired from the Louvre in 1911...",
-                accessionyear: "1911",
-                exhibition: [{ title: "Renaissance Masters" }],
-                publication: [{ title: "Leonardo Studies" }]
+                provenance: 'Acquired from the Louvre in 1911...',
+                accessionyear: '1911',
+                exhibition: [{ title: 'Renaissance Masters' }],
+                publication: [{ title: 'Leonardo Studies' }]
             };
 
             // 中等品質物件
             const mediumQualityObject = {
-                title: "Unknown Work",
-                people: [{ name: "Anonymous" }],
-                medium: "Oil on canvas",
-                primaryimageurl: "https://example.com/unknown.jpg",
-                description: "A painting of unknown origin",
-                accessionyear: "1950"
+                title: 'Unknown Work',
+                people: [{ name: 'Anonymous' }],
+                medium: 'Oil on canvas',
+                primaryimageurl: 'https://example.com/unknown.jpg',
+                description: 'A painting of unknown origin',
+                accessionyear: '1950'
             };
 
             // 低品質物件
             const lowQualityObject = {
-                title: "Untitled",
+                title: 'Untitled',
                 people: []
             };
 
@@ -254,7 +266,10 @@ class HarvardIntegrationTester {
             const mediumScore = crawler.calculateQualityScore(mediumQualityObject);
             const lowScore = crawler.calculateQualityScore(lowQualityObject);
 
-            this.log('INFO', `品質評估結果: 高品質 ${highScore}, 中品質 ${mediumScore}, 低品質 ${lowScore}`);
+            this.log(
+                'INFO',
+                `品質評估結果: 高品質 ${highScore}, 中品質 ${mediumScore}, 低品質 ${lowScore}`
+            );
 
             // 驗證品質分數合理性
             if (highScore > mediumScore && mediumScore > lowScore) {
@@ -274,7 +289,6 @@ class HarvardIntegrationTester {
             } else {
                 this.log('WARN', `低品質物件分數偏高: ${lowScore}/100`);
             }
-
         } catch (error) {
             this.log('ERROR', '品質評估測試失敗', error.message);
         }
@@ -289,7 +303,7 @@ class HarvardIntegrationTester {
             // 檢查Harvard是否已註冊
             const status = await manager.getDataSourcesStatus();
 
-            const harvardSource = status.sources.find(s => s.id === 'harvard_art_museums');
+            const harvardSource = status.sources.find((s) => s.id === 'harvard_art_museums');
 
             if (harvardSource) {
                 this.log('PASS', 'Harvard Art Museums 已成功註冊到統一管理器');
@@ -309,7 +323,7 @@ class HarvardIntegrationTester {
 
                 // 檢查分類
                 const expectedCategories = ['museum', 'academic_collection', 'research'];
-                const hasExpectedCategories = expectedCategories.every(cat =>
+                const hasExpectedCategories = expectedCategories.every((cat) =>
                     harvardSource.categories.includes(cat)
                 );
 
@@ -318,7 +332,6 @@ class HarvardIntegrationTester {
                 } else {
                     this.log('WARN', `Harvard 分類標籤: ${harvardSource.categories.join(', ')}`);
                 }
-
             } else {
                 this.log('ERROR', 'Harvard Art Museums 沒有註冊到統一管理器');
             }
@@ -329,7 +342,6 @@ class HarvardIntegrationTester {
             } else {
                 this.log('WARN', `總資料來源數量: ${status.totalSources}，預期: 5`);
             }
-
         } catch (error) {
             this.log('ERROR', '統一管理器整合測試失敗', error.message);
         }
@@ -365,7 +377,6 @@ class HarvardIntegrationTester {
             this.log('INFO', '使用指南檢查完成');
             this.log('INFO', '申請網址: https://www.harvardartmuseums.org/collections/api');
             this.log('INFO', '使用限制: 每日2,500次調用，僅限非商業使用');
-
         } catch (error) {
             this.log('ERROR', 'API Key指南測試失敗', error.message);
         }
@@ -390,15 +401,22 @@ class HarvardIntegrationTester {
         console.log(`⚠️  警告: ${this.testResults.summary.warnings}`);
         console.log(`📋 總計: ${this.testResults.summary.totalTests}`);
 
-        const passRate = (this.testResults.summary.passed / this.testResults.summary.totalTests * 100).toFixed(1);
+        const passRate = (
+            (this.testResults.summary.passed / this.testResults.summary.totalTests) *
+            100
+        ).toFixed(1);
         console.log(`📈 通過率: ${passRate}%`);
 
         // 提供使用建議
         console.log('\n💡 使用建議:');
-        console.log('1. 申請Harvard Art Museums API Key: https://www.harvardartmuseums.org/collections/api');
+        console.log(
+            '1. 申請Harvard Art Museums API Key: https://www.harvardartmuseums.org/collections/api'
+        );
         console.log('2. 設定環境變數: export HARVARD_API_KEY="your_api_key"');
         console.log('3. 執行爬蟲: node harvard-art-museums-crawler.js your_api_key');
-        console.log('4. 或使用統一管理器: node unified-data-sources-manager.js --harvardApiKey your_api_key');
+        console.log(
+            '4. 或使用統一管理器: node unified-data-sources-manager.js --harvardApiKey your_api_key'
+        );
 
         if (this.testResults.summary.failed === 0) {
             console.log('\n🎉 Harvard Art Museums 整合測試全部通過！');

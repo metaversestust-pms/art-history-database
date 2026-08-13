@@ -118,7 +118,6 @@ class ParallelCrawler extends EventEmitter {
             });
 
             logger.info('並行爬取系統初始化完成');
-
         } catch (error) {
             logger.error('並行爬取系統初始化失敗', { error: error.message });
             throw error;
@@ -129,10 +128,7 @@ class ParallelCrawler extends EventEmitter {
      * 初始化工作執行緒池
      */
     async initializeWorkerPool() {
-        const workerCount = Math.min(
-            this.options.maxWorkerThreads,
-            this.options.maxConcurrency
-        );
+        const workerCount = Math.min(this.options.maxWorkerThreads, this.options.maxConcurrency);
 
         for (let i = 0; i < workerCount; i++) {
             const worker = await this.createWorker(`worker-${i}`);
@@ -147,10 +143,7 @@ class ParallelCrawler extends EventEmitter {
      */
     async initializeClusterPool() {
         if (cluster.isMaster) {
-            const workerCount = Math.min(
-                os.cpus().length,
-                this.options.maxConcurrency
-            );
+            const workerCount = Math.min(os.cpus().length, this.options.maxConcurrency);
 
             for (let i = 0; i < workerCount; i++) {
                 const worker = cluster.fork();
@@ -301,7 +294,7 @@ class ParallelCrawler extends EventEmitter {
             return this.loadBalancer.selectOptimalWorker(this.workerPool);
         }
 
-        return this.workerPool.find(worker => !worker.isActive);
+        return this.workerPool.find((worker) => !worker.isActive);
     }
 
     /**
@@ -340,7 +333,6 @@ class ParallelCrawler extends EventEmitter {
             this.setTaskTimeout(task);
 
             this.emit('taskStarted', task);
-
         } catch (error) {
             await this.handleTaskError(task, worker, error);
         }
@@ -390,7 +382,6 @@ class ParallelCrawler extends EventEmitter {
                 default:
                     logger.warn('未知工作執行緒消息類型', { type, workerId: worker.workerId });
             }
-
         } catch (error) {
             logger.error('處理工作執行緒消息失敗', {
                 workerId: worker.workerId,
@@ -474,7 +465,6 @@ class ParallelCrawler extends EventEmitter {
                 }
                 this.processNextTask();
             }, this.options.retryDelay * task.attempts);
-
         } else {
             // 任務最終失敗
             task.status = 'failed';
@@ -501,7 +491,7 @@ class ParallelCrawler extends EventEmitter {
      * 處理任務超時
      */
     async handleTaskTimeout(task) {
-        const worker = this.workerPool.find(w => w.workerId === task.workerId);
+        const worker = this.workerPool.find((w) => w.workerId === task.workerId);
 
         if (worker) {
             // 嘗試取消任務
@@ -551,9 +541,10 @@ class ParallelCrawler extends EventEmitter {
             this.statistics.completedTasks++;
 
             // 更新平均執行時間
-            const totalTime = this.statistics.averageExecutionTime * (this.statistics.completedTasks - 1) + task.executionTime;
+            const totalTime =
+                this.statistics.averageExecutionTime * (this.statistics.completedTasks - 1) +
+                task.executionTime;
             this.statistics.averageExecutionTime = totalTime / this.statistics.completedTasks;
-
         } else {
             this.statistics.failedTasks++;
         }
@@ -634,7 +625,6 @@ class ParallelCrawler extends EventEmitter {
 
             logger.info('並行爬取系統已停止');
             this.emit('stopped');
-
         } catch (error) {
             logger.error('停止並行爬取系統失敗', { error: error.message });
             throw error;
@@ -648,7 +638,7 @@ class ParallelCrawler extends EventEmitter {
         const startTime = Date.now();
 
         while (this.runningTasks.size > 0 && Date.now() - startTime < timeoutMs) {
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
 
         if (this.runningTasks.size > 0) {
@@ -700,7 +690,7 @@ class ParallelCrawler extends EventEmitter {
             isPaused: this.isPaused,
             queueSize: this.getQueueSize(),
             runningTasks: this.runningTasks.size,
-            availableWorkers: this.workerPool.filter(w => !w.isActive).length,
+            availableWorkers: this.workerPool.filter((w) => !w.isActive).length,
             totalWorkers: this.workerPool.length,
             statistics: { ...this.statistics },
             resourceUsage: this.options.resourceMonitoring ? this.resourceMonitor.getStats() : null
@@ -751,7 +741,7 @@ class LoadBalancer {
     }
 
     selectOptimalWorker(workers, strategy = this.currentStrategy) {
-        const availableWorkers = workers.filter(worker => !worker.isActive);
+        const availableWorkers = workers.filter((worker) => !worker.isActive);
 
         if (availableWorkers.length === 0) {
             return null;
@@ -906,14 +896,14 @@ class ResourceMonitor {
         let totalIdle = 0;
         let totalTick = 0;
 
-        cpus.forEach(cpu => {
-            for (type in cpu.times) {
+        cpus.forEach((cpu) => {
+            for (const type in cpu.times) {
                 totalTick += cpu.times[type];
             }
             totalIdle += cpu.times.idle;
         });
 
-        return 1 - (totalIdle / totalTick);
+        return 1 - totalIdle / totalTick;
     }
 
     getStats() {

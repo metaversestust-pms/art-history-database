@@ -48,7 +48,6 @@ class VectorDBSetup {
 
             console.log('\n✅ 向量資料庫初始化完成！');
             return true;
-
         } catch (error) {
             console.error('❌ 初始化失敗:', error.message);
             return false;
@@ -94,7 +93,7 @@ class VectorDBSetup {
                     created_at: new Date().toISOString(),
                     specialized: config.specialized || false
                 },
-                embeddingFunction: null  // 不使用預設嵌入函數
+                embeddingFunction: null // 不使用預設嵌入函數
             });
 
             console.log(`✅ 已建立集合: ${fullName}`);
@@ -103,7 +102,6 @@ class VectorDBSetup {
             console.log(`   🔍 索引類型: ${config.index_type || 'HNSW'}\n`);
 
             return collection;
-
         } catch (error) {
             console.error(`❌ 建立集合 "${fullName}" 失敗:`, error.message);
             throw error;
@@ -121,7 +119,9 @@ class VectorDBSetup {
                     console.log(`   ${index + 1}. ${collection.name}`);
                     if (collection.metadata) {
                         console.log(`      🏷️  描述: ${collection.metadata.description || 'N/A'}`);
-                        console.log(`      📊 嵌入模型: ${collection.metadata.embedding_model || 'N/A'}`);
+                        console.log(
+                            `      📊 嵌入模型: ${collection.metadata.embedding_model || 'N/A'}`
+                        );
                         console.log(`      📐 向量維度: ${collection.metadata.dimension || 'N/A'}`);
                     }
                     console.log('');
@@ -168,7 +168,7 @@ async function main() {
     const command = args[0] || 'init';
 
     switch (command) {
-        case 'init':
+        case 'init': {
             const success = await setup.initializeCollections();
             if (success) {
                 await setup.listCollections();
@@ -176,6 +176,7 @@ async function main() {
             }
             process.exit(success ? 0 : 1);
             break;
+        }
 
         case 'list':
             await setup.testConnection();
@@ -207,7 +208,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('❌ 執行失敗:', error);
         process.exit(1);
     });

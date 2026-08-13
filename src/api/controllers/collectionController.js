@@ -20,25 +20,34 @@ class CollectionController {
             const limit = Math.min(parseInt(req.query.limit) || 20, 100);
             const offset = (page - 1) * limit;
 
-            const collections = await this.collectionModel.findAll(limit, offset);
-
-            // 獲取每個館藏的機構資訊和作品統計
-            const collectionsWithDetails = await Promise.all(
-                collections.map(async (collection) => {
-                    if (collection.institution_id) {
-                        const institution = await this.institutionModel.findById(collection.institution_id);
-                        collection.institution = institution;
-                    }
-
-                    // 獲取館藏中的作品數量
-                    const artworkCount = await this.artworkModel.query(`
-                        SELECT COUNT(*) as count FROM artworks WHERE collection_id = $1
-                    `, [collection.id]);
-                    collection.artwork_count = parseInt(artworkCount.rows[0].count);
-
-                    return collection;
-                })
+            // schema 中 collections 是「作品↔機構」的關聯表（c.artwork_id 指向作品），
+            // 不存在 artworks.collection_id 這種反向欄位。單一 join 查詢同時
+            // 帶出機構與作品，也避免原本的 N+1。
+            const result = await this.collectionModel.query(
+                `
+                SELECT c.*,
+                       i.name AS institution_name, i.type AS institution_type,
+                       w.title AS artwork_title
+                FROM collections c
+                LEFT JOIN institutions i ON c.institution_id = i.id
+                LEFT JOIN artworks w ON c.artwork_id = w.id
+                ORDER BY c.created_at DESC
+                LIMIT $1 OFFSET $2
+            `,
+                [limit, offset]
             );
+
+            const collectionsWithDetails = result.rows.map((row) => {
+                const { institution_name, institution_type, ...collection } = row;
+                if (collection.institution_id) {
+                    collection.institution = {
+                        id: collection.institution_id,
+                        name: institution_name,
+                        type: institution_type
+                    };
+                }
+                return collection;
+            });
 
             return successResponse(res, collectionsWithDetails, {
                 page,
@@ -67,7 +76,8 @@ class CollectionController {
             }
 
             // 獲取館藏記錄相關統計
-            const stats = await this.collectionModel.query(`
+            const stats = await this.collectionModel.query(
+                `
                 SELECT
                     c.accession_number,
                     c.acquisition_date,
@@ -79,7 +89,9 @@ class CollectionController {
                 FROM collections c
                 LEFT JOIN artworks a ON c.artwork_id = a.id
                 WHERE c.id = $1
-            `, [id]);
+            `,
+                [id]
+            );
 
             collection.statistics = stats.rows[0];
 
@@ -102,8 +114,9 @@ class CollectionController {
 
             // 獲取關聯的作品詳細資訊
             const artwork = await this.artworkModel.findById(collection.artwork_id);
-            const institution = collection.institution_id ?
-                await this.institutionModel.findById(collection.institution_id) : null;
+            const institution = collection.institution_id
+                ? await this.institutionModel.findById(collection.institution_id)
+                : null;
 
             return successResponse(res, {
                 collection_record: collection,
@@ -166,7 +179,10 @@ class CollectionController {
             }
 
             // 如果更新機構ID，檢查機構是否存在
-            if (updateData.institution_id && updateData.institution_id !== existingCollection.institution_id) {
+            if (
+                updateData.institution_id &&
+                updateData.institution_id !== existingCollection.institution_id
+            ) {
                 const institution = await this.institutionModel.findById(updateData.institution_id);
                 if (!institution) {
                     return errorResponse(res, 'Institution not found', null, 404);
@@ -194,16 +210,9 @@ class CollectionController {
                 return errorResponse(res, 'Collection not found', null, 404);
             }
 
-            // 檢查是否有關聯的藝術品
-            const relatedArtworks = await this.artworkModel.query(
-                'SELECT COUNT(*) as count FROM artworks WHERE collection_id = $1',
-                [id]
-            );
-
-            if (parseInt(relatedArtworks.rows[0].count) > 0) {
-                return errorResponse(res, 'Cannot delete collection with associated artworks', null, 409);
-            }
-
+            // collections 本身就是「作品↔機構」的關聯列，刪除它不會孤立任何
+            // 作品（原本的守衛查詢引用不存在的 artworks.collection_id，
+            // 導致刪除永遠 500）。
             await this.collectionModel.delete(id);
             return successResponse(res, { message: 'Collection deleted successfully' });
         } catch (error) {
@@ -260,30 +269,22 @@ class CollectionController {
     // 獲取館藏統計
     async getCollectionStatistics(req, res) {
         try {
+            // 每筆 collection 對應一件作品（c.artwork_id），統計以此為準。
             const stats = await this.collectionModel.query(`
                 SELECT
                     COUNT(*) as total_collections,
                     COUNT(DISTINCT institution_id) as unique_institutions,
-                    AVG(total_artworks) as avg_artworks_per_collection
-                FROM (
-                    SELECT
-                        c.id,
-                        c.institution_id,
-                        COUNT(a.id) as total_artworks
-                    FROM collections c
-                    LEFT JOIN artworks a ON c.id = a.collection_id
-                    GROUP BY c.id, c.institution_id
-                ) as collection_stats
+                    COUNT(DISTINCT artwork_id) as unique_artworks
+                FROM collections
             `);
 
             const institutionStats = await this.collectionModel.query(`
                 SELECT
                     i.name as institution_name,
                     COUNT(c.id) as collection_count,
-                    COUNT(a.id) as total_artworks
+                    COUNT(DISTINCT c.artwork_id) as total_artworks
                 FROM institutions i
                 LEFT JOIN collections c ON i.id = c.institution_id
-                LEFT JOIN artworks a ON c.id = a.collection_id
                 GROUP BY i.id, i.name
                 ORDER BY collection_count DESC
                 LIMIT 10

@@ -9,8 +9,8 @@ const { rateLimitMiddleware } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-// 應用速率限制
-router.use(rateLimitMiddleware);
+// 應用速率限制（factory，必須呼叫 —— 見 collectionRoutes.js 同處說明）。
+router.use(rateLimitMiddleware());
 
 // 搜索端點
 router.get('/', searchController.globalSearch.bind(searchController));
