@@ -98,11 +98,12 @@ class EnhancedAdaptiveManager:
 
     async def select_optimal_strategy(self, context: QueryContext) -> ContextualRAGStrategy:
         """選擇最優檢索策略"""
-        # 1. 分析查詢情境
-        intent_score = self._analyze_query_intent(context)
-        complexity_score = self._calculate_complexity(context)
+        # TODO(未實作): 查詢意圖與複雜度分析未接入策略選擇。
+        # _analyze_query_intent() 與 _calculate_complexity() 兩個方法都存在且可用，
+        # 原本應在此處計算後納入下方評分，但其結果從未被使用（算完即丟）。
+        # 已移除空轉的呼叫；要啟用時需決定兩者在 strategy_scores 中的權重。
 
-        # 2. 獲取候選策略
+        # 1. 獲取候選策略
         candidate_strategies = self._get_candidate_strategies(context)
 
         # 3. 基於歷史性能評分

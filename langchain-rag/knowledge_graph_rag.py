@@ -51,7 +51,7 @@ class Neo4jArtHistoryGraph:
             self.driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
             # 測試連接
             with self.driver.session() as session:
-                result = session.run("RETURN 'connection successful' AS message")
+                session.run("RETURN 'connection successful' AS message")
                 logger.info("✅ Neo4j連接成功")
                 return True
         except Exception as e:

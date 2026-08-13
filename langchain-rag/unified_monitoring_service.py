@@ -1021,8 +1021,10 @@ class UnifiedMonitoringService:
         # 啟動核心監控組件
         await self.monitor.start_monitoring()
 
-        # 啟動告警系統（這會自動啟動監控和優化循環）
-        alert_task = asyncio.create_task(self.alert_system.start_monitoring())
+        # 啟動告警系統（這會自動啟動監控和優化循環）。
+        # 必須保留 task 的強參照：事件迴圈只持有弱參照，丟棄回傳值會讓
+        # 這個長期執行的 task 隨時可能被 GC 回收而靜默中斷。
+        self._alert_task = asyncio.create_task(self.alert_system.start_monitoring())
 
         self.logger.info("統一監控服務已全面啟動")
 

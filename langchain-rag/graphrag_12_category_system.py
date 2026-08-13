@@ -610,12 +610,13 @@ class GraphRAGQueryRouter:
 
     def generate_cypher_query(self, query_analysis: Dict[str, Any], limit: int = 50) -> str:
         """基於查詢分析生成Cypher查詢"""
-        config = query_analysis["query_config"]
         pattern = query_analysis["selected_pattern"]
 
-        # 構建入口節點匹配
-        entry_categories = config["entry_categories"]
-        target_categories = config["target_categories"]
+        # TODO(未實作): 12 分類系統的 entry_categories / target_categories 未生效。
+        # query_config 帶有這兩個欄位，原意是用它們動態組出 MATCH 的節點標籤，
+        # 但下方每個 pattern 的 Cypher 都把標籤寫死（Painting|Sculpture|Drawing…），
+        # 讀出來的值從未被使用。分類設定因此對實際查詢沒有任何影響。
+        # 已移除空轉的讀取；要啟用時需把標籤改為由 categories 動態生成。
 
         if pattern == "artist_works":
             cypher = f"""

@@ -331,7 +331,7 @@ def inference():
     try:
         data = request.json
         texts = data.get("texts", [])
-        tasks = data.get("tasks", ["classification"])
+        # TODO(未實作): tasks 參數被接收但從未使用，端點目前一律執行預設分析。
         model_version = data.get("model_version", "latest")
 
         if not texts:
@@ -452,7 +452,7 @@ def similarity_search():
         data = request.json
         query_text = data.get("query_text", "")
         top_k = data.get("top_k", 10)
-        include_embeddings = data.get("include_embeddings", False)
+        # TODO(未實作): include_embeddings 參數被接收但從未使用，回應一律不含向量。
 
         if not query_text:
             return jsonify({"success": False, "error": "沒有提供查詢文本"}), 400

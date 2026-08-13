@@ -489,9 +489,9 @@ class ExperimentScheduler:
 
     async def _check_dependent_experiments(self, completed_experiment_id: str):
         """檢查依賴已完成實驗的其他實驗"""
-        # 重新檢查待定隊列中的實驗
-        updated_queue = []
-
+        # 重新檢查待定隊列中的實驗。
+        # 註：原本另外宣告了 updated_queue 但從未使用——實作改為原地更新
+        # experiment.status，佇列本身交由下次調度循環處理，故已移除。
         for experiment in self.pending_queue:
             if completed_experiment_id in experiment.dependencies:
                 # 重新檢查依賴

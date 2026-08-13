@@ -290,7 +290,7 @@ class TestPerformance(unittest.TestCase):
         ]
 
         start_time = time.time()
-        report = monitor.assess_data_quality(test_records, "performance_test")
+        monitor.assess_data_quality(test_records, "performance_test")
         end_time = time.time()
 
         processing_time = end_time - start_time
@@ -308,7 +308,7 @@ class TestPerformance(unittest.TestCase):
         )
 
         start_time = time.time()
-        result = agent.generate_summary(text, SummaryLevel.BRIEF)
+        agent.generate_summary(text, SummaryLevel.BRIEF)
         end_time = time.time()
 
         processing_time = end_time - start_time

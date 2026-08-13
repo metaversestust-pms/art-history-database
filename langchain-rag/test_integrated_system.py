@@ -260,7 +260,7 @@ def run_performance_benchmark():
         times = []
         for query in benchmark_queries:
             start = time.time()
-            result = await optimizer.query(query)
+            await optimizer.query(query)
             duration = time.time() - start
             times.append(duration)
             print(f"查詢: {query[:20]}... 時間: {duration:.3f}s")

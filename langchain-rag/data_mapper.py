@@ -150,7 +150,10 @@ class ArtHistoryDataMapper:
         """確定作品的具體類型"""
         dc_type = item.get("dcType", "").lower()
         dc_format = item.get("dcFormat", "").lower()
-        title = item.get("dcTitle", "").lower()
+
+        # 註：原本此處另外取出 dcTitle 卻從未使用，已移除。
+        # 刻意不把標題納入類型判斷——標題描述的是「主題」而非「媒材」，
+        # 例如一幅描繪雕像的油畫會因標題含 statue 而被誤判為 SCULPTURE。
 
         # 繪畫
         if any(

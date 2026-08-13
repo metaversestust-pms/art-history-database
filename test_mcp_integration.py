@@ -277,7 +277,7 @@ class MCPIntegrationTester:
 
             # 測試無效Agent類型創建
             try:
-                agent = MCPAgentFactory.create_mcp_agent("invalid_type")
+                MCPAgentFactory.create_mcp_agent("invalid_type")
                 self.log_test_result("無效Agent類型處理", False, "應該拋出異常")
             except ValueError:
                 self.log_test_result("無效Agent類型處理", True, "正確拋出ValueError")

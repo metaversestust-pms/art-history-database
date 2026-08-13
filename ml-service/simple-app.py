@@ -265,7 +265,7 @@ def inference():
     try:
         data = request.json
         texts = data.get("texts", [])
-        tasks = data.get("tasks", ["classification"])
+        # TODO(未實作): tasks 參數被接收但從未使用，端點目前一律執行預設分析。
         model_version = data.get("model_version", "latest")
 
         if not texts:
@@ -512,7 +512,7 @@ def similarity_search():
         data = request.json
         query_text = data.get("query_text", "")
         top_k = data.get("top_k", 10)
-        include_embeddings = data.get("include_embeddings", False)
+        # TODO(未實作): include_embeddings 參數被接收但從未使用，回應一律不含向量。
 
         if not query_text:
             return jsonify({"success": False, "error": "沒有提供查詢文本"}), 400
@@ -638,8 +638,10 @@ def internal_error(error):
 def extract_image_features():
     """圖像特徵提取"""
     try:
-        data = request.json
-        image_path = data.get("image_path", "")
+        # 保留解析動作：Flask 會在 Content-Type 非 JSON 時拒絕請求，
+        # 這是此端點僅存的輸入驗證。
+        request.get_json()
+        # TODO(未實作): image_path 參數被接收但從未使用，以下為固定的模擬輸出。
 
         # 模擬圖像特徵提取
         import random
@@ -904,7 +906,7 @@ def multimodal_generate():
     try:
         data = request.json
         text_input = data.get("text_input", "")
-        image_features = data.get("image_features", [])
+        # TODO(未實作): image_features 參數被接收但從未使用，以下為固定的模擬輸出。
 
         # 模擬多模態描述生成
         descriptions = [

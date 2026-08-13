@@ -782,7 +782,7 @@ async def main():
         )
         await asyncio.sleep(1)
 
-    # 啟動告警系統
+    # 啟動告警系統。保留 task 參照，避免事件迴圈只持弱參照而被 GC 中途回收。
     alert_task = asyncio.create_task(alert_system.start_monitoring())
 
     # 運行5分鐘
@@ -795,6 +795,7 @@ async def main():
     # 停止系統
     await alert_system.stop_monitoring()
     await monitor.stop_monitoring()
+    await alert_task
 
 
 if __name__ == "__main__":
