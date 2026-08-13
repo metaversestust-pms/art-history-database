@@ -1,0 +1,30 @@
+root = true
+
+# 全 repo 既有狀態為 UTF-8（無 BOM）+ CRLF，維持不變以避免整檔 diff。
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{js,cjs,mjs}]
+indent_size = 4
+
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.{sh,bash}]
+indent_size = 2
+
+# Markdown 行尾雙空格是換行語法，不可裁切。
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

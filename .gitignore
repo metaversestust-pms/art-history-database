@@ -117,3 +117,6 @@ comprehensive_art_data/
 renaissance_baroque_data/
 data/enhanced/
 data/experiments/
+
+# RAG 管理器服務執行期產生的查詢日誌（smart_keyword_extractor）
+langchain-rag/query_logs/

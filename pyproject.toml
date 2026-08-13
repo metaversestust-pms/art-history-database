@@ -1,0 +1,44 @@
+# 本檔僅用於工具設定（無 [project] 區段），不改變既有的 requirements*.txt 安裝方式。
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"   # 線上服務跑在 /opt/arthistory/venv 的 Python 3.10
+
+exclude = [
+    "_legacy_archive_20260806",
+    "node_modules",
+    "db_backups",
+    "data",
+    "notebooks",
+    "**/venv",
+    "**/cuda_art_env",
+    "langchain-rag/query_logs",
+    # ruff format 會重排 Markdown 內的 ```python 區塊。本 repo 有 165 份報告文件，
+    # 其中不少程式碼片段是示意用途，重排只會製造審閱噪音，故排除。
+    "*.md",
+]
+
+[tool.ruff.lint]
+# 刻意維持保守：pycodestyle(E/W) + pyflakes(F) + isort(I)。
+#
+# 未啟用 UP（pyupgrade）：它會改寫 1000+ 處型別註解（Dict -> dict 等），
+# 屬於現代化改造而非風格統一，風險與本次目標不相稱。要做應另開一次變更。
+select = ["E", "W", "F", "I"]
+
+ignore = [
+    "E501",  # 行長由 ruff format 處理；剩餘超長多為無法斷行的長字串與網址
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]           # 套件匯出用的 re-export
+"tests/**" = ["F401", "F811"]
+"**/test_*.py" = ["F401", "F811"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "langchain-rag", "agents"]
+
+[tool.ruff.format]
+quote-style = "double"       # 既有程式碼雙引號 16,682 vs 單引號 6,490
+indent-style = "space"
+line-ending = "auto"         # 保留現有 CRLF，避免整檔 diff
+docstring-code-format = false

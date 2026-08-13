@@ -1,0 +1,27 @@
+node_modules/
+coverage/
+_legacy_archive_20260806/
+db_backups/
+data/
+notebooks/
+package-lock.json
+langchain-rag/query_logs/
+**/*.min.js
+
+# ---------------------------------------------------------------------------
+# Prettier 在本 repo 的職責限定為「JS 原始碼」。
+#
+# 以下格式一律不碰，因為它們在這個專案裡幾乎全是「資料」而非原始碼：
+#   *.json  —— 爬蟲產出（harvard_objects、unified_entities）、測試結果、
+#               執行期狀態（config/crawl-intervals.json 由程式寫入）。
+#               重排會製造大量無意義 diff，且爬蟲重跑時產生假衝突。
+#   *.md    —— 165 份報告文件，重排 prose/表格與程式碼風格無關。
+#   *.yaml / *.yml / *.html —— 同理，多為設定與產出樣板。
+#
+# Python 由 ruff format 負責（見 pyproject.toml）。
+# ---------------------------------------------------------------------------
+*.json
+*.md
+*.yaml
+*.yml
+*.html
