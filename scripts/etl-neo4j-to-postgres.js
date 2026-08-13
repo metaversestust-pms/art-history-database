@@ -102,6 +102,54 @@ async function etlInstitutions(session, client) {
     return idByName;
 }
 
+/**
+ * 對帳：移除圖譜中已不存在、但仍留在 PostgreSQL 的 artist。
+ *
+ * upsert 只會新增與更新，不會反映來源端的刪除。當圖譜做了實體合併
+ * （見 scripts/merge-duplicate-artists.js），被併掉的節點會在 PostgreSQL
+ * 留下孤兒列，讓 API 依然查得到重複的藝術家。
+ *
+ * 三重安全限制——artists.id 被 artworks 以 ON DELETE CASCADE 參照，
+ * 誤刪會連帶刪掉作品：
+ *   1. 只刪本 ETL 寫入的列（metadata.etl = 'neo4j_etl'），不碰爬蟲或 API 建立的資料
+ *   2. 只刪名稱已不在目前圖譜中的
+ *   3. 只刪沒有任何作品參照的（有作品代表對應關係仍在，不該刪）
+ */
+async function reconcileDeletedArtists(client, graphNames) {
+    const names = [...graphNames];
+    const res = await client.query(
+        `DELETE FROM artists a
+         WHERE a.metadata->>'etl' = 'neo4j_etl'
+           AND NOT (a.name = ANY($1::text[]))
+           AND NOT EXISTS (SELECT 1 FROM artworks w WHERE w.artist_id = a.id)
+         RETURNING a.name`,
+        [names]
+    );
+    if (res.rowCount > 0) {
+        console.log(`   🧹 移除圖譜中已不存在的 artist: ${res.rowCount} 筆`);
+        for (const row of res.rows.slice(0, 5)) {
+            console.log(`      - ${row.name}`);
+        }
+        if (res.rowCount > 5) console.log(`      ... 另外 ${res.rowCount - 5} 筆`);
+    }
+
+    // 仍有作品參照、但已不在圖譜中的，只提示不刪除（需人工判斷）
+    const stuck = await client.query(
+        `SELECT a.name, count(w.id) AS works
+         FROM artists a JOIN artworks w ON w.artist_id = a.id
+         WHERE a.metadata->>'etl' = 'neo4j_etl' AND NOT (a.name = ANY($1::text[]))
+         GROUP BY a.name ORDER BY works DESC LIMIT 5`,
+        [names]
+    );
+    if (stuck.rowCount > 0) {
+        console.log(`   ⚠️ 已不在圖譜但仍有作品參照，保留待人工確認: ${stuck.rowCount} 筆`);
+        for (const row of stuck.rows) {
+            console.log(`      - ${row.name} (${row.works} 件作品)`);
+        }
+    }
+    return res.rowCount;
+}
+
 async function etlArtists(session, client) {
     const result = await session.run(
         `MATCH (a:Artist) WHERE a.name IS NOT NULL
@@ -278,6 +326,11 @@ async function main() {
             artistIdByName,
             institutionIdByName
         );
+
+        // 作品重新指派 artist_id 之後才對帳，否則仍被參照的孤兒無法移除
+        if (!DRY_RUN) {
+            await reconcileDeletedArtists(client, new Set(artistIdByName.keys()));
+        }
 
         if (!DRY_RUN) {
             const counts = await client.query(`
